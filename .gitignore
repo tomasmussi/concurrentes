@@ -2,3 +2,5 @@
 cmake-build-debug/
 *.o
 tp?
+.metadata
+RemoteSystemsTempFiles/
