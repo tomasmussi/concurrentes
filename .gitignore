@@ -1,6 +1,9 @@
 .idea/
 cmake-build-debug/
 *.o
-tp?
 .metadata
 RemoteSystemsTempFiles/
+tp1/.cproject
+tp1/.project
+tp1/.settings/
+tp1/Debug/
