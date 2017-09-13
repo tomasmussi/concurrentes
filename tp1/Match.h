@@ -7,7 +7,13 @@
 
 
 #include <list>
+#include <map>
 
+/**
+ * Proceso encargado de recibir dos parejas de equipos
+ * y realizar la simulacion del partido y devolver un resultado
+ * con los puntos que gano cada uno de los integrantes y el partido como salio
+ * */
 class Match {
 private:
     std::list<int> _team1;
@@ -16,6 +22,12 @@ private:
     int _column;
 public:
     Match(const std::list<int>& team1, const std::list<int>& team2, int row, int column);
+    std::map<int, int> get_individual_scores();
+    int get_team1_score() const;
+    int get_team2_score() const;
+    std::list<int> get_team1() const;
+    std::list<int> get_team2() const;
+
 };
 
 

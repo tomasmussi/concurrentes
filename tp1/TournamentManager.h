@@ -8,6 +8,7 @@
 
 #include <list>
 #include <map>
+#include "MatchesRecorder.h"
 
 /**
  * Proceso encargado de armar parejas que no se repitan
@@ -19,9 +20,21 @@ private:
     int _rows;
     int _columns;
     bool _started;
+
+    // ID persona que pasa el Subscriber
     std::list<int> _people;
+
+    // Registro de personas que hicieron pareja con otras personas
+    // Se accede _pairs[pers1][pers2], si existe la clave es porque hicieron pareja
     std::map<int, std::map<int,int > > _pairs;
+
+    // Canchas del torneo (todavia no lo use)
     std::map<int, std::map<int,int > > _tournament_courts;
+
+    // Mapa que tiene ID persona y puntos individuales que acumulo
+    std::map<int, int> _people_individual_positions;
+
+    MatchesRecorder* _matches_recorder;
 
     std::list<int> get_team();
     std::list<int> get_team_for(const std::list<int> & team);
@@ -29,6 +42,7 @@ private:
 
 public:
     TournamentManager(int k, int rows, int columns);
+    ~TournamentManager();
     void start_competition(const std::list<int> & subscribed_people);
     void add_competitor(const int person);
     bool started();
