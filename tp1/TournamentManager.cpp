@@ -57,7 +57,7 @@ void TournamentManager::do_job() {
     std::list<int> team = get_team();
     std::list<int> opponents = get_team_for(team);
     // dispatch teams
-    Match match(team, opponents, 1, 1);
+    Match match(team, opponents, 1, 1, 0.5);
     // Pareceria que no es responsabilidad de Tournament Manager mantener ninguna tabla de posiciones
     /*
     std::map<int, int> player_points = match.get_individual_scores();
