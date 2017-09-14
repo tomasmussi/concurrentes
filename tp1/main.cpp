@@ -16,16 +16,15 @@ int main(int argc, char* argv[]) {
         columns = atoi(argv[3]);
     }
 
-    std::cout << "Hello, World!" << std::endl;
     Subscriber subscriber;
     TournamentManager manager(k, rows, columns);
     subscriber.add_manager(&manager);
     for (int i = 0; i < 10; i++) {
         subscriber.subscribe_person(i);
     }
-    while (!manager.finished()) {
+    while (manager.do_job()) {
         subscriber.do_job();
-        manager.do_job();
     }
+    manager.get_recorder()->list_all_matches();
     return 0;
 }

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include "TournamentManager.h"
 #include "Subscriber.h"
-#include <unistd.h>
+
 
 TournamentManager::TournamentManager(int k, int rows, int columns) :
     _k(k), _rows(rows), _columns(columns), _started(false), _people(), _tournament_courts(),
@@ -44,32 +44,43 @@ bool TournamentManager::started() {
     return _started;
 }
 
-/*
- * TODO: Definir cuando es que el torneo termino
- * Creo que es cuando no se pueden armar mas parejas
+/**
+ * Se necesitan 4 o mas parejas que no hayan superado el numero K de parejas posibles
  * */
-bool TournamentManager::finished() {
-    return false;
+bool TournamentManager::no_more_couples() {
+    int left_couples = 0;
+    std::list<int>::iterator it;
+    for (it = _people.begin(); it != _people.end(); ++it) {
+        int person_couples = _pairs[*it].size();
+        if (person_couples < _k) {
+            left_couples++;
+        }
+    }
+    return left_couples < 4;
 }
 
-
-void TournamentManager::do_job() {
-    std::list<int> team = get_team();
-    std::list<int> opponents = get_team_for(team);
-    // dispatch teams
-    Match match(team, opponents, 1, 1, 0.5);
-    // Pareceria que no es responsabilidad de Tournament Manager mantener ninguna tabla de posiciones
-    /*
-    std::map<int, int> player_points = match.get_individual_scores();
-    for (std::map<int, int>::iterator it = player_points.begin(); it != player_points.end(); ++it) {
-
+/**
+ * Hay dos motivos que provocan la finalizacion del torneo:
+ * 1) Todas las personas ya jugaron K partidos
+ * 2) Por mas que haya gente sin jugar K partidos, no se pueden formar mas equipos
+ * porque ya todos hicieron pareja con todos
+ * */
+bool TournamentManager::do_job() {
+    if (no_more_couples()) {
+        return false;
     }
-    */
-    _matches_recorder->add_match(match);
-    _matches_recorder->list_all_matches();
+    std::list<int> team = get_team();
+    if (team.size() == 0) {
+        return false;
+    }
+    std::list<int> opponents = get_team_for(team);
+    if (opponents.size() == 0) {
+        return false;
+    }
 
-    // TODO BORRAR!!!!! ES SOLO PARA VER BIEN LA TABLA DE RESULTADOS
-    sleep(1);
+    Match match(team, opponents, 1, 1, 0.5);
+    _matches_recorder->add_match(match);
+    return true;
 }
 
 std::list<int> TournamentManager::get_team() {
@@ -115,4 +126,9 @@ std::list<int> TournamentManager::get_team_for(const std::list<int> & team) {
     }
     return other_team;
 }
+
+MatchesRecorder* TournamentManager::get_recorder() {
+    return _matches_recorder;
+}
+
 

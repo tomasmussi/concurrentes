@@ -39,6 +39,7 @@ private:
     std::list<int> get_team();
     std::list<int> get_team_for(const std::list<int> & team);
     bool in_team(const std::list<int>& team, int person);
+    bool no_more_couples();
 
 public:
     TournamentManager(int k, int rows, int columns);
@@ -46,10 +47,10 @@ public:
     void start_competition(const std::list<int> & subscribed_people);
     void add_competitor(const int person);
     bool started();
+    bool do_job();
 
-    bool finished();
-
-    void do_job();
+    // Esto es dudoso, sacar
+    MatchesRecorder* get_recorder();
 };
 
 
