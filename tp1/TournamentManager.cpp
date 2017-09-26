@@ -85,8 +85,8 @@ bool TournamentManager::do_job() {
 
 std::list<int> TournamentManager::get_team() {
     std::list<int> team;
-    for (int person = 0; person < _people.size(); person++) {
-        for (int couple = 0; couple < _people.size(); couple++) {
+    for (size_t person = 0; person < _people.size(); person++) {
+        for (size_t couple = 0; couple < _people.size(); couple++) {
             if (person != couple) {
                 if (_pairs[person].find(couple) == _pairs[person].end()) {
                     _pairs[person][couple] = 1;
@@ -107,11 +107,11 @@ bool TournamentManager::in_team(const std::list<int>& team, int person) {
 
 std::list<int> TournamentManager::get_team_for(const std::list<int> & team) {
     std::list<int> other_team;
-    for (int person = 0; person < _people.size(); person++) {
+    for (size_t person = 0; person < _people.size(); person++) {
         if (in_team(team, person)) {
             continue;
         }
-        for (int couple = 0; couple < _people.size(); couple++) {
+        for (size_t couple = 0; couple < _people.size(); couple++) {
             if (person == couple || in_team(team, couple)) {
                 continue;
             }
