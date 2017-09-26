@@ -88,30 +88,39 @@ int main(int argc, char* argv[]) {
 #include <sys/wait.h>
 
 
+#include "MainSIGIntHandler.h"
+#include "SignalHandler.h"
+
 #include "PeopleRegisterWorker.h"
 #include "BeachManagerWorker.h"
+#include "SIGIntHandler.h"
 
 #define N_WORKERS 2
 
 int main(int argc, char* argv[]) {
-    WorkerProcess* arr[N_WORKERS] = {new PeopleRegisterWorker(), new BeachManagerWorker()};
+    // MainSIGIntHandler sigint_handler;
+    SIGIntHandler sigint_handler;
+    SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
 
-    bool father = true;
-    int hijo = 0;
-    for (int i = 0; i < 2; i++) {
+    WorkerProcess* arr[N_WORKERS] = {new PeopleRegisterWorker(), new BeachManagerWorker()};
+    bool is_father = true;
+    int son_process = 0;
+    for (int i = 0; i < N_WORKERS; i++) {
         pid_t pid = fork();
         if (pid == 0) {
-            father = false;
+            is_father = false;
             std::cout << "hijo " << i << std::endl;
-            hijo = arr[i]->loop();
+            son_process = arr[i]->loop();
             break;
         } else {
+            // sigint_handler.add_pid_notification(pid);
             std::cout << "padre, despache: ["<< pid << "]" << std::endl;
         }
     }
-    if (father) {
-        for (int i = 0; i < 2; i++) {
+    if (is_father) {
+        for (int i = 0; i < N_WORKERS; i++) {
             int status;
+            std::cout << "llegue al wait (bloqueado)"<< std::endl;
             pid_t t = wait(&status);
             std::cout << "[" << t << "] termino con: " << WEXITSTATUS(status) << std::endl;
         }
@@ -120,5 +129,5 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < N_WORKERS; i++) {
         delete arr[i];
     }
-    return hijo;
+    return son_process;
 }
