@@ -29,63 +29,11 @@ int main(int argc, char* argv[]) {
     return 0;
 }*/
 
-/*
 #include <iostream>
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/wait.h>
-
-
-int f1() {
-    sleep(3);
-    std::cout << "f1" << std::endl;
-    return 1;
-}
-int f2() {
-    sleep(2);
-    std::cout << "f2" << std::endl;
-    return 2;
-}
-int f3() {
-    sleep(2);
-    std::cout << "f3" << std::endl;
-    return 3;
-}
-typedef int (*f)();
-
-
-int main(int argc, char* argv[]) {
-    f arr[3] = {&f1, &f2, &f3};
-    arr[0]();
-    bool father = true;
-    int hijo = 0;
-    for (int i = 0; i < 3; i++) {
-        pid_t pid = fork();
-        if (pid == 0) {
-            father = false;
-            std::cout << "hijo " << i << std::endl;
-            hijo = arr[i]();
-            break;
-        } else {
-            std::cout << "padre, sigo de largo" << std::endl;
-        }
-    }
-    if (father) {
-        for (int i = 0; i < 3; i++) {
-            int status;
-            pid_t t = wait(&status);
-            std::cout << "[" << t << "] termino con: " << WEXITSTATUS(status) << std::endl;
-        }
-        std::cout << "fin wating children" << std::endl;
-    }
-    return hijo;
-}*/
-
-
-#include <iostream>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
+#include <cerrno>
+#include <cstring>
 
 
 #include "MainSIGIntHandler.h"
@@ -93,41 +41,48 @@ int main(int argc, char* argv[]) {
 
 #include "PeopleRegisterWorker.h"
 #include "BeachManagerWorker.h"
-#include "SIGIntHandler.h"
 
+// TODO: CUIDADO CON ESTO, CUANDO SE AGREGUE UN PROCESO HAY QUE TOCAR ESTE DEFINE
 #define N_WORKERS 2
 
 int main(int argc, char* argv[]) {
-    // MainSIGIntHandler sigint_handler;
-    SIGIntHandler sigint_handler;
+    MainSIGIntHandler sigint_handler;
     SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
 
-    WorkerProcess* arr[N_WORKERS] = {new PeopleRegisterWorker(), new BeachManagerWorker()};
+    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(),new PeopleRegisterWorker(),};
+
     bool is_father = true;
     int son_process = 0;
     for (int i = 0; i < N_WORKERS; i++) {
         pid_t pid = fork();
         if (pid == 0) {
             is_father = false;
-            std::cout << "hijo " << i << std::endl;
             son_process = arr[i]->loop();
             break;
         } else {
-            // sigint_handler.add_pid_notification(pid);
-            std::cout << "padre, despache: ["<< pid << "]" << std::endl;
+            sigint_handler.add_pid_notification(pid);
         }
     }
     if (is_father) {
-        for (int i = 0; i < N_WORKERS; i++) {
+        int collected = 0;
+        while (collected < N_WORKERS) {
             int status;
-            std::cout << "llegue al wait (bloqueado)"<< std::endl;
-            pid_t t = wait(&status);
-            std::cout << "[" << t << "] termino con: " << WEXITSTATUS(status) << std::endl;
+            pid_t child_pid = wait(&status);
+            // El proceso padre de todos llama a wait esperando que sus hijos terminen.
+            // Sin embargo, tambien es el que captura el SIGINT, por lo que se despierta
+            // con la captura de SIGINT y se setea errno con EINTR porque fue interrumpido mientras estaba
+            // bloqueado en una system call. Por eso en definitiva hay que chequear esto
+            if (child_pid == -1 && errno != EINTR) {
+                std::cerr << "ERROR: " << std::strerror(errno) << std::endl;
+            } else if (child_pid > 0) {
+                std::cout << "main:: [" << child_pid << "] termino con: " << WEXITSTATUS(status) << std::endl;
+                collected++;
+            }
         }
-        std::cout << "fin waiting children" << std::endl;
     }
     for (int i = 0; i < N_WORKERS; i++) {
         delete arr[i];
     }
+    SignalHandler::destroy();
     return son_process;
 }

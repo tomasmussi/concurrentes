@@ -11,9 +11,7 @@ MainSIGIntHandler::MainSIGIntHandler() : _pid_list() {
 MainSIGIntHandler::~MainSIGIntHandler() {
 }
 
-#include <iostream>
 int MainSIGIntHandler::handleSignal ( int signum ) {
-    std::cout << "["<<getpid()<<"]" << "handle signal en padre probablemente" << std::endl;
     for (std::list<pid_t>::iterator it = _pid_list.begin(); it != _pid_list.end(); ++it) {
         kill(*it, SIGINT);
     }

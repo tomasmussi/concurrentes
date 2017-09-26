@@ -2,7 +2,6 @@
 // Created by tomas on 26/09/17.
 //
 #include <string.h>
-
 #include "SignalHandler.h"
 
 SignalHandler* SignalHandler :: instance = NULL;
