@@ -3,12 +3,16 @@
 //
 
 #include "PeopleRegisterWorker.h"
+#include <unistd.h>
+
+PeopleRegisterWorker::PeopleRegisterWorker() : _shared_memory("/bin/bash", 'a'), i(0) {
+}
 
 PeopleRegisterWorker::~PeopleRegisterWorker() {
 }
 
 int PeopleRegisterWorker::do_work() {
-    //sleep(5);
-    //std::cout << "PeopleRegisterWorker work done" << std::endl;
+    _shared_memory.escribir(i++);
+    sleep(3);
     return 5;
 }
