@@ -48,8 +48,8 @@ int main(int argc, char* argv[]) {
 int main(int argc, char* argv[]) {
     MainSIGIntHandler sigint_handler;
     SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
-
-    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(),new PeopleRegisterWorker(),};
+    Pipe pipe;
+    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(pipe),new PeopleRegisterWorker(),};
 
     bool is_father = true;
     int son_process = 0;
@@ -64,6 +64,14 @@ int main(int argc, char* argv[]) {
         }
     }
     if (is_father) {
+        pipe.set_mode(Pipe::MODE_WRITE);
+        for (int j = 0; j < 5; j++) {
+            ssize_t written = pipe.write_pipe(&j, sizeof(int));
+            if (written == -1) {
+                std::cerr << "error pipe: " << std::strerror(errno) << std::endl;
+            }
+        }
+        pipe.close_fifo();
         int collected = 0;
         while (collected < N_WORKERS) {
             int status;

@@ -7,6 +7,7 @@
 
 #include "WorkerProcess.h"
 #include "MemoriaCompartida.h"
+#include "Pipe.h"
 
 /**
  * Clase encargada de administrar el predio de la playa, que es donde
@@ -17,8 +18,9 @@
 class BeachManagerWorker : public WorkerProcess {
 private:
     MemoriaCompartida<int> _shared_memory;
+    Pipe _pipe;
 public:
-    BeachManagerWorker();
+    BeachManagerWorker(Pipe pipe);
     virtual ~BeachManagerWorker();
     virtual int do_work();
 };
