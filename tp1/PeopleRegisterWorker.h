@@ -8,6 +8,7 @@
 
 #include "WorkerProcess.h"
 #include "MemoriaCompartida.h"
+#include "FifoLectura.h"
 
 /**
  * Clase encargada de registrar personas que quieren entrar al predio
@@ -17,6 +18,7 @@ class PeopleRegisterWorker : public WorkerProcess {
 private:
     MemoriaCompartida<int> _shared_memory;
     int i;
+    FifoLectura _pipe_reader;
 public:
     PeopleRegisterWorker();
     virtual ~PeopleRegisterWorker();

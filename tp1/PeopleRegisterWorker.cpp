@@ -3,16 +3,21 @@
 //
 
 #include "PeopleRegisterWorker.h"
-#include <unistd.h>
+#include <iostream>
 
-PeopleRegisterWorker::PeopleRegisterWorker() : _shared_memory("/bin/bash", 'a'), i(0) {
+PeopleRegisterWorker::PeopleRegisterWorker() : _shared_memory("/bin/bash", 'a'), i(0),
+    _pipe_reader("/tmp/archivo_fifo") {
+    _pipe_reader.abrir();
+    std::cout << "contruido people worker" << std::endl;
 }
 
 PeopleRegisterWorker::~PeopleRegisterWorker() {
 }
 
 int PeopleRegisterWorker::do_work() {
-    _shared_memory.escribir(i++);
+    int j;
+    _pipe_reader.leer(&j, sizeof(int));
+    std::cout << "fifo: " << j << std::endl;
     sleep(3);
     return 5;
 }

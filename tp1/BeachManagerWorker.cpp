@@ -7,19 +7,19 @@
 #include <unistd.h>
 
 BeachManagerWorker::BeachManagerWorker(Pipe pipe) : _shared_memory("/bin/bash", 'a'),
-    _pipe(pipe) {
-    _pipe.set_mode(Pipe::MODE_READ);
+    _pipe(pipe), _pipe_writer("/tmp/archivo_fifo") {
+    std::cout << "beach worker" << std::endl;
+    // _pipe.set_mode(Pipe::MODE_READ);
+    _pipe_writer.abrir();
 }
 
 BeachManagerWorker::~BeachManagerWorker() {
 }
 
 int BeachManagerWorker::do_work() {
-    /*int i = _shared_memory.leer();
-    std::cout << "leyendo: " << i << std::endl;*/
     sleep(1);
-    int j;
-    _pipe.read_pipe(&j, sizeof(int));
-    std::cout << "lei del pipe: " << j << " cuando llegue a 5 se va a quedar bloqueado" << std::endl;
+    int i = 8;
+    _pipe_writer.escribir(&i, sizeof(int));
+    std::cout << "escribi fifo: " << i << std::endl;
     return 3;
 }
