@@ -12,6 +12,9 @@ WorkerProcess::~WorkerProcess() {
 void WorkerProcess::initialize() {
 }
 
+void WorkerProcess::finalize() {
+}
+
 int WorkerProcess::loop() {
     SIGIntHandler sigint_handler;
 
@@ -23,9 +26,11 @@ int WorkerProcess::loop() {
     while ( sigint_handler.getGracefulQuit() == 0 ) {
         exit_status = do_work();
     }
+    this->finalize();
     // se recibio la senial SIGINT, el proceso termina
     SignalHandler::destroy();
     return exit_status;
 }
+
 
 

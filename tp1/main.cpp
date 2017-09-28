@@ -49,7 +49,8 @@ int main(int argc, char* argv[]) {
 int main(int argc, char* argv[]) {
     MainSIGIntHandler sigint_handler;
     SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
-    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(),new PeopleRegisterWorker(),};
+    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(),
+                                     new PeopleRegisterWorker(),};
 
     bool is_father = true;
     int son_process = 0;

@@ -23,6 +23,7 @@ public:
     PeopleRegisterWorker();
     virtual ~PeopleRegisterWorker();
     virtual void initialize();
+    virtual void finalize();
     virtual int do_work();
 };
 

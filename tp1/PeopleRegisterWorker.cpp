@@ -16,10 +16,14 @@ int PeopleRegisterWorker::do_work() {
     int j;
     _pipe_reader.leer(&j, sizeof(int));
     std::cout << "fifo: " << j << std::endl;
-    sleep(3);
+    sleep(1);
     return 5;
 }
 
 void PeopleRegisterWorker::initialize() {
     _pipe_reader.abrir();
+}
+
+void PeopleRegisterWorker::finalize() {
+    _pipe_reader.cerrar();
 }

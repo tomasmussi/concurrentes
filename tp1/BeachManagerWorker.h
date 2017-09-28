@@ -21,8 +21,10 @@ private:
     FifoEscritura _pipe_writer;
 public:
     BeachManagerWorker();
+
     virtual ~BeachManagerWorker();
     virtual void initialize();
+    virtual void finalize();
     virtual int do_work();
 };
 

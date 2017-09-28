@@ -14,7 +14,7 @@ BeachManagerWorker::~BeachManagerWorker() {
 }
 
 int BeachManagerWorker::do_work() {
-    sleep(1);
+    sleep(2);
     int i = 8;
     _pipe_writer.escribir(&i, sizeof(int));
     std::cout << "escribi fifo: " << i << std::endl;
@@ -23,4 +23,9 @@ int BeachManagerWorker::do_work() {
 
 void BeachManagerWorker::initialize() {
     _pipe_writer.abrir();
+}
+
+void BeachManagerWorker::finalize() {
+    _pipe_writer.cerrar();
+    _pipe_writer.eliminar();
 }

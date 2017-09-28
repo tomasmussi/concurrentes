@@ -7,7 +7,7 @@
 
 #include "Fifo.h"
 
-class FifoEscritura : Fifo {
+class FifoEscritura : public Fifo {
 public:
     FifoEscritura(const std::string nombre);
     ~FifoEscritura();
