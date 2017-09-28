@@ -13,6 +13,8 @@
 class WorkerProcess {
 public:
     virtual ~WorkerProcess();
+    virtual void initialize();
+    virtual void finalize();
     virtual int do_work() = 0;
     int loop();
 };

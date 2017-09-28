@@ -42,14 +42,15 @@ int main(int argc, char* argv[]) {
 #include "PeopleRegisterWorker.h"
 #include "BeachManagerWorker.h"
 
+
 // TODO: CUIDADO CON ESTO, CUANDO SE AGREGUE UN PROCESO HAY QUE TOCAR ESTE DEFINE
 #define N_WORKERS 2
 
 int main(int argc, char* argv[]) {
     MainSIGIntHandler sigint_handler;
     SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
-
-    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(),new PeopleRegisterWorker(),};
+    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(),
+                                     new PeopleRegisterWorker(),};
 
     bool is_father = true;
     int son_process = 0;
@@ -71,7 +72,7 @@ int main(int argc, char* argv[]) {
             // El proceso padre de todos llama a wait esperando que sus hijos terminen.
             // Sin embargo, tambien es el que captura el SIGINT, por lo que se despierta
             // con la captura de SIGINT y se setea errno con EINTR porque fue interrumpido mientras estaba
-            // bloqueado en una system call. Por eso en definitiva hay que chequear esto
+            // bloqueado en una system call(wait). Por eso en definitiva hay que chequear esto
             if (child_pid == -1 && errno != EINTR) {
                 std::cerr << "ERROR: " << std::strerror(errno) << std::endl;
             } else if (child_pid > 0) {

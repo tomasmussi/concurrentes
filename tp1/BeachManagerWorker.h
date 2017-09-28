@@ -6,6 +6,8 @@
 #define TP1_BEACHMANAGERWORKER_H
 
 #include "WorkerProcess.h"
+#include "MemoriaCompartida.h"
+#include "FifoEscritura.h"
 
 /**
  * Clase encargada de administrar el predio de la playa, que es donde
@@ -14,8 +16,15 @@
  * armar equipo con nadie
  * */
 class BeachManagerWorker : public WorkerProcess {
+private:
+    MemoriaCompartida<int> _shared_memory;
+    FifoEscritura _pipe_writer;
 public:
+    BeachManagerWorker();
+
     virtual ~BeachManagerWorker();
+    virtual void initialize();
+    virtual void finalize();
     virtual int do_work();
 };
 
