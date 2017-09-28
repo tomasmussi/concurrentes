@@ -7,7 +7,6 @@
 
 #include "WorkerProcess.h"
 #include "MemoriaCompartida.h"
-#include "Pipe.h"
 #include "FifoEscritura.h"
 
 /**
@@ -19,11 +18,11 @@
 class BeachManagerWorker : public WorkerProcess {
 private:
     MemoriaCompartida<int> _shared_memory;
-    Pipe _pipe;
     FifoEscritura _pipe_writer;
 public:
-    BeachManagerWorker(Pipe pipe);
+    BeachManagerWorker();
     virtual ~BeachManagerWorker();
+    virtual void initialize();
     virtual int do_work();
 };
 

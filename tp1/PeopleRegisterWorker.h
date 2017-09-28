@@ -22,6 +22,7 @@ private:
 public:
     PeopleRegisterWorker();
     virtual ~PeopleRegisterWorker();
+    virtual void initialize();
     virtual int do_work();
 };
 

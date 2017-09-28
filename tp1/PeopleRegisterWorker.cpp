@@ -7,8 +7,6 @@
 
 PeopleRegisterWorker::PeopleRegisterWorker() : _shared_memory("/bin/bash", 'a'), i(0),
     _pipe_reader("/tmp/archivo_fifo") {
-    _pipe_reader.abrir();
-    std::cout << "contruido people worker" << std::endl;
 }
 
 PeopleRegisterWorker::~PeopleRegisterWorker() {
@@ -20,4 +18,8 @@ int PeopleRegisterWorker::do_work() {
     std::cout << "fifo: " << j << std::endl;
     sleep(3);
     return 5;
+}
+
+void PeopleRegisterWorker::initialize() {
+    _pipe_reader.abrir();
 }
