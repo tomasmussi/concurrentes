@@ -41,16 +41,25 @@ int main(int argc, char* argv[]) {
 
 #include "PeopleRegisterWorker.h"
 #include "BeachManagerWorker.h"
+#include "TeamMaker.h"
 
+#include "Logger.h"
 
 // TODO: CUIDADO CON ESTO, CUANDO SE AGREGUE UN PROCESO HAY QUE TOCAR ESTE DEFINE
-#define N_WORKERS 2
+#define N_WORKERS 3
 
 int main(int argc, char* argv[]) {
     MainSIGIntHandler sigint_handler;
     SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
-    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(),
-                                     new PeopleRegisterWorker(),};
+    Logger::open_logger("log.txt");
+    Logger::log("main", Logger::INFO, "Comienzo");
+
+    std::string fifo2 = "/tmp/fifo2";
+    std::string fifo3 = "/tmp/fifo3";
+
+    WorkerProcess* arr[N_WORKERS] = {new PeopleRegisterWorker(),
+                                     new BeachManagerWorker(fifo2),
+                                     new TeamMaker(fifo2, fifo3)};
 
     bool is_father = true;
     int son_process = 0;
@@ -85,5 +94,6 @@ int main(int argc, char* argv[]) {
         delete arr[i];
     }
     SignalHandler::destroy();
+    Logger::close_logger();
     return son_process;
 }

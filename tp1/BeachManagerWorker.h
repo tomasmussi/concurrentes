@@ -19,8 +19,9 @@ class BeachManagerWorker : public WorkerProcess {
 private:
     MemoriaCompartida<int> _shared_memory;
     FifoEscritura _pipe_writer;
+    int _i;
 public:
-    BeachManagerWorker();
+    BeachManagerWorker(const std::string& fifo_write);
 
     virtual ~BeachManagerWorker();
     virtual void initialize();
