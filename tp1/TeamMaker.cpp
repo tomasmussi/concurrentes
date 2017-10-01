@@ -43,4 +43,6 @@ void TeamMaker::finalize() {
     _fifo_prueba.cerrar();
 }
 
-
+std::string TeamMaker::prettyName() {
+    return "Team Maker";
+}

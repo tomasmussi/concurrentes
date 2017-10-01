@@ -27,6 +27,7 @@ public:
     virtual void initialize();
     virtual void finalize();
     virtual int do_work();
+    virtual std::string prettyName();
 };
 
 

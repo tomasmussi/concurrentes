@@ -29,3 +29,7 @@ void BeachManagerWorker::finalize() {
     _pipe_writer.cerrar();
     _pipe_writer.eliminar();
 }
+
+std::string BeachManagerWorker::prettyName() {
+    return "Beach Manager Worker";
+}

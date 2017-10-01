@@ -34,6 +34,7 @@ int main(int argc, char* argv[]) {
 #include <sys/wait.h>
 #include <cerrno>
 #include <cstring>
+#include <sstream>
 
 
 #include "MainSIGIntHandler.h"
@@ -70,6 +71,11 @@ int main(int argc, char* argv[]) {
             son_process = arr[i]->loop();
             break;
         } else {
+            std::stringstream ss;
+            ss << "Nuevo worker " << arr[i]->prettyName() << " con pid " << pid;
+            std::string s = ss.str();
+            Logger::log("main", Logger::INFO, s);
+            std::cout << s << std::endl;
             sigint_handler.add_pid_notification(pid);
         }
     }

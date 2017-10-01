@@ -27,3 +27,7 @@ void PeopleRegisterWorker::initialize() {
 void PeopleRegisterWorker::finalize() {
     _pipe_reader.cerrar();
 }
+
+std::string PeopleRegisterWorker::prettyName() {
+    return "People Register Worker";
+}
