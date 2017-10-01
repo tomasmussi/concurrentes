@@ -45,22 +45,32 @@ int main(int argc, char* argv[]) {
 #include "TeamMaker.h"
 
 #include "Logger.h"
+#include "NewPlayerHandler.h"
 
 // TODO: CUIDADO CON ESTO, CUANDO SE AGREGUE UN PROCESO HAY QUE TOCAR ESTE DEFINE
-#define N_WORKERS 3
+#define N_WORKERS 1
 
 int main(int argc, char* argv[]) {
-    MainSIGIntHandler sigint_handler;
-    SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
     Logger::open_logger("log.txt");
     Logger::log("main", Logger::INFO, "Comienzo");
+    MainSIGIntHandler sigint_handler;
+    SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
+    Logger::log("main", Logger::DBG, "MainSIGIntHandler registrado");
 
+    std::string fifo1 = "/tmp/fifo1";
     std::string fifo2 = "/tmp/fifo2";
     std::string fifo3 = "/tmp/fifo3";
 
-    WorkerProcess* arr[N_WORKERS] = {new PeopleRegisterWorker(),
-                                     new BeachManagerWorker(fifo2),
-                                     new TeamMaker(fifo2, fifo3)};
+    std::stringstream ss;
+    ss << "Agregando handler para nuevos players en " << getpid();
+    std::string s = ss.str();
+    Logger::log("main", Logger::DBG, s);
+    NewPlayerHandler new_player_handler(fifo1);
+    SignalHandler::getInstance()->registrarHandler(SIGUSR1, &new_player_handler);
+    Logger::log("main", Logger::DBG, "NewPlayerHandler registrado");
+
+    WorkerProcess* arr[N_WORKERS] = {//new PeopleRegisterWorker(),
+                                     new BeachManagerWorker(fifo1, fifo2)};
 
     bool is_father = true;
     int son_process = 0;
@@ -74,8 +84,7 @@ int main(int argc, char* argv[]) {
             std::stringstream ss;
             ss << "Nuevo worker " << arr[i]->prettyName() << " con pid " << pid;
             std::string s = ss.str();
-            Logger::log("main", Logger::INFO, s);
-            std::cout << s << std::endl;
+            Logger::log("main", Logger::DBG, s);
             sigint_handler.add_pid_notification(pid);
         }
     }

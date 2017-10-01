@@ -8,6 +8,7 @@
 #include "WorkerProcess.h"
 #include "MemoriaCompartida.h"
 #include "FifoEscritura.h"
+#include "FifoLectura.h"
 
 /**
  * Clase encargada de administrar el predio de la playa, que es donde
@@ -19,9 +20,10 @@ class BeachManagerWorker : public WorkerProcess {
 private:
     MemoriaCompartida<int> _shared_memory;
     FifoEscritura _pipe_writer;
+    FifoLectura _pipe_reader;
     int _i;
 public:
-    BeachManagerWorker(const std::string& fifo_write);
+    BeachManagerWorker(const std::string& fifo_read, const std::string& fifo_write);
 
     virtual ~BeachManagerWorker();
     virtual void initialize();

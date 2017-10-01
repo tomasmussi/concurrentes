@@ -9,11 +9,12 @@
 #include "WorkerProcess.h"
 #include "MemoriaCompartida.h"
 #include "FifoLectura.h"
-
 /**
  * Clase encargada de registrar personas que quieren entrar al predio
  * de la playa para poder jugar al voley
  * */
+// TODO: Esta clase vuela si no me equivoco
+
 class PeopleRegisterWorker : public WorkerProcess {
 private:
     MemoriaCompartida<int> _shared_memory;
