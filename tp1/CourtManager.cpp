@@ -5,6 +5,7 @@
 #include "CourtManager.h"
 #include "Team.h"
 #include "Match.h"
+#include "Logger.h"
 
 CourtManager::CourtManager(int m, int k,int rows, int columns, const std::string& fifo_read) :
     _m(m), _k(k), _rows(rows), _columns(columns), _fifo_read(fifo_read) {

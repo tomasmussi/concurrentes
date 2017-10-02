@@ -4,8 +4,7 @@
 
 #include "BeachManagerWorker.h"
 #include "Person.h"
-#include <iostream>
-#include <unistd.h>
+#include "Logger.h"
 
 BeachManagerWorker::BeachManagerWorker(const std::string& fifo_write)
    : _shared_memory("/bin/bash", 'a'), _pipe_writer(fifo_write), _i(0) {
