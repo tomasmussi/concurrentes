@@ -26,8 +26,10 @@ public:
     static const int WARNING = 3;
 
     static void open_logger(const std::string& log_file);
-    static void log(const std::string& caller, int error, const std::string& error_message);
+    static void log(const std::string& caller, int error, const std::string& error_message,
+                    const std::string& timestamp);
     static void close_logger();
+    static std::string get_date();
 };
 
 

@@ -1,34 +1,6 @@
 
 
 #include <stdlib.h>
-
-#include "Subscriber.h"
-
-/*
-int main(int argc, char* argv[]) {
-    int k, rows, columns;
-    k = 7;
-    rows = 2;
-    columns = 3;
-    if (argc == 4) {
-        k = atoi(argv[1]);
-        rows = atoi(argv[2]);
-        columns = atoi(argv[3]);
-    }
-
-    Subscriber subscriber;
-    TournamentManager manager(k, rows, columns);
-    subscriber.add_manager(&manager);
-    for (int i = 0; i < 10; i++) {
-        subscriber.subscribe_person(i);
-    }
-    while (manager.do_job()) {
-        subscriber.do_job();
-    }
-    manager.get_recorder()->list_all_matches();
-    return 0;
-}*/
-
 #include <iostream>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -43,24 +15,39 @@ int main(int argc, char* argv[]) {
 #include "PeopleRegisterWorker.h"
 #include "BeachManagerWorker.h"
 #include "TeamMaker.h"
+#include "CourtManager.h"
 
 #include "Logger.h"
 
 // TODO: CUIDADO CON ESTO, CUANDO SE AGREGUE UN PROCESO HAY QUE TOCAR ESTE DEFINE
-#define N_WORKERS 3
+#define N_WORKERS 4
+
 
 int main(int argc, char* argv[]) {
+    int m, k, rows, columns;
+    m = 12;
+    k = 4;
+    rows = 2;
+    columns = 3;
+    if (argc == 5) {
+        m = atoi(argv[1]);
+        k = atoi(argv[2]);
+        rows = atoi(argv[3]);
+        columns = atoi(argv[4]);
+    }
+
     MainSIGIntHandler sigint_handler;
     SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
     Logger::open_logger("log.txt");
-    Logger::log("main", Logger::INFO, "Comienzo");
+    Logger::log("main", Logger::INFO, "Comienzo", Logger::get_date());
 
     std::string fifo2 = "/tmp/fifo2";
     std::string fifo3 = "/tmp/fifo3";
 
     WorkerProcess* arr[N_WORKERS] = {new PeopleRegisterWorker(),
                                      new BeachManagerWorker(fifo2),
-                                     new TeamMaker(fifo2, fifo3)};
+                                     new TeamMaker(m, k, fifo2, fifo3),
+                                     new CourtManager(m,k,rows, columns, fifo3) };
 
     bool is_father = true;
     int son_process = 0;
@@ -74,7 +61,7 @@ int main(int argc, char* argv[]) {
             std::stringstream ss;
             ss << "Nuevo worker " << arr[i]->prettyName() << " con pid " << pid;
             std::string s = ss.str();
-            Logger::log("main", Logger::INFO, s);
+            Logger::log("main", Logger::INFO, s, Logger::get_date());
             std::cout << s << std::endl;
             sigint_handler.add_pid_notification(pid);
         }
