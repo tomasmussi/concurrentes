@@ -20,6 +20,7 @@ public:
     NewPlayerHandler(const std::string& fifo_write);
     ~NewPlayerHandler ();
     virtual int handleSignal ( int signum );
+    virtual void initialize();
 };
 
 #endif //TP1_NEWPLAYERHANDLER_H

@@ -89,6 +89,8 @@ int main(int argc, char* argv[]) {
         }
     }
     if (is_father) {
+        // Esto es para que se abra el fifo1 para escribir
+        new_player_handler.initialize();
         int collected = 0;
         while (collected < N_WORKERS) {
             int status;

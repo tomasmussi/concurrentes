@@ -17,7 +17,7 @@ void WorkerProcess::finalize() {
 }
 
 int WorkerProcess::loop() {
-    Logger::log("WorkerProcess", Logger::DBG, "Comienzo loop");
+    Logger::log(prettyName(), Logger::DBG, "Comienzo loop");
     SIGIntHandler sigint_handler;
 
     // se registra el event handler declarado antes
@@ -27,7 +27,6 @@ int WorkerProcess::loop() {
     // mientras no se reciba la senial SIGINT, el proceso realiza su trabajo
     int exit_status = 0;
     while ( sigint_handler.getGracefulQuit() == 0 ) {
-        Logger::log("WorkerProcess", Logger::DBG, "Do work");
         exit_status = do_work();
     }
     this->finalize();
