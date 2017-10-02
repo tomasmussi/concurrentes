@@ -15,17 +15,21 @@ NewPlayerHandler::~NewPlayerHandler() {
 }
 
 int NewPlayerHandler::handleSignal ( int signum ) {
-    Logger::log("NewPlayerHandler", Logger::DBG, "Handleando nuevo player");
+    Logger::log(prettyName(), Logger::DBG, "Handleando nuevo player", Logger::get_date());
     _pipe_writer.escribir(static_cast<void*>(&_i), sizeof(int));
     std::stringstream ss;
     ss << "Escribi en el fifo1: " << _i;
     std::string s = ss.str();
-    Logger::log("NewPlayerHandler", Logger::DBG, s);
+    Logger::log(prettyName(), Logger::DBG, s, Logger::get_date());
     _i++;
     return 0;
 }
 
 void NewPlayerHandler::initialize() {
-    Logger::log("NewPlayerHandler", Logger::DBG, "Inicializando pipe");
+    Logger::log(prettyName(), Logger::DBG, "Inicializando pipe", Logger::get_date());
     _pipe_writer.abrir();
+}
+
+std::string NewPlayerHandler::prettyName() {
+    return "New Player Handler";
 }

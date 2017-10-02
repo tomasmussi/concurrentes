@@ -2,12 +2,23 @@
 // Created by tomas on 29/09/17.
 //
 
+#include <sstream>
+
 #include "Person.h"
+
+Person::Person() : _id(-1) {
+}
 
 Person::Person(int id) : _id(id) {
 }
 
-int Person::id() {
-    return _id;
+std::string Person::id() {
+    std::stringstream ss;
+    ss << _id;
+    return ss.str();
+}
+
+bool Person::valid() {
+    return _id != -1;
 }
 

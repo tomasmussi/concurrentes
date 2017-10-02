@@ -21,6 +21,7 @@ public:
     ~NewPlayerHandler ();
     virtual int handleSignal ( int signum );
     virtual void initialize();
+    virtual std::string prettyName();
 };
 
 #endif //TP1_NEWPLAYERHANDLER_H

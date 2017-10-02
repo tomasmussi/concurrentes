@@ -17,15 +17,15 @@ void WorkerProcess::finalize() {
 }
 
 int WorkerProcess::loop() {
-    Logger::log(prettyName(), Logger::DBG, "Comienzo loop");
     SIGIntHandler sigint_handler;
 
     // se registra el event handler declarado antes
     SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
-    Logger::log("main", Logger::DBG, "SIGIntHandler registrado");
+    Logger::log(prettyName(), Logger::DBG, "SIGIntHandler registrado", Logger::get_date());
     this->initialize();
     // mientras no se reciba la senial SIGINT, el proceso realiza su trabajo
     int exit_status = 0;
+    Logger::log(prettyName(), Logger::DBG, "Ready to loop", Logger::get_date());
     while ( sigint_handler.getGracefulQuit() == 0 ) {
         exit_status = do_work();
     }

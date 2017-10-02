@@ -5,7 +5,7 @@
 #ifndef TP1_MATCH_H
 #define TP1_MATCH_H
 
-
+#include "Team.h"
 #include <list>
 #include <map>
 
@@ -18,6 +18,8 @@
  * */
 class Match {
 private:
+    Team __team1;
+    Team __team2;
     std::list<int> _team1;
     std::list<int> _team2;
     int _row;
@@ -28,14 +30,13 @@ private:
     void run_match();
     void set_scores(int& score_winner, int& score_loser);
 public:
-    Match(const std::list<int>& team1, const std::list<int>& team2, int row, int column);
-    Match(const std::list<int>& team1, const std::list<int>& team2, int row, int column, float probability);
+    Match(Team team1, Team team2);
     std::map<int, int> get_individual_scores();
     int get_team1_score() const;
     int get_team2_score() const;
     std::list<int> get_team1() const;
     std::list<int> get_team2() const;
-
+    std::string to_string();
 };
 
 

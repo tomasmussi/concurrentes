@@ -12,7 +12,7 @@
 std::ofstream Logger::file_stream;
 LockFile Logger::lock = LockFile("/dev/null");
 
-std::string get_date() {
+std::string Logger::get_date() {
     char buffer[84];
     timeval current_time;
     gettimeofday(&current_time, NULL);
@@ -40,9 +40,10 @@ std::string Logger::get_error_flag(int error_level) {
     }
 }
 
-void Logger::log(const std::string& caller, int error, const std::string& error_message) {
+void Logger::log(const std::string& caller, int error, const std::string& error_message,
+                 const std::string& timestamp) {
     lock.lock();
-    file_stream << "[" << get_date() << "] [" << get_error_flag(error) << "] " << caller << ": " << error_message
+    file_stream << "[" << timestamp << "] [" << get_error_flag(error) << "] " << caller << ": " << error_message
             << std::endl;
     if (error == Logger::DBG) {
         std::cout << error_message << std::endl;
