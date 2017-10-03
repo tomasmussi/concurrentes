@@ -14,7 +14,7 @@ Match::Match() {
 
 Match::Match(Team team1, Team team2, pid_t pid) :
     _team1(team1), _team2(team2),
-    _row(0), _column(0),_probability(0.5), _score_team1(0), _score_team2(0),
+    _probability(0.5), _score_team1(0), _score_team2(0),
     _court_manager_pid(pid) {
 }
 
@@ -44,10 +44,17 @@ pid_t Match::dispatch_match() {
         return pid;
     }
     this->run_match();
+    Logger::log("Match", Logger::INFO, to_string(), Logger::get_date());
+
+    std::string timestamp = Logger::get_date();
     signal_court_manager();
     std::stringstream ss;
-    ss << get_match_result();
-    Logger::log("Match", Logger::DBG, ss.str(), Logger::get_date());
+    ss << "[" << getpid() << "] CourtManager senializado fin partido";
+    Logger::log("Match", Logger::INFO, ss.str(), timestamp);
+
+    std::stringstream ss2;
+    ss2 << "EXIT " << get_match_result();
+    Logger::log("Match", Logger::DBG, ss2.str(), Logger::get_date());
     _exit(get_match_result());
 }
 
@@ -91,10 +98,7 @@ std::string Match::to_string() {
 }
 
 void Match::signal_court_manager() {
-    std::stringstream ss;
-    ss << "[" << getpid() << "] CourtManager senializado fin partido";
     kill(_court_manager_pid, SIGUSR1);
-    Logger::log("Match", Logger::INFO, ss.str(), Logger::get_date());
 }
 
 /**
@@ -160,7 +164,7 @@ void Match::set_match_status(int exit_code) {
 }
 
 bool Match::finished() {
-    return _score_team1 == 0 && _score_team2 == 0;
+    return _score_team1 != 0 || _score_team2 != 0;
 }
 
 Team Match::get_team1() const {

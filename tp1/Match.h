@@ -20,8 +20,6 @@ class Match {
 private:
     Team _team1;
     Team _team2;
-    int _row;
-    int _column;
     float _probability;
     int _score_team1;
     int _score_team2;

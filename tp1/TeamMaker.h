@@ -13,6 +13,7 @@
 #include "FifoEscritura.h"
 #include "MemoriaCompartida.h"
 #include "Person.h"
+#include "LockFile.h"
 
 class TeamMaker : public WorkerProcess {
 private:
@@ -20,15 +21,13 @@ private:
     int _k;
     FifoLectura _fifo_read;
     FifoEscritura _fifo_write;
+    LockFile _lock_shm_mapper;
     MemoriaCompartida<int>* _shm_mapper;
+    LockFile _lock_shm_player_couple;
     MemoriaCompartida<int>* _shm_player_couple;
     bool _have_player;
     std::map<std::string, int> _id_mapper;
-    std::list<int> _free_ids;
-
     std::list<Person> _waiting_list;
-
-    FifoEscritura _fifo_prueba; // TODO ELIMINAR!!!!
 
     void initialize_shm();
     void destroy_shm();

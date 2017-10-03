@@ -58,9 +58,7 @@ int main(int argc, char* argv[]) {
         } else {
             std::stringstream ss;
             ss << "Nuevo worker " << arr[i]->prettyName() << " con pid " << pid;
-            std::string s = ss.str();
-            Logger::log("main", Logger::INFO, s, Logger::get_date());
-            std::cout << s << std::endl;
+            Logger::log("main", Logger::INFO, ss.str(), Logger::get_date());
             sigint_handler.add_pid_notification(pid);
         }
     }

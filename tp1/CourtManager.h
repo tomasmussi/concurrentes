@@ -12,6 +12,7 @@
 #include "Match.h"
 #include "EventHandler.h"
 #include "FifoEscritura.h"
+#include "LockFile.h"
 
 
 class CourtManager : public WorkerProcess, public EventHandler {
@@ -22,7 +23,9 @@ private:
     int _columns;
     FifoLectura _fifo_read;
     FifoEscritura _fifo_write;
+    LockFile _lock_shm_mapper;
     MemoriaCompartida<int>* _shm_mapper;
+    LockFile _lock_shm_player_couple;
     MemoriaCompartida<int>* _shm_player_couple;
     std::map<pid_t, Match> _matches;
 
