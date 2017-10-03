@@ -9,9 +9,11 @@
 #include "WorkerProcess.h"
 #include "MemoriaCompartida.h"
 #include "FifoLectura.h"
+#include "Match.h"
+#include "EventHandler.h"
 
 
-class CourtManager : public WorkerProcess {
+class CourtManager : public WorkerProcess, public EventHandler {
 private:
     int _m;
     int _k;
@@ -19,6 +21,7 @@ private:
     int _columns;
     FifoLectura _fifo_read;
     MemoriaCompartida<int>* _shm_player_couple;
+    std::map<pid_t, Match> _matches;
 
     void initialize_shm();
     void destroy_shm();
@@ -30,6 +33,7 @@ public:
     virtual int do_work();
     virtual void finalize();
     virtual std::string prettyName();
+    virtual int handleSignal ( int signum );
 };
 
 
