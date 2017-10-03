@@ -6,6 +6,8 @@
 #include "Logger.h"
 #include <stdlib.h>
 #include <sstream>
+#include <cstdlib>
+#include <ctime>
 #include <unistd.h>
 #include <signal.h>
 
@@ -39,6 +41,7 @@ Match Match::operator=(const Match& other_match) {
  * informacion
  * */
 pid_t Match::dispatch_match() {
+    std::srand(std::time(NULL));
     pid_t pid = fork();
     if (pid > 0) {
         return pid;
