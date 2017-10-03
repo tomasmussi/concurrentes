@@ -22,8 +22,11 @@ private:
     FifoEscritura _pipe_writer;
     FifoLectura _pipe_reader;
     int _i;
+    int _m;
+
+    void sendPerson(int i);
 public:
-    BeachManagerWorker(const std::string& fifo_read, const std::string& fifo_write);
+    BeachManagerWorker(int m, const std::string& fifo_read, const std::string& fifo_write);
 
     virtual ~BeachManagerWorker();
     virtual void initialize();

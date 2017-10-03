@@ -7,11 +7,20 @@
 #include "Logger.h"
 #include <sstream>
 
-BeachManagerWorker::BeachManagerWorker(const std::string& fifo_read, const std::string& fifo_write)
-   : _shared_memory("/bin/bash", 'a'), _pipe_reader(fifo_read), _pipe_writer(fifo_write), _i(0) {
+#define MIN_PEOPLE 10
+
+BeachManagerWorker::BeachManagerWorker(int m, const std::string& fifo_read, const std::string& fifo_write)
+   : _m(m), _shared_memory("/bin/bash", 'a'), _pipe_reader(fifo_read), _pipe_writer(fifo_write), _i(0) {
 }
 
 BeachManagerWorker::~BeachManagerWorker() {
+}
+
+void BeachManagerWorker::sendPerson(int i) {
+    Person p(i);
+    std::string timestamp = Logger::get_date();
+    _pipe_writer.escribir(static_cast<void*>(&p), sizeof(Person));
+    Logger::log(prettyName(), Logger::DBG, "Enviada persona " + p.id() + " para jugar", timestamp);
 }
 
 int BeachManagerWorker::do_work() {
@@ -21,12 +30,21 @@ int BeachManagerWorker::do_work() {
     std::stringstream ss;
     ss << "Lei del fifo1: " << j;
     std::string s = ss.str();
+    // _i representa la cantidad de usuarios que quisieron ingresar al torneo, no la cantidad actual de usuarios
+    // Es decir, el número del semáforo debería empezar en _m e ir decrementandolo a medida que ingresan players
+    // semaphore--
+    // if semaphore != blocked ...
+    _i = j;
     Logger::log(prettyName(), Logger::DBG, s, Logger::get_date());
-    if (j < 12) {
-        Person p(_i++);
-        std::string timestamp = Logger::get_date();
-        _pipe_writer.escribir(static_cast<void*>(&p), sizeof(Person));
-        Logger::log(prettyName(), Logger::DBG, "Enviada persona " + p.id() + " para jugar", timestamp);
+    // TODO: Esto es sólo si la cantidad de usuarios actuales es menor que _m!
+    if (j == MIN_PEOPLE - 1) {
+        for(int i = 0; i < MIN_PEOPLE; i++) {
+            sendPerson(i);
+        }
+    } else {
+        if (j >= MIN_PEOPLE) {
+            sendPerson(j);
+        }
     }
     return 0;
 }
