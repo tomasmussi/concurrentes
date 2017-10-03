@@ -18,25 +18,26 @@
  * */
 class Match {
 private:
-    Team __team1;
-    Team __team2;
-    std::list<int> _team1;
-    std::list<int> _team2;
+    Team _team1;
+    Team _team2;
     int _row;
     int _column;
     float _probability;
     int _score_team1;
     int _score_team2;
+    pid_t _court_manager_pid;
     void run_match();
     void set_scores(int& score_winner, int& score_loser);
+    void signal_court_manager();
+    int get_match_result();
 public:
-    Match(Team team1, Team team2);
-    std::map<int, int> get_individual_scores();
-    int get_team1_score() const;
-    int get_team2_score() const;
-    std::list<int> get_team1() const;
-    std::list<int> get_team2() const;
+    Match();
+    Match(Team team1, Team team2, pid_t pid);
+    pid_t dispatch_match();
     std::string to_string();
+    Match(const Match& other_match);
+    Match operator=(const Match& other_match);
+    void set_match_status(int exit_code);
 };
 
 

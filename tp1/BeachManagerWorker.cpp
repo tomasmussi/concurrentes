@@ -5,8 +5,6 @@
 #include "BeachManagerWorker.h"
 #include "Person.h"
 #include "Logger.h"
-#include <iostream>
-#include <unistd.h>
 #include <sstream>
 
 BeachManagerWorker::BeachManagerWorker(const std::string& fifo_read, const std::string& fifo_write)

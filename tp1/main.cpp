@@ -1,13 +1,11 @@
 
 
 #include <stdlib.h>
-#include <iostream>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <cerrno>
 #include <cstring>
 #include <sstream>
-
 
 #include "MainSIGIntHandler.h"
 #include "SignalHandler.h"
@@ -86,9 +84,11 @@ int main(int argc, char* argv[]) {
             // con la captura de SIGINT y se setea errno con EINTR porque fue interrumpido mientras estaba
             // bloqueado en una system call(wait). Por eso en definitiva hay que chequear esto
             if (child_pid == -1 && errno != EINTR) {
-                std::cerr << "ERROR: " << std::strerror(errno) << std::endl;
+                Logger::log("main", Logger::ERROR, std::strerror(errno), Logger::get_date());
             } else if (child_pid > 0) {
-                std::cout << "main:: [" << child_pid << "] termino con: " << WEXITSTATUS(status) << std::endl;
+                std::stringstream ss;
+                ss << "[" << child_pid << "] termino con: " << WEXITSTATUS(status);
+                Logger::log("main", Logger::INFO, ss.str(), Logger::get_date());
                 collected++;
             }
         }
