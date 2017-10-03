@@ -154,6 +154,7 @@ void CourtManager::write_shm_mapper(int idx_p1, int idx_p2) {
 }
 
 int CourtManager::handleSignal ( int signum ) {
+    Logger::log(prettyName(), Logger::INFO, "Handling signal", Logger::get_date());
     if (signum != SIGUSR1) {
         Logger::log(prettyName(), Logger::ERROR, "Recibi senial distinta a SIGUSR1", Logger::get_date());
         return 1;

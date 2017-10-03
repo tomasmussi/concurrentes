@@ -41,7 +41,6 @@ Match Match::operator=(const Match& other_match) {
  * informacion
  * */
 pid_t Match::dispatch_match() {
-    std::srand(std::time(NULL));
     pid_t pid = fork();
     if (pid > 0) {
         return pid;
@@ -52,7 +51,7 @@ pid_t Match::dispatch_match() {
     std::string timestamp = Logger::get_date();
     signal_court_manager();
     std::stringstream ss;
-    ss << " [" << getpid() << "] CourtManager senializado fin partido";
+    ss << "[" << getpid() << "] CourtManager senializado fin partido";
     Logger::log("Match", Logger::INFO, ss.str(), timestamp);
     _exit(get_match_result());
 }
@@ -61,6 +60,7 @@ pid_t Match::dispatch_match() {
 
 // Simular el partido y dar a un equipo como ganador
 void Match::run_match() {
+    std::srand(std::time(NULL));
     int who_wins = rand() % 100;
     int prob = 100 * _probability;
     if (prob >= who_wins) {
@@ -91,7 +91,7 @@ void Match::set_scores(int& score_winner, int& score_loser) {
 
 std::string Match::to_string() {
     std::ostringstream stream;
-    stream << "Match[" << getpid() << "] " << _team1.to_string() << " vs " << _team2.to_string();
+    stream << "[" << getpid() << "] " << _team1.to_string() << " vs " << _team2.to_string();
     stream << ": " << _score_team1 << " a " << _score_team2;
     return stream.str();
 }
