@@ -15,6 +15,8 @@ public:
     Person(int id);
     std::string id();
     bool valid();
+    bool is(int id) const;
+    int int_id() const;
 };
 
 

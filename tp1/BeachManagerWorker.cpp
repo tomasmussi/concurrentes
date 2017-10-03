@@ -14,7 +14,7 @@ BeachManagerWorker::~BeachManagerWorker() {
 }
 
 int BeachManagerWorker::do_work() {
-    sleep(2);
+
     if (_i < 12) {
         Person p(_i++);
         std::string timestamp = Logger::get_date();

@@ -22,3 +22,11 @@ bool Person::valid() {
     return _id != -1;
 }
 
+bool Person::is(int id) const {
+    return id == _id;
+}
+
+int Person::int_id() const {
+    return _id;
+}
+

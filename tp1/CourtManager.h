@@ -11,6 +11,7 @@
 #include "FifoLectura.h"
 #include "Match.h"
 #include "EventHandler.h"
+#include "FifoEscritura.h"
 
 
 class CourtManager : public WorkerProcess, public EventHandler {
@@ -20,14 +21,21 @@ private:
     int _rows;
     int _columns;
     FifoLectura _fifo_read;
+    FifoEscritura _fifo_write;
+    MemoriaCompartida<int>* _shm_mapper;
     MemoriaCompartida<int>* _shm_player_couple;
     std::map<pid_t, Match> _matches;
 
     void initialize_shm();
     void destroy_shm();
+    void initalize_shm_mapper();
+    void destroy_shm_mapper();
     int get_shm_index(int row, int col);
+    int lookup(const Person& person);
+    void write_shm_mapper(int idx_p1, int idx_p2);
 public:
-    CourtManager(int m, int k,int rows, int columns, const std::string& fifo_read);
+    CourtManager(int m, int k,int rows, int columns, const std::string& fifo_read,
+                 const std::string& fifo_write);
     ~CourtManager();
     virtual void initialize();
     virtual int do_work();

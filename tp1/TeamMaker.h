@@ -20,8 +20,8 @@ private:
     int _k;
     FifoLectura _fifo_read;
     FifoEscritura _fifo_write;
+    MemoriaCompartida<int>* _shm_mapper;
     MemoriaCompartida<int>* _shm_player_couple;
-    Person _some_player;
     bool _have_player;
     std::map<std::string, int> _id_mapper;
     std::list<int> _free_ids;
@@ -32,7 +32,12 @@ private:
 
     void initialize_shm();
     void destroy_shm();
+    void initalize_shm_mapper();
+    void destroy_shm_mapper();
     int get_shm_index(int row, int col);
+    int lookup(const Person& person);
+    int find_empty_space(const Person& person);
+    bool can_play(int shm_id, const Person& person);
 
 public:
     TeamMaker(int m, int k, const std::string& fifo_read, const std::string& fifo_write);

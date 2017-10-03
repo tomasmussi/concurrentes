@@ -17,3 +17,11 @@ std::string Team::to_string() {
 bool Team::valid() {
     return _p1.valid() && _p2.valid();
 }
+
+Person Team::get_person1() const {
+    return _p1;
+}
+
+Person Team::get_person2() const {
+    return _p2;
+}

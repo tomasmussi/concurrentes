@@ -24,7 +24,6 @@ int WorkerProcess::loop() {
     this->initialize();
     // mientras no se reciba la senial SIGINT, el proceso realiza su trabajo
     int exit_status = 0;
-    Logger::log(prettyName(), Logger::DBG, "Ready to loop", Logger::get_date());
     while ( sigint_handler.getGracefulQuit() == 0 ) {
         exit_status = do_work();
     }

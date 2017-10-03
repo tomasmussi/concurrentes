@@ -38,6 +38,9 @@ public:
     Match(const Match& other_match);
     Match operator=(const Match& other_match);
     void set_match_status(int exit_code);
+    bool finished();
+    Team get_team1() const;
+    Team get_team2() const;
 };
 
 

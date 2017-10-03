@@ -43,15 +43,11 @@ pid_t Match::dispatch_match() {
     if (pid > 0) {
         return pid;
     }
-    std::string timestamp = Logger::get_date();
-    Logger::log("Match", Logger::INFO, _team1.to_string() + " vs "
-                                       + _team2.to_string() + " por comenzar", timestamp);
     this->run_match();
-    Logger::log("Match", Logger::INFO, to_string(), Logger::get_date());
     signal_court_manager();
     std::stringstream ss;
     ss << get_match_result();
-    Logger::log("Match", Logger::DBG, ss.str(), timestamp);
+    Logger::log("Match", Logger::DBG, ss.str(), Logger::get_date());
     _exit(get_match_result());
 }
 
@@ -63,11 +59,9 @@ void Match::run_match() {
     int prob = 100 * _probability;
     if (prob >= who_wins) {
         // team1 wins
-        Logger::log("Match", Logger::DBG, "Gana team 1", Logger::get_date());
         set_scores(_score_team1, _score_team2);
     } else {
         // team2 wins
-        Logger::log("Match", Logger::DBG, "Gana team 2", Logger::get_date());
         set_scores(_score_team2, _score_team1);
     }
 }
@@ -78,15 +72,12 @@ void Match::set_scores(int& score_winner, int& score_loser) {
     int wins_by_difference = rand() % 100;
     if (prob >= wins_by_difference) {
         // by 3-0
-        Logger::log("Match", Logger::DBG, "Por 3 a 0", Logger::get_date());
         score_loser = 0;
     } else {
         int final_score = rand() % 100;
         if (MATCH_PROBABILITY >= final_score) {
-            Logger::log("Match", Logger::DBG, "Por 3 a 1", Logger::get_date());
             score_loser = 1;
         } else {
-            Logger::log("Match", Logger::DBG, "Por 3 a 2", Logger::get_date());
             score_loser = 2;
         }
     }
@@ -136,9 +127,6 @@ int Match::get_match_result() {
 }
 
 void Match::set_match_status(int exit_code) {
-    std::stringstream ss;
-    ss << "Setting exit code: " << exit_code;
-    Logger::log("Match en CourtManager", Logger::DBG, ss.str(), Logger::get_date());
     switch (exit_code) {
         case 0:
             _score_team1 = 3;
@@ -169,4 +157,16 @@ void Match::set_match_status(int exit_code) {
             _score_team2 = 0;
             break;
     };
+}
+
+bool Match::finished() {
+    return _score_team1 == 0 && _score_team2 == 0;
+}
+
+Team Match::get_team1() const {
+    return _team1;
+}
+
+Team Match::get_team2() const {
+    return _team2;
 }

@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     WorkerProcess* arr[N_WORKERS] = {new PeopleRegisterWorker(),
                                      new BeachManagerWorker(fifo2),
                                      new TeamMaker(m, k, fifo2, fifo3),
-                                     new CourtManager(m,k,rows, columns, fifo3) };
+                                     new CourtManager(m,k,rows, columns, fifo3, fifo2) };
 
     bool is_father = true;
     int son_process = 0;
