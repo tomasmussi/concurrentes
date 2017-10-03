@@ -9,14 +9,13 @@
 
 #include "MainSIGIntHandler.h"
 #include "SignalHandler.h"
+#include "NewPlayerHandler.h"
 
-#include "PeopleRegisterWorker.h"
 #include "BeachManagerWorker.h"
 #include "TeamMaker.h"
 #include "CourtManager.h"
 
 #include "Logger.h"
-#include "NewPlayerHandler.h"
 
 // TODO: CUIDADO CON ESTO, CUANDO SE AGREGUE UN PROCESO HAY QUE TOCAR ESTE DEFINE
 #define N_WORKERS 3
