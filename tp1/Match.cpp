@@ -49,12 +49,8 @@ pid_t Match::dispatch_match() {
     std::string timestamp = Logger::get_date();
     signal_court_manager();
     std::stringstream ss;
-    ss << "[" << getpid() << "] CourtManager senializado fin partido";
+    ss << " [" << getpid() << "] CourtManager senializado fin partido";
     Logger::log("Match", Logger::INFO, ss.str(), timestamp);
-
-    std::stringstream ss2;
-    ss2 << "EXIT " << get_match_result();
-    Logger::log("Match", Logger::DBG, ss2.str(), Logger::get_date());
     _exit(get_match_result());
 }
 
@@ -92,7 +88,7 @@ void Match::set_scores(int& score_winner, int& score_loser) {
 
 std::string Match::to_string() {
     std::ostringstream stream;
-    stream << _team1.to_string() << " vs " << _team2.to_string();
+    stream << "Match[" << getpid() << "] " << _team1.to_string() << " vs " << _team2.to_string();
     stream << ": " << _score_team1 << " a " << _score_team2;
     return stream.str();
 }

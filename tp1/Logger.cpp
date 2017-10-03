@@ -7,7 +7,6 @@
 #include <sys/time.h>
 #include <ctime>
 #include <iomanip>
-#include <sstream>
 
 // Static
 std::ofstream Logger::file_stream;
@@ -46,6 +45,9 @@ void Logger::log(const std::string& caller, int error, const std::string& error_
     lock.lock();
     file_stream << "[" << timestamp << "] [" << get_error_flag(error) << "] " << caller << ": " << error_message
             << std::endl;
+    if (error == Logger::DBG) {
+        std::cout << error_message << std::endl;
+    }
     lock.release();
 }
 
