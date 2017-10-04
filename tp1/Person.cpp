@@ -12,7 +12,7 @@ Person::Person() : _id(-1) {
 Person::Person(int id) : _id(id) {
 }
 
-std::string Person::id() {
+std::string Person::id() const {
     std::stringstream ss;
     ss << _id;
     return ss.str();

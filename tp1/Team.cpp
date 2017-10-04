@@ -10,7 +10,7 @@ Team::Team() : _p1(), _p2() {
 Team::Team(const Person &p1, const Person &p2) : _p1(p1), _p2(p2) {
 }
 
-std::string Team::to_string() {
+std::string Team::to_string() const {
     return "(" + _p1.id() + ", " + _p2.id() + ")";
 }
 

@@ -47,7 +47,7 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
         // Proceso padre
         _matches[pid] = match;
         std::stringstream ss;
-        ss << "Despachado MatchProcess[" << pid << "]";
+        ss << "Despachado MatchProcess[" << pid << "] entre " << team1.to_string() << " y " << team2.to_string();
         Logger::log(prettyName(), Logger::INFO, ss.str(), timestamp);
     } else {
         // Proceso hijo, dispatch crea una SHM y sale con exit de la ejecucion de todo

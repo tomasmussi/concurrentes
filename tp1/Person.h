@@ -13,7 +13,7 @@ private:
 public:
     Person();
     Person(int id);
-    std::string id();
+    std::string id() const;
     bool valid();
     bool is(int id) const;
     int int_id() const;

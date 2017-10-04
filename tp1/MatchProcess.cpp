@@ -19,12 +19,10 @@ MatchProcess::MatchProcess(pid_t parent_process_id) : _father_id(parent_process_
 
 MatchProcess::~MatchProcess() {
     if (_shm_matches != NULL) {
-        std::stringstream s;
-        s << "[" << getpid() << "] destruyendo shm";
-        Logger::log("MatchProcess", Logger::DBG, s.str(), Logger::get_date());
+        Logger::log(prettyName(), Logger::DBG, "Destruyendo SHM", Logger::get_date());
         _shm_matches->liberar();
     } else {
-        Logger::log("MatchProcess", Logger::DBG, "No toco shm porque es null", Logger::get_date());
+        Logger::log(prettyName(), Logger::DBG, "No toco shm porque es null", Logger::get_date());
     }
 }
 
@@ -35,19 +33,15 @@ MatchProcess::~MatchProcess() {
  * informacion
  * */
 void MatchProcess::dispatch_match() {
-    Logger::log("MatchProcess", Logger::DBG, "Creando memoria compartida", Logger::get_date());
+    Logger::log(prettyName(), Logger::DBG, "Creando memoria compartida", Logger::get_date());
     _shm_matches = new MemoriaCompartida<int>;
     _shm_matches->crear("/bin/grep", 'a');
     this->run_match();
 
     std::string timestamp = Logger::get_date();
     signal_court_manager();
-    std::stringstream ss;
-    ss << "[" << getpid() << "] CourtManager senializado fin partido";
-    Logger::log("MatchProcess", Logger::INFO, ss.str(), timestamp);
-    ss.clear();
-    ss << "[" << getpid() << "] Ahora deberia venir el dt de SHM";
-    Logger::log("MatchProcess", Logger::DBG, ss.str(), timestamp);
+    Logger::log(prettyName(), Logger::INFO, "CourtManager senializado fin partido", timestamp);
+    Logger::log(prettyName(), Logger::DBG, "Ahora deberia venir el dt de SHM", timestamp);
     _exit(get_match_result());
 }
 
@@ -83,10 +77,11 @@ void MatchProcess::set_scores(int& score_winner, int& score_loser) {
 }
 
 void MatchProcess::signal_court_manager() {
-    Logger::log("MatchProcess", Logger::DBG, "Tomando lock de matches", Logger::get_date());
+    Logger::log(prettyName(), Logger::DBG, "Tomando lock de matches", Logger::get_date());
     _lock_matches.lock();
     _shm_matches->escribir(_shm_matches->leer() + 1);
     _lock_matches.release();
+    Logger::log(prettyName(), Logger::DBG, "Lock de matches liberado", Logger::get_date());
     kill(_father_id, SIGUSR1);
 }
 
@@ -117,6 +112,12 @@ int MatchProcess::get_match_result() {
         return 5;
     }
     return 6;
+}
+
+std::string MatchProcess::prettyName() {
+    std::stringstream ss;
+    ss << "Match Process (" << getpid() << ")";
+    return ss.str();
 }
 
 

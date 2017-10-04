@@ -14,7 +14,7 @@ private:
 public:
     Team();
     Team(const Person& p1, const Person& p2);
-    std::string to_string();
+    std::string to_string() const;
     bool valid();
     Person get_person1() const;
     Person get_person2() const;
