@@ -57,20 +57,20 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
 }
 
 void CourtManager::initialize() {
+    Logger::log(prettyName(), Logger::DBG, "Inicializando", Logger::get_date());
     _fifo_read.abrir();
-    std::string date = Logger::get_date();
-    Logger::log(prettyName(), Logger::DBG, "Fifo READ de equipos de TeamMaker", date);
+    Logger::log(prettyName(), Logger::DBG, "Fifo READ de equipos de TeamMaker abierto", Logger::get_date());
     _fifo_write.abrir();
-    Logger::log(prettyName(), Logger::DBG, "Fifo de envio de personas a TeamMaker", Logger::get_date());
+    Logger::log(prettyName(), Logger::DBG, "Fifo de envio de personas a TeamMaker abierto", Logger::get_date());
     try {
-        initialize_shm();
+        initialize_shm_couples();
         Logger::log(prettyName(), Logger::INFO, "Shared Memory Pareja Personas inicializada", Logger::get_date());
     } catch (const std::string& error) {
         Logger::log(prettyName(), Logger::ERROR, error, Logger::get_date());
     }
     try {
-        initalize_shm_mapper();
-        Logger::log(prettyName(), Logger::INFO, "Shared Memory Mapper", Logger::get_date());
+        initialize_shm_mapper();
+        Logger::log(prettyName(), Logger::INFO, "Shared Memory Mapper inicializada", Logger::get_date());
     } catch (const std::string& error) {
         Logger::log(prettyName(), Logger::ERROR, error, Logger::get_date());
     }
@@ -82,7 +82,7 @@ void CourtManager::initialize() {
 void CourtManager::finalize() {
     _fifo_read.cerrar();
     _fifo_write.cerrar();
-    destroy_shm();
+    destroy_shm_couples();
     destroy_shm_mapper();
     _shm_matches.liberar();
     SignalHandler::destroy();
@@ -92,7 +92,7 @@ std::string CourtManager::prettyName() {
     return "Court Manager";
 }
 
-void CourtManager::initialize_shm() {
+void CourtManager::initialize_shm_couples() {
     _lock_shm_player_couple.lock();
     _shm_player_couple = new MemoriaCompartida<int>[_m * _k];
     for (int row = 0; row < _m; row++) {
@@ -104,7 +104,7 @@ void CourtManager::initialize_shm() {
     _lock_shm_player_couple.release();
 }
 
-void CourtManager::destroy_shm() {
+void CourtManager::destroy_shm_couples() {
     _lock_shm_player_couple.lock();
     for (int row = 0; row < _m; row++) {
         for (int col = 0; col < _k; col++) {
@@ -116,7 +116,7 @@ void CourtManager::destroy_shm() {
     delete [] _shm_player_couple;
 }
 
-void CourtManager::initalize_shm_mapper() {
+void CourtManager::initialize_shm_mapper() {
     _lock_shm_mapper.lock();
     _shm_mapper = new MemoriaCompartida<int>[_m];
     for (int i = 0; i < _m; i++) {

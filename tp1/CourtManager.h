@@ -32,9 +32,9 @@ private:
     MemoriaCompartida<int> _shm_matches;
     std::map<pid_t, Match> _matches;
 
-    void initialize_shm();
-    void destroy_shm();
-    void initalize_shm_mapper();
+    void initialize_shm_couples();
+    void destroy_shm_couples();
+    void initialize_shm_mapper();
     void destroy_shm_mapper();
     int get_shm_index(int row, int col);
     int lookup(const Person& person);
