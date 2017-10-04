@@ -11,16 +11,28 @@
 #include <unistd.h>
 #include <signal.h>
 
-Match::Match() {
+Match::Match() : _lock_matches("/tmp/shm_matches") {
 }
 
 Match::Match(Team team1, Team team2, pid_t pid) :
     _team1(team1), _team2(team2),
     _probability(0.5), _score_team1(0), _score_team2(0),
-    _court_manager_pid(pid) {
+    _court_manager_pid(pid),
+    _lock_matches("/tmp/shm_matches"), _shm_matches(), _son_process(false) {
+
 }
 
-Match::Match(const Match& other_match) {
+Match::~Match() {
+    if (_son_process) {
+        std::stringstream s;
+        s << "[" << getpid() << "] destruyendo shm";
+        Logger::log("Match", Logger::DBG, s.str(), Logger::get_date());
+        _shm_matches.liberar();
+    }
+}
+
+Match::Match(const Match& other_match) : _lock_matches("/tmp/shm_matches"), _son_process(false) {
+    Logger::log("Match", Logger::DBG, "Construyendo COPIA", Logger::get_date());
     this->_team1 = other_match._team1;
     this->_team2 = other_match._team2;
     this->_score_team1 = other_match._score_team1;
@@ -32,6 +44,7 @@ Match Match::operator=(const Match& other_match) {
     this->_team2 = other_match._team2;
     this->_score_team1 = other_match._score_team1;
     this->_score_team2 = other_match._score_team2;
+    this->_son_process = false;
     return *this;
 }
 
@@ -45,6 +58,8 @@ pid_t Match::dispatch_match() {
     if (pid > 0) {
         return pid;
     }
+    _son_process = true;
+    _shm_matches.crear("/bin/grep", 'a');
     this->run_match();
     Logger::log("Match", Logger::INFO, to_string(), Logger::get_date());
 
@@ -53,6 +68,9 @@ pid_t Match::dispatch_match() {
     std::stringstream ss;
     ss << "[" << getpid() << "] CourtManager senializado fin partido";
     Logger::log("Match", Logger::INFO, ss.str(), timestamp);
+    ss.clear();
+    ss << "[" << getpid() << "] Ahora deberia venir el dt de SHM";
+    Logger::log("Match", Logger::DBG, ss.str(), timestamp);
     _exit(get_match_result());
 }
 
@@ -97,6 +115,9 @@ std::string Match::to_string() {
 }
 
 void Match::signal_court_manager() {
+    _lock_matches.lock();
+    _shm_matches.escribir(_shm_matches.leer() + 1);
+    _lock_matches.release();
     kill(_court_manager_pid, SIGUSR1);
 }
 

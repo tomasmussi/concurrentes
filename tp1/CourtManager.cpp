@@ -13,7 +13,8 @@ CourtManager::CourtManager(int m, int k,int rows, int columns, const std::string
         const std::string& fifo_write) :
     _m(m), _k(k), _rows(rows), _columns(columns), _fifo_read(fifo_read), _fifo_write(fifo_write),
     _lock_shm_mapper("/tmp/shm_mapper"), _shm_mapper(NULL),
-    _lock_shm_player_couple("/tmp/shm_player_couple"), _shm_player_couple(NULL) {
+    _lock_shm_player_couple("/tmp/shm_player_couple"), _shm_player_couple(NULL),
+    _lock_matches("/tmp/shm_matches"), _shm_matches() {
 }
 
 CourtManager::~CourtManager() {
@@ -59,6 +60,7 @@ void CourtManager::initialize() {
     } catch (const std::string& error) {
         Logger::log(prettyName(), Logger::ERROR, error, Logger::get_date());
     }
+    _shm_matches.crear("/bin/grep", 'a');
     SignalHandler::getInstance()->registrarHandler(SIGUSR1, this);
     Logger::log(prettyName(), Logger::INFO, "INICIALIZADO", Logger::get_date());
 }
@@ -68,6 +70,7 @@ void CourtManager::finalize() {
     _fifo_write.cerrar();
     destroy_shm();
     destroy_shm_mapper();
+    _shm_matches.liberar();
     SignalHandler::destroy();
 }
 
@@ -159,11 +162,27 @@ int CourtManager::handleSignal ( int signum ) {
         Logger::log(prettyName(), Logger::ERROR, "Recibi senial distinta a SIGUSR1", Logger::get_date());
         return 1;
     }
+    Logger::log(prettyName(), Logger::INFO, "Tomando lock de matches", Logger::get_date());
+    _lock_matches.lock();
+    int matches_to_process = _shm_matches.leer();
+    std::stringstream s;
+    s << "Procesando " << matches_to_process << " partidos";
+    Logger::log(prettyName(), Logger::INFO, s.str(), Logger::get_date());
+    for (int i = 0; i < matches_to_process; i++) {
+        process_finished_match();
+    }
+    _shm_matches.escribir(0);
+    _lock_matches.release();
+    return 0;
+}
+
+void CourtManager::process_finished_match() {
     int status;
     pid_t match_pid = wait(&status);
     Match match = _matches[match_pid];
     match.set_match_status(WEXITSTATUS(status));
     _matches[match_pid] = match;
+    sleep(4);
     if (match.finished()) {
         std::stringstream ss;
         ss << "Match [" << match_pid << "] ";
@@ -201,5 +220,4 @@ int CourtManager::handleSignal ( int signum ) {
     p = match.get_team2().get_person1();
     _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona a TeamMaker", Logger::get_date());
-    return 0;
 }

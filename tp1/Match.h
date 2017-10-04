@@ -6,6 +6,8 @@
 #define TP1_MATCH_H
 
 #include "Team.h"
+#include "LockFile.h"
+#include "MemoriaCompartida.h"
 #include <list>
 #include <map>
 
@@ -24,12 +26,17 @@ private:
     int _score_team1;
     int _score_team2;
     pid_t _court_manager_pid;
+    LockFile _lock_matches;
+    MemoriaCompartida<int> _shm_matches;
+    bool _son_process;
+
     void run_match();
     void set_scores(int& score_winner, int& score_loser);
     void signal_court_manager();
     int get_match_result();
 public:
     Match();
+    ~Match();
     Match(Team team1, Team team2, pid_t pid);
     pid_t dispatch_match();
     std::string to_string();

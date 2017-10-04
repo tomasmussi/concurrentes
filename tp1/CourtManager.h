@@ -27,6 +27,8 @@ private:
     MemoriaCompartida<int>* _shm_mapper;
     LockFile _lock_shm_player_couple;
     MemoriaCompartida<int>* _shm_player_couple;
+    LockFile _lock_matches;
+    MemoriaCompartida<int> _shm_matches;
     std::map<pid_t, Match> _matches;
 
     void initialize_shm();
@@ -36,6 +38,7 @@ private:
     int get_shm_index(int row, int col);
     int lookup(const Person& person);
     void write_shm_mapper(int idx_p1, int idx_p2);
+    void process_finished_match();
 public:
     CourtManager(int m, int k,int rows, int columns, const std::string& fifo_read,
                  const std::string& fifo_write);
