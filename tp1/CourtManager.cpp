@@ -75,6 +75,9 @@ void CourtManager::initialize() {
         Logger::log(prettyName(), Logger::ERROR, error, Logger::get_date());
     }
     _shm_matches.crear("/bin/grep", 'a');
+    _lock_matches.lock();
+    _shm_matches.escribir(0);
+    _lock_matches.release();
     SignalHandler::getInstance()->registrarHandler(SIGUSR1, this);
     Logger::log(prettyName(), Logger::INFO, "INICIALIZADO", Logger::get_date());
 }
