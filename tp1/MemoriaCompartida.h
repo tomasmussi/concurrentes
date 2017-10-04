@@ -13,6 +13,9 @@
 #include <string.h>
 #include <iostream>
 #include <errno.h>
+#include "Logger.h"
+
+#include <sstream>
 
 template <class T> class MemoriaCompartida {
 
@@ -50,13 +53,16 @@ template <class T> void MemoriaCompartida<T>::crear ( const std::string& archivo
                 this->ptrDatos = static_cast<T*> (tmpPtr);
             } else {
                 std::string mensaje = std::string("Error en shmat(): ") + std::string(strerror(errno));
+                Logger::log("SHM", Logger::DBG, "error al crear 1", Logger::get_date());
                 throw mensaje;
             }
         } else {
+            Logger::log("SHM", Logger::DBG, "error al crear 2", Logger::get_date());
             std::string mensaje = std::string("Error en shmget(): ") + std::string(strerror(errno));
             throw mensaje;
         }
     } else {
+        Logger::log("SHM", Logger::DBG, "error al crear 3", Logger::get_date());
         std::string mensaje = std::string("Error en ftok(): ") + std::string(strerror(errno));
         throw mensaje;
     }
@@ -71,6 +77,9 @@ template <class T> void MemoriaCompartida<T>::liberar() {
             shmctl ( this->shmId,IPC_RMID,NULL );
         }
     } else {
+        std::stringstream s;
+        s << "[" << getpid() << "] error al liberar 1";
+        Logger::log("SHM", Logger::DBG, s.str(), Logger::get_date());
         std::string mensaje = std::string("Error en shmdt(): ") + std::string(strerror(errno));
         throw mensaje;
     }
@@ -87,14 +96,17 @@ template <class T> MemoriaCompartida<T>::MemoriaCompartida ( const std::string& 
             if ( tmpPtr != (void*) -1 ) {
                 this->ptrDatos = static_cast<T*> (tmpPtr);
             } else {
+                Logger::log("SHM", Logger::DBG, "error Constructor string letra 1", Logger::get_date());
                 std::string mensaje = std::string("Error en shmat(): ") + std::string(strerror(errno));
                 throw mensaje;
             }
         } else {
+            Logger::log("SHM", Logger::DBG, "error Constructor string letra 2", Logger::get_date());
             std::string mensaje = std::string("Error en shmget(): ") + std::string(strerror(errno));
             throw mensaje;
         }
     } else {
+        Logger::log("SHM", Logger::DBG, "error Constructor string letra 3", Logger::get_date());
         std::string mensaje = std::string("Error en ftok(): ") + std::string(strerror(errno));
         throw mensaje;
     }
@@ -106,6 +118,7 @@ template <class T> MemoriaCompartida<T>::MemoriaCompartida ( const MemoriaCompar
     if ( tmpPtr != (void*) -1 ) {
         this->ptrDatos = static_cast<T*> (tmpPtr);
     } else {
+        Logger::log("SHM", Logger::DBG, "error Constructor copia 1", Logger::get_date());
         std::string mensaje = std::string("Error en shmat(): ") + std::string(strerror(errno));
         throw mensaje;
     }
@@ -131,6 +144,7 @@ template <class T> MemoriaCompartida<T>& MemoriaCompartida<T>::operator= ( const
     if ( tmpPtr != (void*) -1 ) {
         this->ptrDatos = static_cast<T*> (tmpPtr);
     } else {
+        Logger::log("SHM", Logger::DBG, "error operator= 1", Logger::get_date());
         std::string mensaje = std::string("Error en shmat(): ") + std::string(strerror(errno));
         throw mensaje;
     }

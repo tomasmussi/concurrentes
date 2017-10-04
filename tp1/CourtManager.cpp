@@ -224,11 +224,13 @@ void CourtManager::process_finished_match() {
     p = match.team1().get_person1();
     _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona a TeamMaker", Logger::get_date());
+    p = match.team1().get_person2();
+    _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
+
     p = match.team2().get_person2();
     _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona a TeamMaker", Logger::get_date());
-    p = match.team1().get_person2();
-    _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
+
     Logger::log(prettyName(), Logger::INFO, "Enviada persona a TeamMaker", Logger::get_date());
     p = match.team2().get_person1();
     _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));

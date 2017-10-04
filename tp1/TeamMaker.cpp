@@ -50,6 +50,8 @@ bool TeamMaker::can_play(int shm_id, const Person& p) {
     for (int col = 0; col < _k; col++) {
         int shm_iter_id = _shm_player_couple[get_shm_index(shm_id, col)].leer();
         if (shm_other_id == shm_iter_id) {
+            // Esto deberia verse al menos una vez, para ver que la SHM funciona
+            Logger::log(prettyName(), Logger::DBG, "Ya jugaron juntos", Logger::get_date());
             return false;
         }
     }
