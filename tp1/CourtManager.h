@@ -9,10 +9,11 @@
 #include "WorkerProcess.h"
 #include "MemoriaCompartida.h"
 #include "FifoLectura.h"
-#include "Match.h"
+#include "MatchProcess.h"
 #include "EventHandler.h"
 #include "FifoEscritura.h"
 #include "LockFile.h"
+#include "Match.h"
 
 
 class CourtManager : public WorkerProcess, public EventHandler {
@@ -39,6 +40,7 @@ private:
     int lookup(const Person& person);
     void write_shm_mapper(int idx_p1, int idx_p2);
     void process_finished_match();
+    void dispatch_match(const Team& team1, const Team& team2);
 public:
     CourtManager(int m, int k,int rows, int columns, const std::string& fifo_read,
                  const std::string& fifo_write);

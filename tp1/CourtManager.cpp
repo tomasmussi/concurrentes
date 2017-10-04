@@ -3,11 +3,13 @@
 //
 #include <sys/wait.h>
 #include <sstream>
+#include <cstdlib>
 
 #include "CourtManager.h"
 #include "Team.h"
 #include "Logger.h"
 #include "SignalHandler.h"
+#include "Match.h"
 
 CourtManager::CourtManager(int m, int k,int rows, int columns, const std::string& fifo_read,
         const std::string& fifo_write) :
@@ -30,16 +32,28 @@ int CourtManager::do_work() {
         _fifo_read.leer(static_cast<void*>(&team2), sizeof(Team));
         if (team2.valid()) {
             Logger::log(prettyName(), Logger::INFO, "Recibido equipo2 " + team2.to_string(), Logger::get_date());
-            Match match(team1, team2, getpid());
-            std::string timestamp = Logger::get_date();
-            pid_t pid = match.dispatch_match();
-            _matches[pid] = match;
-            std::stringstream ss;
-            ss << "Despachado Match[" << pid << "]";
-            Logger::log(prettyName(), Logger::INFO, ss.str(), timestamp);
+            dispatch_match(team1, team2);
         }
     }
     return 0;
+}
+
+void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
+    Match match(team1, team2);
+    std::string timestamp = Logger::get_date();
+    MatchProcess match_process(getpid());
+    pid_t pid = fork();
+    if (pid > 0) {
+        // Proceso padre
+        _matches[pid] = match;
+        std::stringstream ss;
+        ss << "Despachado MatchProcess[" << pid << "]";
+        Logger::log(prettyName(), Logger::INFO, ss.str(), timestamp);
+    } else {
+        // Proceso hijo, dispatch crea una SHM y sale con exit de la ejecucion de todo
+        match_process.dispatch_match();
+        exit(match_process.get_match_result());
+    }
 }
 
 void CourtManager::initialize() {
@@ -162,7 +176,7 @@ int CourtManager::handleSignal ( int signum ) {
         Logger::log(prettyName(), Logger::ERROR, "Recibi senial distinta a SIGUSR1", Logger::get_date());
         return 1;
     }
-    Logger::log(prettyName(), Logger::INFO, "Tomando lock de matches", Logger::get_date());
+    Logger::log(prettyName(), Logger::DBG, "Tomando lock de matches", Logger::get_date());
     _lock_matches.lock();
     int matches_to_process = _shm_matches.leer();
     std::stringstream s;
@@ -182,42 +196,41 @@ void CourtManager::process_finished_match() {
     Match match = _matches[match_pid];
     match.set_match_status(WEXITSTATUS(status));
     _matches[match_pid] = match;
-    sleep(4);
     if (match.finished()) {
         std::stringstream ss;
-        ss << "Match [" << match_pid << "] ";
+        ss << "MatchProcess [" << match_pid << "] ";
         ss << "finalizo " << match.to_string();
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
         // El partido termino, por lo que hay que escribir el resultado
         // TODO Aca se deberia escribir una memoria compartida para que los reporters puedan leer resultados
 
         // Escribir la shm de los equipos que jugaron en parejas
-        int team_idx_1 = lookup(match.get_team1().get_person1());
-        int team_idx_2 = lookup(match.get_team1().get_person2());
+        int team_idx_1 = lookup(match.team1().get_person1());
+        int team_idx_2 = lookup(match.team1().get_person2());
         write_shm_mapper(team_idx_1, team_idx_2);
 
-        team_idx_1 = lookup(match.get_team2().get_person1());
-        team_idx_2 = lookup(match.get_team2().get_person2());
+        team_idx_1 = lookup(match.team2().get_person1());
+        team_idx_2 = lookup(match.team2().get_person2());
         write_shm_mapper(team_idx_1, team_idx_2);
 
     } else {
         std::stringstream ss;
-        ss << "Match [" << match_pid << "] ";
+        ss << "MatchProcess [" << match_pid << "] ";
         ss << "inundado " << match.to_string();
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
     }
     // Envio a Team Maker T1-P1; T2-P2; T1-P2; T2-P1
     Person p;
-    p = match.get_team1().get_person1();
+    p = match.team1().get_person1();
     _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona a TeamMaker", Logger::get_date());
-    p = match.get_team2().get_person2();
+    p = match.team2().get_person2();
     _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona a TeamMaker", Logger::get_date());
-    p = match.get_team1().get_person2();
+    p = match.team1().get_person2();
     _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona a TeamMaker", Logger::get_date());
-    p = match.get_team2().get_person1();
+    p = match.team2().get_person1();
     _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona a TeamMaker", Logger::get_date());
 }
