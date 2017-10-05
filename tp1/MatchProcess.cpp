@@ -25,6 +25,7 @@ void MatchProcess::finalize() {
     if (_shm_matches != NULL) {
         Logger::log(prettyName(), Logger::DBG, "Destruyendo SHM de matches", Logger::get_date());
         _shm_matches->liberar();
+        delete(_shm_matches);
         _shm_matches = NULL;
     } else {
         Logger::log(prettyName(), Logger::DBG, "Al eliminar: No toco shm porque es null", Logger::get_date());
@@ -38,6 +39,7 @@ void MatchProcess::finalize() {
  * */
 void MatchProcess::dispatch_match() {
     Logger::log(prettyName(), Logger::DBG, "Creando memoria compartida de matches", Logger::get_date());
+    // TODO: No seria mejor si _shm_matches es una variable estatica en vez de dinamica?
     _shm_matches = new MemoriaCompartida<int>;
     _shm_matches->crear("/bin/grep", 'a');
 
