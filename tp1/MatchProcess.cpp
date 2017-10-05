@@ -33,9 +33,10 @@ MatchProcess::~MatchProcess() {
  * informacion
  * */
 void MatchProcess::dispatch_match() {
-    Logger::log(prettyName(), Logger::DBG, "Creando memoria compartida", Logger::get_date());
+    Logger::log(prettyName(), Logger::DBG, "Creando memoria compartida de matches", Logger::get_date());
     _shm_matches = new MemoriaCompartida<int>;
     _shm_matches->crear("/bin/grep", 'a');
+
     this->run_match();
 
     std::string timestamp = Logger::get_date();

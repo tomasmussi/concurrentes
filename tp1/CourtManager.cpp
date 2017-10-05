@@ -42,15 +42,17 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
     Match match(team1, team2);
     std::string timestamp = Logger::get_date();
     MatchProcess match_process(getpid());
+    std::string match_between = "entre " + team1.to_string() + " y " + team2.to_string();
     pid_t pid = fork();
     if (pid > 0) {
         // Proceso padre
         _matches[pid] = match;
         std::stringstream ss;
-        ss << "Despachado MatchProcess[" << pid << "] entre " << team1.to_string() << " y " << team2.to_string();
+        ss << "Despachado MatchProcess[" << pid << "] " << match_between;
         Logger::log(prettyName(), Logger::INFO, ss.str(), timestamp);
     } else {
         // Proceso hijo, dispatch crea una SHM y sale con exit de la ejecucion de todo
+        Logger::log(match_process.prettyName(), Logger::DBG, "Arrancando partido " + match_between, Logger::get_date());
         match_process.dispatch_match();
         exit(match_process.get_match_result());
     }
@@ -226,16 +228,16 @@ void CourtManager::process_finished_match() {
     Person p;
     p = match.team1().get_person1();
     _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
-    Logger::log(prettyName(), Logger::INFO, "Enviada persona a TeamMaker", Logger::get_date());
+    Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " a TeamMaker", Logger::get_date());
     p = match.team1().get_person2();
     _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
 
     p = match.team2().get_person2();
     _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
-    Logger::log(prettyName(), Logger::INFO, "Enviada persona a TeamMaker", Logger::get_date());
+    Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " a TeamMaker", Logger::get_date());
 
-    Logger::log(prettyName(), Logger::INFO, "Enviada persona a TeamMaker", Logger::get_date());
+    Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " a TeamMaker", Logger::get_date());
     p = match.team2().get_person1();
     _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
-    Logger::log(prettyName(), Logger::INFO, "Enviada persona a TeamMaker", Logger::get_date());
+    Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " a TeamMaker", Logger::get_date());
 }

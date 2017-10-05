@@ -72,6 +72,7 @@ int TeamMaker::do_work() {
             shm_id = find_empty_space(p1);
         }
         if (shm_id == -1) {
+            // Esto no deberia pasar jamas porque el BeachManagerWorker no deberia mandar mas que _m
             Logger::log(prettyName(), Logger::ERROR, "SHM MAPPER INDEX -1 EN TEAM MAKER", Logger::get_date());
         }
         if (_waiting_list.size() > 0) {
@@ -92,11 +93,11 @@ int TeamMaker::do_work() {
 }
 
 void TeamMaker::initialize() {
+    Logger::log(prettyName(), Logger::DBG, "Inicializando..." ,Logger::get_date());
     _fifo_read.abrir();
     Logger::log(prettyName(), Logger::DBG, "Fifo de recepcion de nuevas personas abierto" ,Logger::get_date());
 
     try {
-
         initialize_shm();
         Logger::log(prettyName(), Logger::DBG, "Shared Memory Pareja Personas inicializada", Logger::get_date());
     } catch (const std::string& error) {
@@ -105,12 +106,13 @@ void TeamMaker::initialize() {
 
     try {
         initalize_shm_mapper();
-        Logger::log(prettyName(), Logger::DBG, "Shared Memory Mapper Personas", Logger::get_date());
+        Logger::log(prettyName(), Logger::DBG, "Shared Memory Mapper Personas inicializada", Logger::get_date());
     } catch (const std::string& error) {
         Logger::log(prettyName(), Logger::ERROR, error, Logger::get_date());
     }
     _fifo_write.abrir();
-    Logger::log(prettyName(), Logger::DBG, "Fifo de WRITE de equipos a CourtManager", Logger::get_date());
+    Logger::log(prettyName(), Logger::DBG, "Fifo de WRITE de equipos a CourtManager abierto", Logger::get_date());
+    Logger::log(prettyName(), Logger::DBG, "Fin inicializacion", Logger::get_date());
 }
 
 void TeamMaker::finalize() {

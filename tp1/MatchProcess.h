@@ -29,12 +29,12 @@ private:
     void run_match();
     void set_scores(int& score_winner, int& score_loser);
     void signal_court_manager();
-    std::string prettyName();
 public:
     MatchProcess(pid_t parent_process_id);
     ~MatchProcess();
     int get_match_result();
     void dispatch_match();
+    std::string prettyName();
 };
 
 
