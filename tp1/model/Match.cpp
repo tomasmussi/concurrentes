@@ -1,7 +1,3 @@
-//
-// Created by tomas on 04/10/17.
-//
-
 #include <sstream>
 #include "Match.h"
 
@@ -17,7 +13,6 @@ std::string Match::to_string() {
     stream << ": " << _score_team1 << " a " << _score_team2;
     return stream.str();
 }
-
 
 void Match::set_match_status(int exit_code) {
     switch (exit_code) {

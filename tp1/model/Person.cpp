@@ -1,9 +1,4 @@
-//
-// Created by tomas on 29/09/17.
-//
-
 #include <sstream>
-
 #include "Person.h"
 
 Person::Person() : _id(-1) {

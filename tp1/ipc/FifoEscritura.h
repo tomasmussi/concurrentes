@@ -1,7 +1,3 @@
-//
-// Created by tomas on 27/09/17.
-//
-
 #ifndef TP1_FIFOESCRITURA_H
 #define TP1_FIFOESCRITURA_H
 
@@ -13,8 +9,7 @@ public:
     ~FifoEscritura();
 
     void abrir();
-    ssize_t escribir(const void* buffer,const ssize_t buffsize) const;
+    ssize_t escribir(const void* buffer, const ssize_t buffsize) const;
 };
-
 
 #endif //TP1_FIFOESCRITURA_H

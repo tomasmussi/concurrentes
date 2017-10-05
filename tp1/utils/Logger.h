@@ -1,7 +1,3 @@
-//
-// Created by tomas on 29/09/17.
-//
-
 #ifndef TP1_LOGGER_H
 #define TP1_LOGGER_H
 
@@ -9,7 +5,6 @@
 #include <string>
 #include <fstream>
 #include "../ipc/LockFile.h"
-
 
 class Logger {
 private:
@@ -20,7 +15,7 @@ private:
     static void initialize_log();
 
 public:
-    static const int DBG = 0;
+    static const int DEBUG = 0;
     static const int INFO = 1;
     static const int ERROR = 2;
     static const int WARNING = 3;
@@ -31,6 +26,5 @@ public:
     static void close_logger();
     static std::string get_date();
 };
-
 
 #endif //TP1_LOGGER_H

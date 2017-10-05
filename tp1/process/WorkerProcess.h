@@ -1,7 +1,3 @@
-//
-// Created by tomas on 26/09/17.
-//
-
 #ifndef TP1_WORKERPROCESS_H
 #define TP1_WORKERPROCESS_H
 
@@ -21,6 +17,5 @@ public:
     virtual std::string prettyName() = 0;
     int loop();
 };
-
 
 #endif //TP1_WORKERPROCESS_H

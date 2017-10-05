@@ -1,7 +1,3 @@
-//
-// Created by tomas on 29/09/17.
-//
-
 #ifndef TP1_TEAMMAKER_H
 #define TP1_TEAMMAKER_H
 
@@ -45,6 +41,5 @@ public:
     virtual void finalize();
     virtual std::string prettyName();
 };
-
 
 #endif //TP1_TEAMMAKER_H

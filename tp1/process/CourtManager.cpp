@@ -1,17 +1,11 @@
-//
-// Created by tomas on 01/10/17.
-//
 #include <sys/wait.h>
 #include <sstream>
 #include <cstdlib>
 
 #include "CourtManager.h"
-#include "../model/Team.h"
-#include "../utils/Logger.h"
 #include "../ipc/SignalHandler.h"
-#include "../model/Match.h"
 
-CourtManager::CourtManager(int m, int k,int rows, int columns, const std::string& fifo_read,
+CourtManager::CourtManager(int m, int k, int rows, int columns, const std::string& fifo_read,
         const std::string& fifo_write) :
     _m(m), _k(k), _rows(rows), _columns(columns), _fifo_read(fifo_read), _fifo_write(fifo_write),
     _lock_shm_mapper("/tmp/shm_mapper"), _shm_mapper(NULL),
@@ -28,11 +22,11 @@ int CourtManager::do_work() {
     Team team2;
     _fifo_read.leer(static_cast<void*>(&team1), sizeof(Team));
     if (team1.valid()) {
-        Logger::log(prettyName(), Logger::INFO, "Recibido equipo1 " + team1.to_string(), Logger::get_date());
+        Logger::log(prettyName(), Logger::INFO, "Recibido equipo 1: " + team1.to_string(), Logger::get_date());
         _fifo_read.leer(static_cast<void*>(&team2), sizeof(Team));
-        Logger::log(prettyName(), Logger::INFO, "Recibido equipo2 " + team2.to_string() + " y verificando que sea valido", Logger::get_date());
+        Logger::log(prettyName(), Logger::INFO, "Recibido equipo 2: " + team2.to_string() + " (Verificando que sea valido)", Logger::get_date());
         if (team2.valid()) {
-            Logger::log(prettyName(), Logger::INFO, "Recibido equipo2 " + team2.to_string(), Logger::get_date());
+            Logger::log(prettyName(), Logger::INFO, "Recibido equipo 2: " + team2.to_string(), Logger::get_date());
             dispatch_match(team1, team2);
         }
     }
@@ -55,7 +49,7 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
     } else {
         MatchProcess match_process(father_pid);
         // Proceso hijo, dispatch crea una SHM y sale con exit de la ejecucion de todo
-        Logger::log(match_process.prettyName(), Logger::DBG, "Arrancando partido " + match_between, Logger::get_date());
+        Logger::log(match_process.prettyName(), Logger::DEBUG, "Arrancando partido " + match_between, Logger::get_date());
         match_process.dispatch_match();
         int match_result = match_process.get_match_result();
         // Llamo al finalize porque al salir del proceso con un exit, no se ejecuta el destructor del MatchProcess
@@ -65,20 +59,20 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
 }
 
 void CourtManager::initialize() {
-    Logger::log(prettyName(), Logger::DBG, "Inicializando", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Inicializando", Logger::get_date());
     _fifo_read.abrir();
-    Logger::log(prettyName(), Logger::DBG, "Fifo READ de equipos de TeamMaker abierto", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Fifo de lectura de equipos de TeamMaker abierto", Logger::get_date());
     _fifo_write.abrir();
-    Logger::log(prettyName(), Logger::DBG, "Fifo de envio de personas a TeamMaker abierto", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Fifo de envio de personas a TeamMaker abierto", Logger::get_date());
     try {
         initialize_shm_couples();
-        Logger::log(prettyName(), Logger::INFO, "Shared Memory Pareja Personas inicializada", Logger::get_date());
+        Logger::log(prettyName(), Logger::DEBUG, "Shared Memory Pareja Personas inicializada", Logger::get_date());
     } catch (const std::string& error) {
         Logger::log(prettyName(), Logger::ERROR, error, Logger::get_date());
     }
     try {
         initialize_shm_mapper();
-        Logger::log(prettyName(), Logger::INFO, "Shared Memory Mapper inicializada", Logger::get_date());
+        Logger::log(prettyName(), Logger::DEBUG, "Shared Memory Mapper inicializada", Logger::get_date());
     } catch (const std::string& error) {
         Logger::log(prettyName(), Logger::ERROR, error, Logger::get_date());
     }
@@ -87,21 +81,22 @@ void CourtManager::initialize() {
     _shm_matches.escribir(0);
     _lock_matches.release();
     SignalHandler::getInstance()->registrarHandler(SIGUSR1, this);
-    Logger::log(prettyName(), Logger::INFO, "INICIALIZADO", Logger::get_date());
+    Logger::log(prettyName(), Logger::INFO, "Inicializado", Logger::get_date());
 }
 
 void CourtManager::finalize() {
-    Logger::log(prettyName(), Logger::DBG, "Finalizando", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Finalizando", Logger::get_date());
     _fifo_read.cerrar();
     _fifo_write.cerrar();
-    Logger::log(prettyName(), Logger::DBG, "Fifos cerrados", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Fifos cerrados", Logger::get_date());
     destroy_shm_couples();
-    Logger::log(prettyName(), Logger::DBG, "SHM couples destruida", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "SHM couples destruida", Logger::get_date());
     destroy_shm_mapper();
-    Logger::log(prettyName(), Logger::DBG, "SHM mapper destruida", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "SHM mapper destruida", Logger::get_date());
     _shm_matches.liberar();
-    Logger::log(prettyName(), Logger::DBG, "SHM matches destruida", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "SHM matches destruida", Logger::get_date());
     SignalHandler::destroy();
+    Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());
 }
 
 std::string CourtManager::prettyName() {
@@ -186,13 +181,13 @@ void CourtManager::write_shm_mapper(int idx_p1, int idx_p2) {
     _lock_shm_player_couple.release();
 }
 
-int CourtManager::handleSignal ( int signum ) {
+int CourtManager::handleSignal(int signum) {
     Logger::log(prettyName(), Logger::INFO, "Handling signal", Logger::get_date());
     if (signum != SIGUSR1) {
         Logger::log(prettyName(), Logger::ERROR, "Recibi senial distinta a SIGUSR1", Logger::get_date());
         return 1;
     }
-    Logger::log(prettyName(), Logger::DBG, "Tomando lock de matches", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Tomando lock de matches", Logger::get_date());
     _lock_matches.lock();
     int matches_to_process = _shm_matches.leer();
     std::stringstream s;
@@ -203,7 +198,7 @@ int CourtManager::handleSignal ( int signum ) {
     }
     _shm_matches.escribir(0);
     _lock_matches.release();
-    Logger::log(prettyName(), Logger::DBG, "Lock de matches liberado", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Lock de matches liberado", Logger::get_date());
     return 0;
 }
 

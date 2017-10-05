@@ -1,7 +1,3 @@
-//
-// Created by tomas on 29/09/17.
-//
-
 #include "Logger.h"
 
 #include <sys/time.h>
@@ -30,10 +26,10 @@ void Logger::initialize_log() {
 std::string Logger::get_error_flag(int error_level) {
     switch (error_level) {
         case ERROR:
-            return "ERR";
+            return "ERRO";
         case WARNING:
-            return "WAR";
-        case DBG:
+            return "WARN";
+        case DEBUG:
             return "DBUG";
         default:
             return "INFO";
@@ -45,7 +41,7 @@ void Logger::log(const std::string& caller, int error, const std::string& error_
     lock.lock();
     file_stream << "[" << timestamp << "] [" << get_error_flag(error) << "] " << caller << ": " << error_message
             << std::endl;
-    if (error == Logger::DBG) {
+    if (error == Logger::DEBUG) {
         std::cout << error_message << std::endl;
     }
     lock.release();

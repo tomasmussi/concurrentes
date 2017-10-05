@@ -1,7 +1,3 @@
-//
-// Created by tomas on 01/10/17.
-//
-
 #ifndef TP1_COURTMANAGER_H
 #define TP1_COURTMANAGER_H
 
@@ -14,7 +10,6 @@
 #include "../ipc/FifoEscritura.h"
 #include "../ipc/LockFile.h"
 #include "../model/Match.h"
-
 
 class CourtManager : public WorkerProcess, public EventHandler {
 private:
@@ -51,6 +46,5 @@ public:
     virtual std::string prettyName();
     virtual int handleSignal ( int signum );
 };
-
 
 #endif //TP1_COURTMANAGER_H

@@ -1,5 +1,3 @@
-
-
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -14,8 +12,6 @@
 #include "process/BeachManagerWorker.h"
 #include "process/TeamMaker.h"
 #include "process/CourtManager.h"
-
-#include "utils/Logger.h"
 
 // TODO: CUIDADO CON ESTO, CUANDO SE AGREGUE UN PROCESO HAY QUE TOCAR ESTE DEFINE
 #define N_WORKERS 3
@@ -38,7 +34,7 @@ int main(int argc, char* argv[]) {
 
     MainSIGIntHandler sigint_handler;
     SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
-    Logger::log("main", Logger::DBG, "MainSIGIntHandler registrado", Logger::get_date());
+    Logger::log("main", Logger::DEBUG, "MainSIGIntHandler registrado", Logger::get_date());
 
     std::string fifo1 = "/tmp/fifo1";
     std::string fifo2 = "/tmp/fifo2";
@@ -47,14 +43,14 @@ int main(int argc, char* argv[]) {
     std::stringstream ss;
     ss << "Agregando handler para nuevos players en " << getpid();
     std::string s = ss.str();
-    Logger::log("main", Logger::DBG, s, Logger::get_date());
+    Logger::log("main", Logger::DEBUG, s, Logger::get_date());
     NewPlayerHandler new_player_handler(fifo1);
     SignalHandler::getInstance()->registrarHandler(SIGUSR1, &new_player_handler);
-    Logger::log("main", Logger::DBG, "NewPlayerHandler registrado", Logger::get_date());
+    Logger::log("main", Logger::DEBUG, "NewPlayerHandler registrado", Logger::get_date());
 
     WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(m, fifo1, fifo2),
                                      new TeamMaker(m, k, fifo2, fifo3),
-                                     new CourtManager(m,k,rows, columns, fifo3, fifo2) };
+                                     new CourtManager(m, k, rows, columns, fifo3, fifo2) };
 
     bool is_father = true;
     int son_process = 0;
@@ -68,13 +64,15 @@ int main(int argc, char* argv[]) {
             std::stringstream ss;
             ss << "Nuevo worker " << arr[i]->prettyName() << " con pid " << pid;
             std::string s = ss.str();
-            Logger::log("main", Logger::DBG, s, Logger::get_date());
+            Logger::log("main", Logger::INFO, s, Logger::get_date());
             sigint_handler.add_pid_notification(pid);
         }
     }
+
     if (is_father) {
         // Esto es para que se abra el fifo1 para escribir
         new_player_handler.initialize();
+
         int collected = 0;
         while (collected < N_WORKERS) {
             int status;

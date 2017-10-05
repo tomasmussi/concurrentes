@@ -1,7 +1,3 @@
-//
-// Created by tomas on 11/09/17.
-//
-
 #ifndef TP1_MATCHPROCESS_H
 #define TP1_MATCHPROCESS_H
 
@@ -26,6 +22,7 @@ private:
     int _score_team2;
     LockFile _lock_matches;
     MemoriaCompartida<int>* _shm_matches;
+
     void run_match();
     void set_scores(int& score_winner, int& score_loser);
     void signal_court_manager();
@@ -37,6 +34,5 @@ public:
     std::string prettyName();
     void finalize();
 };
-
 
 #endif //TP1_MATCHPROCESS_H

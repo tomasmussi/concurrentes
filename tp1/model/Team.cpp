@@ -1,7 +1,3 @@
-//
-// Created by tomas on 01/10/17.
-//
-
 #include "Team.h"
 
 Team::Team() : _p1(), _p2() {

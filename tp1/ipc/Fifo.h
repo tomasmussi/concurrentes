@@ -1,7 +1,3 @@
-//
-// Created by tomas on 27/09/17.
-//
-
 #ifndef TP1_FIFO_H
 #define TP1_FIFO_H
 
@@ -23,6 +19,5 @@ protected:
     std::string nombre;
     int fd;
 };
-
 
 #endif //TP1_FIFO_H

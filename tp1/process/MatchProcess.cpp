@@ -1,16 +1,8 @@
-//
-// Created by tomas on 11/09/17.
-//
-
 #include "MatchProcess.h"
-#include "../utils/Logger.h"
 #include <stdlib.h>
-#include <sstream>
 #include <cstdlib>
 #include <ctime>
-#include <unistd.h>
 #include <signal.h>
-
 
 MatchProcess::MatchProcess(pid_t parent_process_id) : _father_id(parent_process_id),
     _probability(0.5), _score_team1(0), _score_team2(0),
@@ -23,12 +15,12 @@ MatchProcess::~MatchProcess() {
 
 void MatchProcess::finalize() {
     if (_shm_matches != NULL) {
-        Logger::log(prettyName(), Logger::DBG, "Destruyendo SHM de matches", Logger::get_date());
+        Logger::log(prettyName(), Logger::INFO, "Destruyendo SHM de matches", Logger::get_date());
         _shm_matches->liberar();
         delete(_shm_matches);
         _shm_matches = NULL;
     } else {
-        Logger::log(prettyName(), Logger::DBG, "Al eliminar: No toco shm porque es null", Logger::get_date());
+        Logger::log(prettyName(), Logger::WARNING, "Al eliminar: No toco shm porque es null", Logger::get_date());
     }
 }
 
@@ -38,7 +30,7 @@ void MatchProcess::finalize() {
  * informacion
  * */
 void MatchProcess::dispatch_match() {
-    Logger::log(prettyName(), Logger::DBG, "Creando memoria compartida de matches", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Creando memoria compartida de matches", Logger::get_date());
     // TODO: No seria mejor si _shm_matches es una variable estatica en vez de dinamica?
     _shm_matches = new MemoriaCompartida<int>;
     _shm_matches->crear("/bin/grep", 'a');
@@ -46,9 +38,9 @@ void MatchProcess::dispatch_match() {
     this->run_match();
 
     std::string timestamp = Logger::get_date();
-    signal_court_manager();
     Logger::log(prettyName(), Logger::INFO, "CourtManager senializado fin partido", timestamp);
-    Logger::log(prettyName(), Logger::DBG, "Ahora deberia venir el dt de SHM", timestamp);
+    signal_court_manager();
+    Logger::log(prettyName(), Logger::DEBUG, "Ahora deberia venir el dt de SHM", timestamp);
 //    This exit shouldn't be done as it's called from CourtManager
 //    _exit(get_match_result());
 }
@@ -69,7 +61,7 @@ void MatchProcess::run_match() {
     }
     std::stringstream ss;
     ss << "El partido termino: " << _score_team1 << " a " << _score_team2;
-    Logger::log(prettyName(), Logger::DBG, ss.str(), Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, ss.str(), Logger::get_date());
 }
 
 void MatchProcess::set_scores(int& score_winner, int& score_loser) {
@@ -91,11 +83,11 @@ void MatchProcess::set_scores(int& score_winner, int& score_loser) {
 }
 
 void MatchProcess::signal_court_manager() {
-    Logger::log(prettyName(), Logger::DBG, "Tomando lock de matches", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Tomando lock de matches", Logger::get_date());
     _lock_matches.lock();
     _shm_matches->escribir(_shm_matches->leer() + 1);
     _lock_matches.release();
-    Logger::log(prettyName(), Logger::DBG, "Lock de matches liberado", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Lock de matches liberado", Logger::get_date());
     kill(_father_id, SIGUSR1);
 }
 
@@ -134,10 +126,9 @@ std::string MatchProcess::prettyName() {
     return ss.str();
 }
 
-
 /*
 MatchProcess::MatchProcess(const MatchProcess& other_match) : _lock_matches("/tmp/shm_matches"), _son_process(false) {
-    Logger::log("MatchProcess", Logger::DBG, "Construyendo COPIA", Logger::get_date());
+    Logger::log("MatchProcess", Logger::DEBUG, "Construyendo COPIA", Logger::get_date());
     this->_team1 = other_match._team1;
     this->_team2 = other_match._team2;
     this->_score_team1 = other_match._score_team1;

@@ -1,10 +1,5 @@
-//
-// Created by tomas on 04/10/17.
-//
-
 #ifndef TP1_MATCH_H
 #define TP1_MATCH_H
-
 
 #include "Team.h"
 
@@ -14,6 +9,7 @@ private:
     Team _team2;
     int _score_team1;
     int _score_team2;
+
 public:
     Match();
     Match(const Team& team1, const Team& team2);
@@ -23,6 +19,5 @@ public:
     Team team1() const;
     Team team2() const;
 };
-
 
 #endif //TP1_MATCH_H

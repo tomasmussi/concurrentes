@@ -1,10 +1,7 @@
-//
-// Created by tomas on 27/09/17.
-//
-
 #include "Fifo.h"
+
 Fifo::Fifo(const std::string nombre) : nombre(nombre), fd(-1) {
-    mknod ( static_cast<const char*>(nombre.c_str()),S_IFIFO|0666,0 );
+    mknod(nombre.c_str(), S_IFIFO|0666,0);
 }
 
 Fifo::~Fifo() {
@@ -16,5 +13,5 @@ void Fifo::cerrar() {
 }
 
 void Fifo::eliminar() const {
-    unlink ( nombre.c_str() );
+    unlink(nombre.c_str());
 }

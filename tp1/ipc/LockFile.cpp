@@ -1,7 +1,3 @@
-//
-// Created by tomas on 29/09/17.
-//
-
 #include "LockFile.h"
 
 LockFile::LockFile(const std::string& nombre) {
@@ -23,8 +19,7 @@ int LockFile::release() {
     return fcntl(this->fd, F_SETLK, &(this->fl));
 }
 
-ssize_t LockFile::write_lock(const void* buffer,
-                              const ssize_t buffsize) const {
+ssize_t LockFile::write_lock(const void* buffer, const ssize_t buffsize) const {
     lseek(this->fd, 0, SEEK_END);
     return write(this->fd, buffer, buffsize);
 }

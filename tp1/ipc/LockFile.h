@@ -1,7 +1,3 @@
-//
-// Created by tomas on 29/09/17.
-//
-
 #ifndef TP1_LOCKFILE_H
 #define TP1_LOCKFILE_H
 
@@ -22,8 +18,6 @@ public:
     int lock();
     int release();
     ssize_t write_lock(const void* buffer, const ssize_t buffsize) const;
-
 };
-
 
 #endif //TP1_LOCKFILE_H

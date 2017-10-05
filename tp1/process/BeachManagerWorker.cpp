@@ -14,17 +14,17 @@ void BeachManagerWorker::sendPerson(int i) {
     Person p(i);
     std::string timestamp = Logger::get_date();
     _pipe_writer.escribir(static_cast<void*>(&p), sizeof(Person));
-    Logger::log(prettyName(), Logger::DBG, "Enviada persona " + p.id() + " para jugar", timestamp);
+    Logger::log(prettyName(), Logger::DEBUG, "Enviada persona " + p.id() + " para jugar", timestamp);
 }
 
 int BeachManagerWorker::do_work() {
     int j;
-    Logger::log(prettyName(), Logger::DBG, "Esperando para leer nuevos jugadores", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Esperando para leer nuevos jugadores", Logger::get_date());
     _pipe_reader.leer(&j, sizeof(int));
     std::stringstream ss;
     ss << "Lei un nuevo jugador: " << j;
     std::string s = ss.str();
-    Logger::log(prettyName(), Logger::DBG, s, Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, s, Logger::get_date());
 
     // Esto funciona porque el NewPlayerHandler escribe numeros secuenciales. Se podria hacer que solo mande señales y
     // que el contador esté solo del lado del BeachManagerWorker
@@ -50,18 +50,20 @@ int BeachManagerWorker::do_work() {
 }
 
 void BeachManagerWorker::initialize() {
-    Logger::log(prettyName(), Logger::DBG, "Inicializando pipes", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Inicializando pipes", Logger::get_date());
     _pipe_reader.abrir();
     _pipe_writer.abrir();
-    Logger::log(prettyName(), Logger::DBG, "Fin inicializacion pipes", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Fin inicializacion pipes", Logger::get_date());
+    Logger::log(prettyName(), Logger::INFO, "Inicializado", Logger::get_date());
 }
 
 void BeachManagerWorker::finalize() {
-    Logger::log(prettyName(), Logger::DBG, "Cerrando pipes", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Cerrando pipes", Logger::get_date());
     _pipe_reader.cerrar();
     _pipe_writer.cerrar();
     _pipe_writer.eliminar();
-    Logger::log(prettyName(), Logger::DBG, "Fin clausura de pipes", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Fin clausura de pipes", Logger::get_date());
+    Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());
 }
 
 std::string BeachManagerWorker::prettyName() {

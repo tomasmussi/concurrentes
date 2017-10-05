@@ -1,7 +1,3 @@
-//
-// Created by tomas on 27/09/17.
-//
-
 #ifndef TP1_FIFOLECTURA_H
 #define TP1_FIFOLECTURA_H
 
@@ -13,8 +9,7 @@ public:
     ~FifoLectura();
 
     void abrir();
-    ssize_t leer(void* buffer,const ssize_t buffsize) const;
+    ssize_t leer(void* buffer, const ssize_t buffsize) const;
 };
-
 
 #endif //TP1_FIFOLECTURA_H

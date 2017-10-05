@@ -1,7 +1,3 @@
-//
-// Created by tomas on 26/09/17.
-//
-
 #ifndef TP1_BEACHMANAGERWORKER_H
 #define TP1_BEACHMANAGERWORKER_H
 
@@ -26,13 +22,11 @@ private:
     void sendPerson(int i);
 public:
     BeachManagerWorker(int m, const std::string& fifo_read, const std::string& fifo_write);
-
     virtual ~BeachManagerWorker();
     virtual void initialize();
     virtual void finalize();
     virtual int do_work();
     virtual std::string prettyName();
 };
-
 
 #endif //TP1_BEACHMANAGERWORKER_H
