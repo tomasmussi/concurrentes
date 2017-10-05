@@ -18,14 +18,18 @@ MatchProcess::MatchProcess(pid_t parent_process_id) : _father_id(parent_process_
 }
 
 MatchProcess::~MatchProcess() {
-    if (_shm_matches != NULL) {
-        Logger::log(prettyName(), Logger::DBG, "Destruyendo SHM", Logger::get_date());
-        _shm_matches->liberar();
-    } else {
-        Logger::log(prettyName(), Logger::DBG, "No toco shm porque es null", Logger::get_date());
-    }
+    finalize();
 }
 
+void MatchProcess::finalize() {
+    if (_shm_matches != NULL) {
+        Logger::log(prettyName(), Logger::DBG, "Destruyendo SHM de matches", Logger::get_date());
+        _shm_matches->liberar();
+        _shm_matches = NULL;
+    } else {
+        Logger::log(prettyName(), Logger::DBG, "Al eliminar: No toco shm porque es null", Logger::get_date());
+    }
+}
 
 /**
  * Al llamar a esta funcion, se pasa a desarrollar un partido en un proceso aparte
@@ -43,12 +47,15 @@ void MatchProcess::dispatch_match() {
     signal_court_manager();
     Logger::log(prettyName(), Logger::INFO, "CourtManager senializado fin partido", timestamp);
     Logger::log(prettyName(), Logger::DBG, "Ahora deberia venir el dt de SHM", timestamp);
-    _exit(get_match_result());
+//    This exit shouldn't be done as it's called from CourtManager
+//    _exit(get_match_result());
 }
 
 // Simular el partido y dar a un equipo como ganador
 void MatchProcess::run_match() {
-    std::srand(std::time(NULL));
+    std::srand((unsigned) std::time(NULL));
+    // TODO: Simular que el partido dura un tiempo aleatorio
+//    sleep(2);
     int who_wins = rand() % 100;
     int prob = 100 * _probability;
     if (prob >= who_wins) {
@@ -58,12 +65,16 @@ void MatchProcess::run_match() {
         // team2 wins
         set_scores(_score_team2, _score_team1);
     }
+    std::stringstream ss;
+    ss << "El partido termino: " << _score_team1 << " a " << _score_team2;
+    Logger::log(prettyName(), Logger::DBG, ss.str(), Logger::get_date());
 }
 
 void MatchProcess::set_scores(int& score_winner, int& score_loser) {
     score_winner = 3;
     int prob = 100 * _probability;
     int wins_by_difference = rand() % 100;
+    // TODO: No seria mejor hacer si esta entre 0 y 32, entre 33 y 65 o entre 66 y 99?
     if (prob >= wins_by_difference) {
         // by 3-0
         score_loser = 0;

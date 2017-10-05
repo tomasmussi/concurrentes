@@ -35,6 +35,7 @@ public:
     int get_match_result();
     void dispatch_match();
     std::string prettyName();
+    void finalize();
 };
 
 

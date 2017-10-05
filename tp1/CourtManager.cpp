@@ -30,6 +30,7 @@ int CourtManager::do_work() {
     if (team1.valid()) {
         Logger::log(prettyName(), Logger::INFO, "Recibido equipo1 " + team1.to_string(), Logger::get_date());
         _fifo_read.leer(static_cast<void*>(&team2), sizeof(Team));
+        Logger::log(prettyName(), Logger::INFO, "Recibido equipo2 " + team2.to_string() + " y verificando que sea valido", Logger::get_date());
         if (team2.valid()) {
             Logger::log(prettyName(), Logger::INFO, "Recibido equipo2 " + team2.to_string(), Logger::get_date());
             dispatch_match(team1, team2);
@@ -41,7 +42,8 @@ int CourtManager::do_work() {
 void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
     Match match(team1, team2);
     std::string timestamp = Logger::get_date();
-    MatchProcess match_process(getpid());
+    // Esto es para crear el MatchProcess solo en el hijo, donde tiene sentido
+    pid_t father_pid = getpid();
     std::string match_between = "entre " + team1.to_string() + " y " + team2.to_string();
     pid_t pid = fork();
     if (pid > 0) {
@@ -51,10 +53,14 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
         ss << "Despachado MatchProcess[" << pid << "] " << match_between;
         Logger::log(prettyName(), Logger::INFO, ss.str(), timestamp);
     } else {
+        MatchProcess match_process(father_pid);
         // Proceso hijo, dispatch crea una SHM y sale con exit de la ejecucion de todo
         Logger::log(match_process.prettyName(), Logger::DBG, "Arrancando partido " + match_between, Logger::get_date());
         match_process.dispatch_match();
-        exit(match_process.get_match_result());
+        int match_result = match_process.get_match_result();
+        // Llamo al finalize porque al salir del proceso con un exit, no se ejecuta el destructor del MatchProcess
+        match_process.finalize();
+        exit(match_result);
     }
 }
 
@@ -85,11 +91,16 @@ void CourtManager::initialize() {
 }
 
 void CourtManager::finalize() {
+    Logger::log(prettyName(), Logger::DBG, "Finalizando", Logger::get_date());
     _fifo_read.cerrar();
     _fifo_write.cerrar();
+    Logger::log(prettyName(), Logger::DBG, "Fifos cerrados", Logger::get_date());
     destroy_shm_couples();
+    Logger::log(prettyName(), Logger::DBG, "SHM couples destruida", Logger::get_date());
     destroy_shm_mapper();
+    Logger::log(prettyName(), Logger::DBG, "SHM mapper destruida", Logger::get_date());
     _shm_matches.liberar();
+    Logger::log(prettyName(), Logger::DBG, "SHM matches destruida", Logger::get_date());
     SignalHandler::destroy();
 }
 
@@ -192,6 +203,7 @@ int CourtManager::handleSignal ( int signum ) {
     }
     _shm_matches.escribir(0);
     _lock_matches.release();
+    Logger::log(prettyName(), Logger::DBG, "Lock de matches liberado", Logger::get_date());
     return 0;
 }
 
@@ -229,14 +241,15 @@ void CourtManager::process_finished_match() {
     p = match.team1().get_person1();
     _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " a TeamMaker", Logger::get_date());
-    p = match.team1().get_person2();
-    _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
 
     p = match.team2().get_person2();
     _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " a TeamMaker", Logger::get_date());
 
+    p = match.team1().get_person2();
+    _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " a TeamMaker", Logger::get_date());
+
     p = match.team2().get_person1();
     _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " a TeamMaker", Logger::get_date());

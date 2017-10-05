@@ -116,12 +116,16 @@ void TeamMaker::initialize() {
 }
 
 void TeamMaker::finalize() {
+    Logger::log(prettyName(), Logger::DBG, "Finalizando", Logger::get_date());
     _fifo_read.cerrar();
     _fifo_write.cerrar();
     _fifo_write.eliminar();
+    Logger::log(prettyName(), Logger::DBG, "Fifos cerrados", Logger::get_date());
 
     destroy_shm();
+    Logger::log(prettyName(), Logger::DBG, "SHM player couple destruida", Logger::get_date());
     destroy_shm_mapper();
+    Logger::log(prettyName(), Logger::DBG, "SHM mapper destruida", Logger::get_date());
 }
 
 std::string TeamMaker::prettyName() {
