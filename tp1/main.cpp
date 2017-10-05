@@ -7,15 +7,15 @@
 #include <cstring>
 #include <sstream>
 
-#include "MainSIGIntHandler.h"
-#include "SignalHandler.h"
-#include "NewPlayerHandler.h"
+#include "handlers/MainSIGIntHandler.h"
+#include "ipc/SignalHandler.h"
+#include "handlers/NewPlayerHandler.h"
 
-#include "BeachManagerWorker.h"
-#include "TeamMaker.h"
-#include "CourtManager.h"
+#include "process/BeachManagerWorker.h"
+#include "process/TeamMaker.h"
+#include "process/CourtManager.h"
 
-#include "Logger.h"
+#include "utils/Logger.h"
 
 // TODO: CUIDADO CON ESTO, CUANDO SE AGREGUE UN PROCESO HAY QUE TOCAR ESTE DEFINE
 #define N_WORKERS 3

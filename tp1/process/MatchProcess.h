@@ -5,9 +5,9 @@
 #ifndef TP1_MATCHPROCESS_H
 #define TP1_MATCHPROCESS_H
 
-#include "Team.h"
-#include "LockFile.h"
-#include "MemoriaCompartida.h"
+#include "../model/Team.h"
+#include "../ipc/LockFile.h"
+#include "../ipc/MemoriaCompartida.h"
 #include <list>
 #include <map>
 

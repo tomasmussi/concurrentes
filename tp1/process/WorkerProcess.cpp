@@ -3,9 +3,9 @@
 //
 
 #include "WorkerProcess.h"
-#include "SIGIntHandler.h"
-#include "SignalHandler.h"
-#include "Logger.h"
+#include "../handlers/SIGIntHandler.h"
+#include "../ipc/SignalHandler.h"
+#include "../utils/Logger.h"
 
 WorkerProcess::~WorkerProcess() {
 }

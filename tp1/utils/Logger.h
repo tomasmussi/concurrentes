@@ -8,7 +8,7 @@
 #include <iostream>
 #include <string>
 #include <fstream>
-#include "LockFile.h"
+#include "../ipc/LockFile.h"
 
 
 class Logger {

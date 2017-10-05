@@ -4,7 +4,7 @@
 
 #include <unistd.h>
 #include "EventHandler.h"
-#include "FifoEscritura.h"
+#include "../ipc/FifoEscritura.h"
 
 /**
  * Clase encargada de registrar personas que quieren entrar al predio

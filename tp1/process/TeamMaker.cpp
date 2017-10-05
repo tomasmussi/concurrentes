@@ -3,8 +3,8 @@
 //
 
 #include "TeamMaker.h"
-#include "Logger.h"
-#include "Team.h"
+#include "../utils/Logger.h"
+#include "../model/Team.h"
 
 #include <cstring>
 #include <sstream>
@@ -76,14 +76,19 @@ int TeamMaker::do_work() {
             Logger::log(prettyName(), Logger::ERROR, "SHM MAPPER INDEX -1 EN TEAM MAKER", Logger::get_date());
         }
         if (_waiting_list.size() > 0) {
+            bool could_play = false;
             for (std::list<Person>::iterator it = _waiting_list.begin(); it != _waiting_list.end(); ++it) {
                 if (can_play(shm_id, *it)) {
+                    could_play = true;
                     Team team(*it, p1);
                     _fifo_write.escribir(static_cast<void*>(&team), sizeof(Team));
                     Logger::log(prettyName(), Logger::INFO, "Enviando equipo: " + team.to_string(), Logger::get_date());
                     _waiting_list.erase(it);
                     break;
                 }
+            }
+            if (!could_play) {
+                _waiting_list.push_back(p1);
             }
         } else {
             _waiting_list.push_back(p1);

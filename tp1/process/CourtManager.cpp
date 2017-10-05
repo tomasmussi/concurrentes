@@ -6,10 +6,10 @@
 #include <cstdlib>
 
 #include "CourtManager.h"
-#include "Team.h"
-#include "Logger.h"
-#include "SignalHandler.h"
-#include "Match.h"
+#include "../model/Team.h"
+#include "../utils/Logger.h"
+#include "../ipc/SignalHandler.h"
+#include "../model/Match.h"
 
 CourtManager::CourtManager(int m, int k,int rows, int columns, const std::string& fifo_read,
         const std::string& fifo_write) :

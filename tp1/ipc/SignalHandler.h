@@ -5,7 +5,7 @@
 #ifndef TP1_SIGNALHANDLER_H
 #define TP1_SIGNALHANDLER_H
 
-#include "EventHandler.h"
+#include "../handlers/EventHandler.h"
 #include <signal.h>
 
 class SignalHandler {

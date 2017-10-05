@@ -1,5 +1,5 @@
 #include "BeachManagerWorker.h"
-#include "Person.h"
+#include "../model/Person.h"
 
 #define MIN_PEOPLE 10
 

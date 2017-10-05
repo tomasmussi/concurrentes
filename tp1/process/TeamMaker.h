@@ -9,11 +9,11 @@
 #include <list>
 #include <map>
 #include "WorkerProcess.h"
-#include "FifoLectura.h"
-#include "FifoEscritura.h"
-#include "MemoriaCompartida.h"
-#include "Person.h"
-#include "LockFile.h"
+#include "../ipc/FifoLectura.h"
+#include "../ipc/FifoEscritura.h"
+#include "../ipc/MemoriaCompartida.h"
+#include "../model/Person.h"
+#include "../ipc/LockFile.h"
 
 class TeamMaker : public WorkerProcess {
 private:

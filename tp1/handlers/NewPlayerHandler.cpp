@@ -2,8 +2,8 @@
 #include <iostream>
 #include <sstream>
 #include "NewPlayerHandler.h"
-#include "Logger.h"
-#include "Person.h"
+#include "../utils/Logger.h"
+#include "../model/Person.h"
 
 NewPlayerHandler::NewPlayerHandler(const std::string& fifo_write)
         : _pipe_writer(fifo_write), _i(0) {

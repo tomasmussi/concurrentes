@@ -6,9 +6,9 @@
 #define TP1_BEACHMANAGERWORKER_H
 
 #include "WorkerProcess.h"
-#include "MemoriaCompartida.h"
-#include "FifoEscritura.h"
-#include "FifoLectura.h"
+#include "../ipc/MemoriaCompartida.h"
+#include "../ipc/FifoEscritura.h"
+#include "../ipc/FifoLectura.h"
 
 /**
  * Clase encargada de administrar el predio de la playa, que es donde

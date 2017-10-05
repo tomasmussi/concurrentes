@@ -7,13 +7,13 @@
 
 #include <string>
 #include "WorkerProcess.h"
-#include "MemoriaCompartida.h"
-#include "FifoLectura.h"
+#include "../ipc/MemoriaCompartida.h"
+#include "../ipc/FifoLectura.h"
 #include "MatchProcess.h"
-#include "EventHandler.h"
-#include "FifoEscritura.h"
-#include "LockFile.h"
-#include "Match.h"
+#include "../handlers/EventHandler.h"
+#include "../ipc/FifoEscritura.h"
+#include "../ipc/LockFile.h"
+#include "../model/Match.h"
 
 
 class CourtManager : public WorkerProcess, public EventHandler {
