@@ -1,16 +1,10 @@
-//
-// Created by tomas on 26/09/17.
-//
-
 #include "BeachManagerWorker.h"
 #include "Person.h"
-#include "Logger.h"
-#include <sstream>
 
 #define MIN_PEOPLE 10
 
 BeachManagerWorker::BeachManagerWorker(int m, const std::string& fifo_read, const std::string& fifo_write)
-   : _shared_memory("/bin/bash", 'a'), _pipe_writer(fifo_write), _pipe_reader(fifo_read),  _i(0), _m(m)  {
+   : _pipe_writer(fifo_write), _pipe_reader(fifo_read), _i(0), _m(m)  {
 }
 
 BeachManagerWorker::~BeachManagerWorker() {
@@ -24,38 +18,33 @@ void BeachManagerWorker::sendPerson(int i) {
 }
 
 int BeachManagerWorker::do_work() {
-/*
-<<<<<<< HEAD
-
-    if (_i < 12) {
-        Person p(_i++);
-        std::string timestamp = Logger::get_date();
-        _pipe_writer.escribir(static_cast<void*>(&p), sizeof(Person));
-        Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " para jugar", timestamp);
-=======
- */
     int j;
-    Logger::log(prettyName(), Logger::DBG, "Esperando para leer del fifo1", Logger::get_date());
+    Logger::log(prettyName(), Logger::DBG, "Esperando para leer nuevos jugadores", Logger::get_date());
     _pipe_reader.leer(&j, sizeof(int));
     std::stringstream ss;
-    ss << "Lei del fifo1: " << j;
+    ss << "Lei un nuevo jugador: " << j;
     std::string s = ss.str();
+    Logger::log(prettyName(), Logger::DBG, s, Logger::get_date());
+
+    // Esto funciona porque el NewPlayerHandler escribe numeros secuenciales. Se podria hacer que solo mande señales y
+    // que el contador esté solo del lado del BeachManagerWorker
+    _i = j;
     // _i representa la cantidad de usuarios que quisieron ingresar al torneo, no la cantidad actual de usuarios
     // Es decir, el número del semáforo debería empezar en _m e ir decrementandolo a medida que ingresan players
     // semaphore--
     // if semaphore != blocked ...
-    _i = j;
-    Logger::log(prettyName(), Logger::DBG, s, Logger::get_date());
+
     // TODO: Esto es sólo si la cantidad de usuarios actuales es menor que _m!
+    // Si se cumplio que ya quisieron ingresar MIN_PEOPLE personas, mando a todas haciendo que arranque el torneo
     if (j == MIN_PEOPLE - 1) {
         for(int i = 0; i < MIN_PEOPLE; i++) {
             sendPerson(i);
         }
     } else {
+        // Una vez que ya arranco el torneo (Ya quisieron ingresar mas de MIN_PEOPLE), mando de a una persona
         if (j >= MIN_PEOPLE) {
             sendPerson(j);
         }
-//>>>>>>> feature/new-player-signal
     }
     return 0;
 }
@@ -68,9 +57,11 @@ void BeachManagerWorker::initialize() {
 }
 
 void BeachManagerWorker::finalize() {
+    Logger::log(prettyName(), Logger::DBG, "Cerrando pipes", Logger::get_date());
     _pipe_reader.cerrar();
     _pipe_writer.cerrar();
     _pipe_writer.eliminar();
+    Logger::log(prettyName(), Logger::DBG, "Fin clausura de pipes", Logger::get_date());
 }
 
 std::string BeachManagerWorker::prettyName() {

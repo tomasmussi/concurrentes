@@ -18,7 +18,6 @@
  * */
 class BeachManagerWorker : public WorkerProcess {
 private:
-    MemoriaCompartida<int> _shared_memory;
     FifoEscritura _pipe_writer;
     FifoLectura _pipe_reader;
     int _i;
