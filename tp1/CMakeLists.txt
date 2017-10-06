@@ -3,5 +3,6 @@ project(tp1)
 
 set(CMAKE_CXX_STANDARD 98)
 
-set(SOURCE_FILES main.cpp Match.cpp Match.h WorkerProcess.cpp WorkerProcess.h BeachManagerWorker.cpp BeachManagerWorker.h SignalHandler.cpp SignalHandler.h EventHandler.h SIGIntHandler.cpp SIGIntHandler.h MainSIGIntHandler.cpp MainSIGIntHandler.h MemoriaCompartida.h Fifo.cpp Fifo.h FifoEscritura.cpp FifoEscritura.h FifoLectura.cpp FifoLectura.h TeamMaker.cpp TeamMaker.h Person.cpp Person.h Logger.cpp Logger.h LockFile.cpp LockFile.h Team.cpp Team.h CourtManager.cpp CourtManager.h CourtManager.cpp CourtManager.h NewPlayerHandler.h NewPlayerHandler.cpp)
+set(SOURCE_FILES main.cpp handlers/EventHandler.h handlers/MainSIGIntHandler.cpp handlers/MainSIGIntHandler.h handlers/NewPlayerHandler.h handlers/NewPlayerHandler.cpp handlers/SIGIntHandler.cpp handlers/SIGIntHandler.h ipc/Fifo.cpp ipc/Fifo.h ipc/FifoEscritura.cpp ipc/FifoEscritura.h ipc/FifoLectura.cpp ipc/FifoLectura.h ipc/LockFile.cpp ipc/LockFile.h ipc/MemoriaCompartida.h ipc/SignalHandler.cpp ipc/SignalHandler.h model/Match.cpp model/Match.h model/Person.cpp model/Person.h model/Team.cpp model/Team.h process/BeachManagerWorker.cpp process/BeachManagerWorker.h process/CourtManager.cpp process/CourtManager.h process/MatchProcess.cpp process/MatchProcess.h process/TeamMaker.cpp process/TeamMaker.h process/WorkerProcess.cpp process/WorkerProcess.h utils/Logger.cpp utils/Logger.h)
+
 add_executable(tp1 ${SOURCE_FILES})
