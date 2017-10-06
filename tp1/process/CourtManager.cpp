@@ -28,6 +28,7 @@ CourtManager::CourtManager(int m, int k, int rows, int columns, const std::strin
         }
     }
 
+
 }
 
 CourtManager::~CourtManager() {
@@ -66,6 +67,9 @@ int CourtManager::do_work() {
 /*
 =======
     // TODO: VERIFICAR QUE HAYA CANCHAS LIBRES PARA DESPACHAR!
+    Logger::log(prettyName(), Logger::DEBUG, "Esperando que se desocupe cancha", Logger::get_date());
+    _available_courts.p(); // Resto una cancha libre
+    Logger::log(prettyName(), Logger::DEBUG, "Cancha desocupada", Logger::get_date());
     Team team1;
     Team team2;
     while (graceQuit() == 0 && !team1.valid()) {
@@ -265,22 +269,7 @@ void CourtManager::handle_matches(int signum) {
         Logger::log(prettyName(), Logger::ERROR, "Recibi senial distinta a SIGUSR1", Logger::get_date());
         return;
     }
-    Logger::log(prettyName(), Logger::DEBUG, "Tomando lock de matches", Logger::get_date());
-    try {
-        _lock_matches.lock();
-        int matches_to_process = _shm_matches.leer();
-        std::stringstream s;
-        s << "Procesando " << matches_to_process << " partidos";
-        Logger::log(prettyName(), Logger::INFO, s.str(), Logger::get_date());
-        for (int i = 0; i < matches_to_process; i++) {
-            process_finished_match();
-        }
-        _shm_matches.escribir(0);
-        _lock_matches.release();
-    } catch (const std::string& excp) {
-        Logger::log(prettyName(), Logger::DEBUG, "Exception: " + excp, Logger::get_date());
-    }
-    Logger::log(prettyName(), Logger::DEBUG, "Lock de matches liberado", Logger::get_date());
+
 }
 
 void CourtManager::process_finished_match() {
@@ -327,6 +316,7 @@ void CourtManager::process_finished_match() {
     p = match.team2().get_person1();
     _fifo_write_people.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " a TeamMaker", Logger::get_date());
+
 
     bool freed = free_court(match_pid);
     if (!freed) {
