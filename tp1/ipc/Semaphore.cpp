@@ -44,6 +44,29 @@ int Semaphore::v() const {
 	return res;
 }
 
+int Semaphore::p(short n) const {
+	if (n < 0) {
+		n *= -1;
+	}
+	struct sembuf operation;
+	operation.sem_num = 0;	// numero de semaforo
+	operation.sem_op  = -n;	// restar n al semaforo
+	operation.sem_flg = 0;
+
+	int res = semop(this->id, &operation, 1);
+	return res;
+}
+
+int Semaphore::v(short n) const {
+	struct sembuf operation;
+	operation.sem_num = 0;	// numero de semaforo
+	operation.sem_op  = n;	// sumar n al semaforo
+	operation.sem_flg = 0;
+
+	int res = semop(this->id,&operation, 1);
+	return res;
+}
+
 int Semaphore::w() const {
 	struct sembuf operation;
 	operation.sem_num = 0;	// numero de semaforo
