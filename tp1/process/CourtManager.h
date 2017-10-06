@@ -26,6 +26,15 @@ private:
     MemoriaCompartida<int> _shm_matches;
     std::map<pid_t, Match> _matches;
     Semaphore _available_courts;
+    std::map<int, std::map<int, int> > _court_state; // Estado de cancha
+    std::map<int, std::map<int, pid_t > > _court_pid; // Que proceso esta en que cancha
+
+    bool occupy_court(pid_t pid);
+    bool free_court(pid_t pid);
+
+    void handle_matches(int signum);
+    void tide_rise(int signum);
+    void tide_decrease(int signum);
 
     std::map<int, std::map<int, int> > _court_state; // Estado de cancha
     std::map<int, std::map<int, pid_t > > _court_pid; // Que proceso esta en que cancha
