@@ -58,3 +58,11 @@ Team Match::team1() const {
 Team Match::team2() const {
     return _team2;
 }
+
+int Match::scoreTeam1() const {
+    return _score_team1;
+}
+
+int Match::scoreTeam2() const {
+    return _score_team2;
+}

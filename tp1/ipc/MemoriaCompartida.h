@@ -129,7 +129,9 @@ template <class T> MemoriaCompartida<T>::~MemoriaCompartida() {
             shmctl(this->shmId, IPC_RMID, NULL);
         }
     } else {
-        Logger::log("SHM", Logger::WARNING, "Error Destructor", Logger::get_date());
+        std::stringstream ss;
+        ss << "Error Destructor[" << getpid() << "] ";
+        Logger::log("SHM", Logger::WARNING, ss.str(), Logger::get_date());
         std::string mensaje = std::string("Error en shmdt(): ") + std::string(strerror(errno));
         throw mensaje;
     }
