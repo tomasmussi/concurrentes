@@ -5,7 +5,6 @@
 #include "WorkerProcess.h"
 #include "../ipc/FifoLectura.h"
 #include "../handlers/EventHandler.h"
-#include "../ipc/LockFile.h"
 #include "../model/Match.h"
 
 /**
@@ -14,10 +13,9 @@
  * */
 class ResultsReporter : public WorkerProcess {
 private:
-    
+    FifoLectura _fifo_read;
 public:
-    ResultsReporter();
-
+    ResultsReporter(const std::string& fifo_read);
     virtual ~ResultsReporter();
     virtual void initialize();
     virtual void finalize();

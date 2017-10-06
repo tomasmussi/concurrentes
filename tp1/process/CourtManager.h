@@ -18,7 +18,8 @@ private:
     int _rows;
     int _columns;
     FifoLectura _fifo_read;
-    FifoEscritura _fifo_write;
+    FifoEscritura _fifo_write_people;
+    FifoEscritura _fifo_write_matches;
     LockFile _lock_shm_mapper;
     MemoriaCompartida<int>* _shm_mapper;
     LockFile _lock_shm_player_couple;
@@ -38,7 +39,7 @@ private:
     void dispatch_match(const Team& team1, const Team& team2);
 public:
     CourtManager(int m, int k,int rows, int columns, const std::string& fifo_read,
-                 const std::string& fifo_write);
+                 const std::string& fifo_write_people, const std::string& fifo_write_matches );
     ~CourtManager();
     virtual void initialize();
     virtual int do_work();

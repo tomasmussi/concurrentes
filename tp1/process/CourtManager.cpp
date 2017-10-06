@@ -6,8 +6,8 @@
 #include "../ipc/SignalHandler.h"
 
 CourtManager::CourtManager(int m, int k, int rows, int columns, const std::string& fifo_read,
-        const std::string& fifo_write) :
-    _m(m), _k(k), _rows(rows), _columns(columns), _fifo_read(fifo_read), _fifo_write(fifo_write),
+        const std::string& fifo_write_people, const std::string& fifo_write_matches ) :
+    _m(m), _k(k), _rows(rows), _columns(columns), _fifo_read(fifo_read), _fifo_write_people(fifo_write_people), _fifo_write_matches(fifo_write_matches),
     _lock_shm_mapper("/tmp/shm_mapper"), _shm_mapper(NULL),
     _lock_shm_player_couple("/tmp/shm_player_couple"), _shm_player_couple(NULL),
     _lock_matches("/tmp/shm_matches"), _shm_matches() {
@@ -62,8 +62,10 @@ void CourtManager::initialize() {
     Logger::log(prettyName(), Logger::DEBUG, "Inicializando", Logger::get_date());
     _fifo_read.abrir();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de lectura de equipos de TeamMaker abierto", Logger::get_date());
-    _fifo_write.abrir();
+    _fifo_write_people.abrir();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de envio de personas a TeamMaker abierto", Logger::get_date());
+    _fifo_write_matches.abrir();
+    Logger::log(prettyName(), Logger::DEBUG, "Fifo de envio de partidos a ResultsReporter abierto", Logger::get_date());
     try {
         initialize_shm_couples();
         Logger::log(prettyName(), Logger::DEBUG, "Shared Memory Pareja Personas inicializada", Logger::get_date());
@@ -87,7 +89,8 @@ void CourtManager::initialize() {
 void CourtManager::finalize() {
     Logger::log(prettyName(), Logger::DEBUG, "Finalizando", Logger::get_date());
     _fifo_read.cerrar();
-    _fifo_write.cerrar();
+    _fifo_write_people.cerrar();
+    _fifo_write_matches.cerrar();
     Logger::log(prettyName(), Logger::DEBUG, "Fifos cerrados", Logger::get_date());
     destroy_shm_couples();
     Logger::log(prettyName(), Logger::DEBUG, "SHM couples destruida", Logger::get_date());
@@ -210,11 +213,11 @@ void CourtManager::process_finished_match() {
     _matches[match_pid] = match;
     if (match.finished()) {
         std::stringstream ss;
-        ss << "MatchProcess [" << match_pid << "] ";
-        ss << "finalizo " << match.to_string();
+        ss << "MatchProcess [" << match_pid << "] " << "finalizado";
+        //ss << "finalizado " << match.to_string();
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
         // El partido termino, por lo que hay que escribir el resultado
-        // TODO Aca se deberia escribir una memoria compartida para que los reporters puedan leer resultados
+        _fifo_write_matches.escribir(static_cast<void*>(&match), sizeof(Match));
 
         // Escribir la shm de los equipos que jugaron en parejas
         int team_idx_1 = lookup(match.team1().get_person1());
@@ -234,18 +237,18 @@ void CourtManager::process_finished_match() {
     // Envio a Team Maker T1-P1; T2-P2; T1-P2; T2-P1
     Person p;
     p = match.team1().get_person1();
-    _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
+    _fifo_write_people.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " a TeamMaker", Logger::get_date());
 
     p = match.team2().get_person2();
-    _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
+    _fifo_write_people.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " a TeamMaker", Logger::get_date());
 
     p = match.team1().get_person2();
-    _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
+    _fifo_write_people.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " a TeamMaker", Logger::get_date());
 
     p = match.team2().get_person1();
-    _fifo_write.escribir(static_cast<void*>(&p), sizeof(Person));
+    _fifo_write_people.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " a TeamMaker", Logger::get_date());
 }

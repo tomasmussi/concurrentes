@@ -12,9 +12,10 @@
 #include "process/BeachManagerWorker.h"
 #include "process/TeamMaker.h"
 #include "process/CourtManager.h"
+#include "process/ResultsReporter.h"
 
 // TODO: CUIDADO CON ESTO, CUANDO SE AGREGUE UN PROCESO HAY QUE TOCAR ESTE DEFINE
-#define N_WORKERS 3
+#define N_WORKERS 4
 
 int main(int argc, char* argv[]) {
     Logger::open_logger("log.txt");
@@ -36,9 +37,10 @@ int main(int argc, char* argv[]) {
     SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
     Logger::log("main", Logger::DEBUG, "MainSIGIntHandler registrado", Logger::get_date());
 
-    std::string fifo1 = "/tmp/fifo1";
-    std::string fifo2 = "/tmp/fifo2";
-    std::string fifo3 = "/tmp/fifo3";
+    std::string fifo1 = "/tmp/fifo1"; //people (NewPlayerHandler -> BeachManagerWorker)
+    std::string fifo2 = "/tmp/fifo2"; //people (BeachManagerWorker/CourtManager -> TeamMaker)
+    std::string fifo3 = "/tmp/fifo3"; //teams (TeamMaker -> CourtManager)
+    std::string fifo4 = "/tmp/fifo4"; //matches (CourtManager -> ResultsReporter)
 
     std::stringstream ss;
     ss << "Agregando handler para nuevos players en " << getpid();
@@ -50,7 +52,8 @@ int main(int argc, char* argv[]) {
 
     WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(m, fifo1, fifo2),
                                      new TeamMaker(m, k, fifo2, fifo3),
-                                     new CourtManager(m, k, rows, columns, fifo3, fifo2) };
+                                     new CourtManager(m, k, rows, columns, fifo3, fifo2, fifo4),
+                                     new ResultsReporter(fifo4)};
 
     bool is_father = true;
     int son_process = 0;
