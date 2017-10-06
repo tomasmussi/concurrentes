@@ -22,6 +22,7 @@ private:
 
     FifoEscritura _fifo_write_people;
     FifoEscritura _fifo_write_matches;
+
     LockFile _lock_matches;
     MemoriaCompartida<int> _shm_matches;
     std::map<pid_t, Match> _matches;
