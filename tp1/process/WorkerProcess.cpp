@@ -13,6 +13,9 @@ void WorkerProcess::finalize() {
 
 int WorkerProcess::loop() {
 
+    //SIGIntHandler sigint_handler;
+
+
     // se registra el event handler declarado antes
     SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
     Logger::log(prettyName(), Logger::DEBUG, "SIGIntHandler registrado", Logger::get_date());

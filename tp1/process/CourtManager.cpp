@@ -6,6 +6,7 @@
 #include "../ipc/SignalHandler.h"
 #include "../constants.h"
 
+
 #define EMPTY 0
 #define OCCUPIED 1
 #define FLOODED 2
@@ -14,6 +15,7 @@ CourtManager::CourtManager(int m, int k, int rows, int columns, const std::strin
         const std::string& fifo_write_people, const std::string& fifo_write_matches ) :
 
     _m(m), _k(k), _rows(rows), _columns(columns), _fifo_read(fifo_read), _fifo_write_people(fifo_write_people), _fifo_write_matches(fifo_write_matches),
+
     _lock_matches(SHM_MATCHES_LOCK), _shm_matches(),
     _available_courts(SEM_AVAILABLE_COURTS, rows * columns),
     _court_state(),_tide_column(_columns),
@@ -25,7 +27,6 @@ CourtManager::CourtManager(int m, int k, int rows, int columns, const std::strin
             _court_pid[i][j] = 0;
         }
     }
-
 
 }
 
@@ -62,6 +63,24 @@ int CourtManager::do_work() {
                 Logger::log(prettyName(), Logger::INFO, "Recibido equipo 2: " + team2.to_string(), Logger::get_date());
                 dispatch_match(team1, team2);
             }
+/*
+=======
+    // TODO: VERIFICAR QUE HAYA CANCHAS LIBRES PARA DESPACHAR!
+    Team team1;
+    Team team2;
+    while (graceQuit() == 0 && !team1.valid()) {
+        _fifo_read.leer(static_cast<void*>(&team1), sizeof(Team));
+    }
+    if (team1.valid()) {
+        Logger::log(prettyName(), Logger::INFO, "Recibido equipo 1: " + team1.to_string(), Logger::get_date());
+        while (graceQuit() == 0 && !team2.valid()) {
+            _fifo_read.leer(static_cast<void*>(&team2), sizeof(Team));
+        }
+        if (team2.valid()) {
+            Logger::log(prettyName(), Logger::INFO, "Recibido equipo 2: " + team2.to_string(), Logger::get_date());
+            dispatch_match(team1, team2);
+>>>>>>> Elimino codigo de CourtManager debido al cambio en disenio. Agrego clase semaforo
+*/
         }
 
     }
@@ -134,6 +153,7 @@ void CourtManager::initialize() {
     _shm_matches.crear(SHM_MATCHES, SHM_MATCHES_CHAR);
 
 
+
     _lock_matches.lock();
     _shm_matches.escribir(0);
     _lock_matches.release();
@@ -161,6 +181,7 @@ std::string CourtManager::prettyName() {
 }
 
 int CourtManager::handleSignal(int signum) {
+
     Logger::log(prettyName(), Logger::DEBUG, "Handling signal", Logger::get_date());
     switch (signum) {
         case SIGUSR1:
@@ -238,6 +259,8 @@ void CourtManager::tide_decrease(int ) {
 }
 
 void CourtManager::handle_matches(int signum) {
+    Logger::log(prettyName(), Logger::INFO, "Handling signal", Logger::get_date());
+
     if (signum != SIGUSR1) {
         Logger::log(prettyName(), Logger::ERROR, "Recibi senial distinta a SIGUSR1", Logger::get_date());
         return;
@@ -266,6 +289,7 @@ void CourtManager::process_finished_match() {
     Match match = _matches[match_pid];
     match.set_match_status(WEXITSTATUS(status));
     _matches[match_pid] = match;
+
 
     if (!match.finished()) {
         // La cancha se inundo

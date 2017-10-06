@@ -44,6 +44,7 @@ int Semaphore::v() const {
 	return res;
 }
 
+
 int Semaphore::p(short n) const {
 	if (n < 0) {
 		n *= -1;
