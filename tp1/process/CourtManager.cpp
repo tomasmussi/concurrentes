@@ -4,12 +4,14 @@
 
 #include "CourtManager.h"
 #include "../ipc/SignalHandler.h"
+#include "../constants.h"
 
 CourtManager::CourtManager(int m, int k, int rows, int columns, const std::string& fifo_read,
         const std::string& fifo_write_people, const std::string& fifo_write_matches ) :
-    _m(m), _k(k), _rows(rows), _columns(columns),
-    _fifo_read(fifo_read), _fifo_write_people(fifo_write_people), _fifo_write_matches(fifo_write_matches),
-    _lock_matches("/tmp/shm_matches"), _shm_matches() {
+
+    _m(m), _k(k), _rows(rows), _columns(columns), _fifo_read(fifo_read), _fifo_write_people(fifo_write_people), _fifo_write_matches(fifo_write_matches),
+    _lock_matches(SHM_MATCHES_LOCK), _shm_matches() {
+
 }
 
 CourtManager::~CourtManager() {
@@ -65,9 +67,25 @@ void CourtManager::initialize() {
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de lectura de equipos de TeamMaker abierto", Logger::get_date());
     _fifo_write_people.abrir();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de envio de personas a TeamMaker abierto", Logger::get_date());
+
     _fifo_write_matches.abrir();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de envio de partidos a ResultsReporter abierto", Logger::get_date());
-    _shm_matches.crear("/bin/grep", 'a');
+
+    try {
+        initialize_shm_couples();
+        Logger::log(prettyName(), Logger::DEBUG, "Shared Memory Pareja Personas inicializada", Logger::get_date());
+    } catch (const std::string& error) {
+        Logger::log(prettyName(), Logger::ERROR, error, Logger::get_date());
+    }
+    try {
+        initialize_shm_mapper();
+        Logger::log(prettyName(), Logger::DEBUG, "Shared Memory Mapper inicializada", Logger::get_date());
+    } catch (const std::string& error) {
+        Logger::log(prettyName(), Logger::ERROR, error, Logger::get_date());
+    }
+    _shm_matches.crear(SHM_MATCHES, SHM_MATCHES_CHAR);
+
+
     _lock_matches.lock();
     _shm_matches.escribir(0);
     _lock_matches.release();
@@ -98,16 +116,21 @@ int CourtManager::handleSignal(int signum) {
         return 1;
     }
     Logger::log(prettyName(), Logger::DEBUG, "Tomando lock de matches", Logger::get_date());
-    _lock_matches.lock();
-    int matches_to_process = _shm_matches.leer();
-    std::stringstream s;
-    s << "Procesando " << matches_to_process << " partidos";
-    Logger::log(prettyName(), Logger::INFO, s.str(), Logger::get_date());
-    for (int i = 0; i < matches_to_process; i++) {
-        process_finished_match();
+    try {
+        _lock_matches.lock();
+        int matches_to_process = _shm_matches.leer();
+        std::stringstream s;
+        s << "Procesando " << matches_to_process << " partidos";
+        Logger::log(prettyName(), Logger::INFO, s.str(), Logger::get_date());
+        for (int i = 0; i < matches_to_process; i++) {
+            process_finished_match();
+        }
+        _shm_matches.escribir(0);
+        _lock_matches.release();
+    } catch (const std::string& excp) {
+        Logger::log(prettyName(), Logger::DEBUG, "Exception: " + excp, Logger::get_date());
     }
-    _shm_matches.escribir(0);
-    _lock_matches.release();
+
     Logger::log(prettyName(), Logger::DEBUG, "Lock de matches liberado", Logger::get_date());
     return 0;
 }
