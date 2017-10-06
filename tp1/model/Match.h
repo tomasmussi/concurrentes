@@ -18,6 +18,8 @@ public:
     bool finished();
     Team team1() const;
     Team team2() const;
+    int scoreTeam1() const;
+    int scoreTeam2() const;
 };
 
 #endif //TP1_MATCH_H
