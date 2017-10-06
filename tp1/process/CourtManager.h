@@ -22,7 +22,7 @@ private:
 
     FifoEscritura _fifo_write_people;
     FifoEscritura _fifo_write_matches;
-    FifoEscritura _fifo_write;
+
 
     LockFile _lock_matches;
     MemoriaCompartida<int> _shm_matches;

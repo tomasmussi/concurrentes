@@ -121,18 +121,6 @@ void CourtManager::initialize() {
     _fifo_write_matches.abrir();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de envio de partidos a ResultsReporter abierto", Logger::get_date());
 
-    try {
-        initialize_shm_couples();
-        Logger::log(prettyName(), Logger::DEBUG, "Shared Memory Pareja Personas inicializada", Logger::get_date());
-    } catch (const std::string& error) {
-        Logger::log(prettyName(), Logger::ERROR, error, Logger::get_date());
-    }
-    try {
-        initialize_shm_mapper();
-        Logger::log(prettyName(), Logger::DEBUG, "Shared Memory Mapper inicializada", Logger::get_date());
-    } catch (const std::string& error) {
-        Logger::log(prettyName(), Logger::ERROR, error, Logger::get_date());
-    }
     _shm_matches.crear(SHM_MATCHES, SHM_MATCHES_CHAR);
 
 
