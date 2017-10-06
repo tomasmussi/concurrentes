@@ -10,7 +10,9 @@ CourtManager::CourtManager(int m, int k, int rows, int columns, const std::strin
         const std::string& fifo_write_people, const std::string& fifo_write_matches ) :
 
     _m(m), _k(k), _rows(rows), _columns(columns), _fifo_read(fifo_read), _fifo_write_people(fifo_write_people), _fifo_write_matches(fifo_write_matches),
-    _lock_matches(SHM_MATCHES_LOCK), _shm_matches() {
+    _lock_matches(SHM_MATCHES_LOCK), _shm_matches(),
+    _available_courts(SEM_AVAILABLE_COURTS, rows * columns) {
+
 
 }
 
@@ -18,6 +20,12 @@ CourtManager::~CourtManager() {
 }
 
 int CourtManager::do_work() {
+
+
+    Logger::log(prettyName(), Logger::DEBUG, "Esperando que se desocupe cancha", Logger::get_date());
+    _available_courts.p(); // Resto una cancha libre
+    Logger::log(prettyName(), Logger::DEBUG, "Cancha desocupada", Logger::get_date());
+
     Team team1;
     Team team2;
     while (graceQuit() == 0 && !team1.valid()) {
@@ -172,4 +180,6 @@ void CourtManager::process_finished_match() {
     p = match.team2().get_person1();
     _fifo_write_people.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " a TeamMaker", Logger::get_date());
+
+    _available_courts.v(); // Sumo a la cantidad de canchas disponible
 }

@@ -10,6 +10,7 @@
 #include "../ipc/FifoEscritura.h"
 #include "../ipc/LockFile.h"
 #include "../model/Match.h"
+#include "../ipc/Semaphore.h"
 
 class CourtManager : public WorkerProcess, public EventHandler {
 private:
@@ -26,6 +27,7 @@ private:
     LockFile _lock_matches;
     MemoriaCompartida<int> _shm_matches;
     std::map<pid_t, Match> _matches;
+    Semaphore _available_courts;
 
     void process_finished_match();
     void dispatch_match(const Team& team1, const Team& team2);
