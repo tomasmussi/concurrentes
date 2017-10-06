@@ -22,6 +22,7 @@ CourtManager::CourtManager(int m, int k, int rows, int columns, const std::strin
     _court_state(),_tide_column(_columns),
     _flooded_matches() {
 
+
     for (int i = 0; i < _rows; i++) {
         for (int j = 0; j < _columns; j++) {
             _court_state[i][j] = EMPTY;
@@ -35,6 +36,7 @@ CourtManager::~CourtManager() {
 }
 
 int CourtManager::do_work() {
+
 
     Logger::log(prettyName(), Logger::DEBUG, "Esperando que se desocupe cancha", Logger::get_date());
     int status = _available_courts.p(); // Resto una cancha libre
@@ -67,6 +69,8 @@ int CourtManager::do_work() {
 /*
 =======
     // TODO: VERIFICAR QUE HAYA CANCHAS LIBRES PARA DESPACHAR!
+=======
+>>>>>>> Agrego logica de inundacion de canchas. No funciona
     Logger::log(prettyName(), Logger::DEBUG, "Esperando que se desocupe cancha", Logger::get_date());
     int status = _available_courts.p(); // Resto una cancha libre
     while (graceQuit() == 0 && status == -1 &&  errno == EINTR) {
@@ -110,7 +114,6 @@ bool CourtManager::occupy_court(pid_t pid) {
                 std::stringstream ss;
                 ss << "OCUPO CANCHA en [" << i << "][" << j << "] = " << pid;
                 Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
-
             }
             j++;
         }
@@ -141,7 +144,6 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
 
         // Proceso hijo, dispatch crea una SHM y sale con exit de la ejecucion de todo
         Logger::log(match_process.prettyName(), Logger::INFO, "Arrancando partido " + match_between, Logger::get_date());
-
         match_process.dispatch_match();
         int match_result = match_process.get_match_result();
         // Llamo al finalize porque al salir del proceso con un exit, no se ejecuta el destructor del MatchProcess
@@ -287,7 +289,6 @@ void CourtManager::process_finished_match() {
     match.set_match_status(WEXITSTATUS(status));
     _matches[match_pid] = match;
 
-
     if (!match.finished()) {
         // La cancha se inundo
 
@@ -296,6 +297,7 @@ void CourtManager::process_finished_match() {
         ss << "inundado " << match.to_string();
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
         // TODO ACA DEBERIA REESCRIBIR LOS EQUIPOS EN EL FIFO DE LECTURA DEL COURTMANAGER!!!!
+
         _flooded_matches.push_back(match);
         return;
     }
@@ -347,7 +349,6 @@ bool CourtManager::free_court(pid_t pid) {
                 _court_state[i][j] = EMPTY;
                 _court_pid[i][j] = 0;
                 freed = true;
-
                 std::stringstream ss;
                 ss << "LIBERO CANCHA en [" << i << "][" << j << "] = " << pid;
                 Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());

@@ -8,7 +8,6 @@ fi
 # 12 = SIGUSR2 TIDE RISE
 for i in $(seq 1 $tides)
 do
-
 	sleep 2
 	echo "TIDE RISE kill -12 $1"
 	kill -12 $1
@@ -21,10 +20,7 @@ for i in $(seq 1 $tides)
 do
 	sleep 2
 	echo "TIDE DECREASE kill -31 $1"
-
-	sleep 1
-	echo "TIDE RISE"
-	kill -12 $1
+	kill -31 $1
 done
 
 
