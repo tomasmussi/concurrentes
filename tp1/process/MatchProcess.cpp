@@ -16,7 +16,8 @@ MatchProcess::~MatchProcess() {
 void MatchProcess::finalize() {
     if (_shm_matches != NULL) {
         Logger::log(prettyName(), Logger::INFO, "Destruyendo SHM de matches", Logger::get_date());
-        _shm_matches->liberar();
+//        _shm_matches->liberar();
+        // Esto ya llama al "liberar" internamente
         delete(_shm_matches);
         _shm_matches = NULL;
     } else {

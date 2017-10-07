@@ -45,7 +45,13 @@ template <class T> void MemoriaCompartida<T>::crear(const std::string& archivo, 
 
         if (this->shmId > 0) {
             void* tmpPtr = shmat(this->shmId, NULL, 0);
+            std::stringstream ss;
+            ss << "[" << getpid() << "] Atachando memoria compartida en el crear";
+            Logger::log("SHM", Logger::INFO, ss.str(), Logger::get_date());
             if (tmpPtr != (void*) -1) {
+                std::stringstream ss;
+                ss << "[" << getpid() << "] Creando memoria compartida via crear";
+                Logger::log("SHM", Logger::INFO, ss.str(), Logger::get_date());
                 this->ptrDatos = static_cast<T*>(tmpPtr);
             } else {
                 Logger::log("SHM", Logger::WARNING, "Error al crear 1", Logger::get_date());
@@ -69,12 +75,18 @@ template <class T> void MemoriaCompartida<T>::liberar() {
 
     if (errorDt != -1) {
         int procAdosados = this->cantidadProcesosAdosados();
+        std::stringstream ss;
+        ss << "[" << getpid() << "] Liberando memoria compartida";
+        Logger::log("SHM", Logger::INFO, ss.str(), Logger::get_date());
         if (procAdosados == 0) {
+            std::stringstream ss;
+            ss << "[" << getpid() << "] Liberando memoria compartida sin procesos adosados";
+            Logger::log("SHM", Logger::INFO, ss.str(), Logger::get_date());
             shmctl(this->shmId, IPC_RMID, NULL);
         }
     } else {
         std::stringstream s;
-        s << "[" << getpid() << "] Error al liberar 1";
+        s << "[" << getpid() << "] Error al liberar: " << std::string(strerror(errno));
         Logger::log("SHM", Logger::WARNING, s.str(), Logger::get_date());
         std::string mensaje = std::string("Error en shmdt(): ") + std::string(strerror(errno));
         throw mensaje;
@@ -89,8 +101,14 @@ template <class T> MemoriaCompartida<T>::MemoriaCompartida(const std::string& ar
 
         if (this->shmId > 0) {
             void* tmpPtr = shmat(this->shmId, NULL, 0);
+            std::stringstream ss;
+            ss << "[" << getpid() << "] Atachando memoria compartida en el constructor";
+            Logger::log("SHM", Logger::INFO, ss.str(), Logger::get_date());
             if (tmpPtr != (void*) -1) {
                 this->ptrDatos = static_cast<T*>(tmpPtr);
+                std::stringstream ss;
+                ss << "[" << getpid() << "] Creando memoria compartida via constructor";
+                Logger::log("SHM", Logger::INFO, ss.str(), Logger::get_date());
             } else {
                 Logger::log("SHM", Logger::WARNING, "Error Constructor string letra 1", Logger::get_date());
                 std::string mensaje = std::string("Error en shmat(): ") + std::string(strerror(errno));
@@ -113,6 +131,9 @@ template <class T> MemoriaCompartida<T>::MemoriaCompartida(const MemoriaComparti
 
     if (tmpPtr != (void*) -1) {
         this->ptrDatos = static_cast<T*>(tmpPtr);
+        std::stringstream ss;
+        ss << "[" << getpid() << "] Creando memoria compartida via constructor por copia";
+        Logger::log("SHM", Logger::INFO, ss.str(), Logger::get_date());
     } else {
         Logger::log("SHM", Logger::WARNING, "Error Constructor copia 1", Logger::get_date());
         std::string mensaje = std::string("Error en shmat(): ") + std::string(strerror(errno));
@@ -125,12 +146,18 @@ template <class T> MemoriaCompartida<T>::~MemoriaCompartida() {
 
     if (errorDt != -1) {
         int procAdosados = this->cantidadProcesosAdosados();
+        std::stringstream ss;
+        ss << "[" << getpid() << "] Borrando memoria compartida en el destructor";
+        Logger::log("SHM", Logger::INFO, ss.str(), Logger::get_date());
         if (procAdosados == 0) {
+            std::stringstream ss;
+            ss << "[" << getpid() << "] Borrando memoria compartida en el destructor sin procesos adosados";
+            Logger::log("SHM", Logger::INFO, ss.str(), Logger::get_date());
             shmctl(this->shmId, IPC_RMID, NULL);
         }
     } else {
         std::stringstream ss;
-        ss << "Error Destructor[" << getpid() << "] ";
+        ss << "[" << getpid() << "] Error en el destructor: " << std::string(strerror(errno));
         Logger::log("SHM", Logger::WARNING, ss.str(), Logger::get_date());
         std::string mensaje = std::string("Error en shmdt(): ") + std::string(strerror(errno));
         throw mensaje;

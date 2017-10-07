@@ -1,5 +1,7 @@
 #include "BeachManagerWorker.h"
 #include "../model/Person.h"
+#include "../utils/Logger.h"
+#include <sstream>
 
 #define MIN_PEOPLE 10
 

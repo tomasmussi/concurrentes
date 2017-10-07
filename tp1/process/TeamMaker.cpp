@@ -1,8 +1,9 @@
 #include "TeamMaker.h"
-#include "../utils/Logger.h"
 #include "../model/Team.h"
+#include "../utils/Logger.h"
 
 #include <cstring>
+#include <sstream>
 
 TeamMaker::TeamMaker(int m, int k, const std::string& fifo_read, const std::string& fifo_write)
         : _m(m), _k(k), _fifo_read(fifo_read), _fifo_write(fifo_write),
