@@ -55,9 +55,11 @@ void Logger::open_logger(const std::string& log_file) {
     lock.release();
 }
 
-void Logger::close_logger() {
+void Logger::close_logger(bool is_last) {
     lock.lock();
-    file_stream << "END [" << get_date()<< "]" << std::endl;
+    if (is_last) {
+        file_stream << "END [" << get_date()<< "]" << std::endl;
+    }
     file_stream.close();
     lock.release();
 }

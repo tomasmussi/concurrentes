@@ -79,8 +79,7 @@ void CourtManager::finalize() {
     _fifo_write_people.cerrar();
     _fifo_write_matches.cerrar();
     Logger::log(prettyName(), Logger::DEBUG, "Fifos cerrados", Logger::get_date());
-//    No hay que llamar al liberar porque despues cuando el main destruye el CourtManager ya llama al destructor que lo hace
-//    _shm_matches.liberar();
+    _shm_matches.liberar();
     Logger::log(prettyName(), Logger::DEBUG, "SHM matches destruida", Logger::get_date());
     SignalHandler::destroy();
     Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());
