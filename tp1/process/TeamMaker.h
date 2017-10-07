@@ -7,7 +7,6 @@
 #include "WorkerProcess.h"
 #include "../ipc/FifoLectura.h"
 #include "../ipc/FifoEscritura.h"
-#include "../ipc/MemoriaCompartida.h"
 #include "../model/Person.h"
 #include "../ipc/LockFile.h"
 
