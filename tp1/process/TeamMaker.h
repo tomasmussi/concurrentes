@@ -17,22 +17,13 @@ private:
     int _k;
     FifoLectura _fifo_read;
     FifoEscritura _fifo_write;
-    LockFile _lock_shm_mapper;
-    MemoriaCompartida<int>* _shm_mapper;
-    LockFile _lock_shm_player_couple;
-    MemoriaCompartida<int>* _shm_player_couple;
     bool _have_player;
-    std::map<std::string, int> _id_mapper;
+    std::map<std::string,std::map<std::string,bool> > _couples; //True si ya fueron pareja
     std::list<Person> _waiting_list;
 
-    void initialize_shm();
-    void destroy_shm();
-    void initalize_shm_mapper();
-    void destroy_shm_mapper();
-    int get_shm_index(int row, int col);
-    int lookup(const Person& person);
-    int find_empty_space(const Person& person);
-    bool can_play(int shm_id, const Person& person);
+    bool can_play(std::string id_p1, std::string id_p2);
+    void add_couple_to_map(std::string id_p1, std::string id_p2);
+    void new_id_into_map(std::string id);
 
 public:
     TeamMaker(int m, int k, const std::string& fifo_read, const std::string& fifo_write);

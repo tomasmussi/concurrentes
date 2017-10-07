@@ -7,9 +7,8 @@
 
 CourtManager::CourtManager(int m, int k, int rows, int columns, const std::string& fifo_read,
         const std::string& fifo_write_people, const std::string& fifo_write_matches ) :
-    _m(m), _k(k), _rows(rows), _columns(columns), _fifo_read(fifo_read), _fifo_write_people(fifo_write_people), _fifo_write_matches(fifo_write_matches),
-    _lock_shm_mapper("/tmp/shm_mapper"), _shm_mapper(NULL),
-    _lock_shm_player_couple("/tmp/shm_player_couple"), _shm_player_couple(NULL),
+    _m(m), _k(k), _rows(rows), _columns(columns),
+    _fifo_read(fifo_read), _fifo_write_people(fifo_write_people), _fifo_write_matches(fifo_write_matches),
     _lock_matches("/tmp/shm_matches"), _shm_matches() {
 }
 
@@ -66,18 +65,6 @@ void CourtManager::initialize() {
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de envio de personas a TeamMaker abierto", Logger::get_date());
     _fifo_write_matches.abrir();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de envio de partidos a ResultsReporter abierto", Logger::get_date());
-    try {
-        initialize_shm_couples();
-        Logger::log(prettyName(), Logger::DEBUG, "Shared Memory Pareja Personas inicializada", Logger::get_date());
-    } catch (const std::string& error) {
-        Logger::log(prettyName(), Logger::ERROR, error, Logger::get_date());
-    }
-    try {
-        initialize_shm_mapper();
-        Logger::log(prettyName(), Logger::DEBUG, "Shared Memory Mapper inicializada", Logger::get_date());
-    } catch (const std::string& error) {
-        Logger::log(prettyName(), Logger::ERROR, error, Logger::get_date());
-    }
     _shm_matches.crear("/bin/grep", 'a');
     _lock_matches.lock();
     _shm_matches.escribir(0);
@@ -92,10 +79,6 @@ void CourtManager::finalize() {
     _fifo_write_people.cerrar();
     _fifo_write_matches.cerrar();
     Logger::log(prettyName(), Logger::DEBUG, "Fifos cerrados", Logger::get_date());
-    destroy_shm_couples();
-    Logger::log(prettyName(), Logger::DEBUG, "SHM couples destruida", Logger::get_date());
-    destroy_shm_mapper();
-    Logger::log(prettyName(), Logger::DEBUG, "SHM mapper destruida", Logger::get_date());
     _shm_matches.liberar();
     Logger::log(prettyName(), Logger::DEBUG, "SHM matches destruida", Logger::get_date());
     SignalHandler::destroy();
@@ -104,84 +87,6 @@ void CourtManager::finalize() {
 
 std::string CourtManager::prettyName() {
     return "Court Manager";
-}
-
-void CourtManager::initialize_shm_couples() {
-    _lock_shm_player_couple.lock();
-    _shm_player_couple = new MemoriaCompartida<int>[_m * _k];
-    for (int row = 0; row < _m; row++) {
-        for (int col = 0; col < _k; col++) {
-            // TODO WARNING!!!! NO SE PUEDEN CREAR MAS DE 256 CON ESTO!!!!!!
-            _shm_player_couple[get_shm_index(row,col)].crear(__FILE__, get_shm_index(row,col));
-        }
-    }
-    _lock_shm_player_couple.release();
-}
-
-void CourtManager::destroy_shm_couples() {
-    _lock_shm_player_couple.lock();
-    for (int row = 0; row < _m; row++) {
-        for (int col = 0; col < _k; col++) {
-            // TODO WARNING!!!! NO SE PUEDEN CREAR MAS DE 256 CON ESTO!!!!!!
-            _shm_player_couple[get_shm_index(row,col)].liberar();
-        }
-    }
-    _lock_shm_player_couple.release();
-    delete [] _shm_player_couple;
-}
-
-void CourtManager::initialize_shm_mapper() {
-    _lock_shm_mapper.lock();
-    _shm_mapper = new MemoriaCompartida<int>[_m];
-    for (int i = 0; i < _m; i++) {
-        // TODO WARNING!!!! NO SE PUEDEN CREAR MAS DE 256 CON ESTO!!!!!!
-        _shm_mapper[i].crear("/bin/cat", i);
-    }
-    _lock_shm_mapper.release();
-}
-
-void CourtManager::destroy_shm_mapper() {
-    _lock_shm_mapper.lock();
-    for (int i = 0; i < _m; i++) {
-        // TODO WARNING!!!! NO SE PUEDEN CREAR MAS DE 256 CON ESTO!!!!!!
-        _shm_mapper[i].liberar();
-    }
-    _lock_shm_mapper.release();
-    delete [] _shm_mapper;
-}
-
-int CourtManager::get_shm_index(int row, int col) {
-    return row / _m + col;
-}
-
-int CourtManager::lookup(const Person& person) {
-    int idx = -1;
-    for (int i = 0; i < _m; i++) {
-        int id = _shm_mapper[i].leer();
-        if (person.is(id)){
-            idx = i;
-        }
-    }
-    return idx;
-}
-
-void CourtManager::write_shm_mapper(int idx_p1, int idx_p2) {
-    _lock_shm_player_couple.lock();
-    for (int col = 0; col < _k; col++) {
-        int idx = _shm_player_couple[get_shm_index(idx_p1, col)].leer();
-        if (idx == -1) {
-            _shm_player_couple[get_shm_index(idx_p1, col)].escribir(idx_p2);
-            break;
-        }
-    }
-    for (int col = 0; col < _k; col++) {
-        int idx = _shm_player_couple[get_shm_index(idx_p2, col)].leer();
-        if (idx == -1) {
-            _shm_player_couple[get_shm_index(idx_p2, col)].escribir(idx_p1);
-            break;
-        }
-    }
-    _lock_shm_player_couple.release();
 }
 
 int CourtManager::handleSignal(int signum) {
@@ -218,15 +123,6 @@ void CourtManager::process_finished_match() {
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
         // El partido termino, por lo que hay que escribir el resultado
         _fifo_write_matches.escribir(static_cast<void*>(&match), sizeof(Match));
-
-        // Escribir la shm de los equipos que jugaron en parejas
-        int team_idx_1 = lookup(match.team1().get_person1());
-        int team_idx_2 = lookup(match.team1().get_person2());
-        write_shm_mapper(team_idx_1, team_idx_2);
-
-        team_idx_1 = lookup(match.team2().get_person1());
-        team_idx_2 = lookup(match.team2().get_person2());
-        write_shm_mapper(team_idx_1, team_idx_2);
 
     } else {
         std::stringstream ss;
