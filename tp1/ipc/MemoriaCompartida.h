@@ -23,7 +23,7 @@ private:
 public:
     MemoriaCompartida();
     ~MemoriaCompartida();
-    int crear(const std::string& archivo, const char letra);
+    void crear(const std::string& archivo, const char letra);
     void liberar();
     void escribir(const T& dato);
     T leer() const;
@@ -35,7 +35,7 @@ template <class T> MemoriaCompartida<T>::MemoriaCompartida() : shmId(0), ptrDato
 template <class T> MemoriaCompartida<T>::~MemoriaCompartida() {
 }
 
-template <class T> int MemoriaCompartida<T>::crear(const std::string& archivo, const char letra) {
+template <class T> void MemoriaCompartida<T>::crear(const std::string& archivo, const char letra) {
     key_t clave = ftok(archivo.c_str(), letra);
 
     if (clave > 0) {
@@ -63,7 +63,7 @@ template <class T> int MemoriaCompartida<T>::crear(const std::string& archivo, c
 }
 
 
-template <class T> void MemoriaCompartida<T> :: liberar () {
+template <class T> void MemoriaCompartida<T>::liberar() {
     int errorDt = shmdt((void *)this->ptrDatos);
 
     if (errorDt != -1) {
@@ -85,7 +85,7 @@ template <class T> void MemoriaCompartida<T>::escribir(const T& dato) {
 }
 
 template <class T> T MemoriaCompartida<T>::leer() const {
-    return (*(this->ptrDatos));
+    return *(this->ptrDatos);
 }
 
 template <class T> int MemoriaCompartida<T>::cantidadProcesosAdosados() const {
