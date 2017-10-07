@@ -4,7 +4,6 @@
 
 #include "CourtManager.h"
 #include "../ipc/SignalHandler.h"
-#include "../constants.h"
 
 
 #define EMPTY 0
@@ -26,9 +25,6 @@ CourtManager::CourtManager(int m, int k, int rows, int columns, const std::strin
         }
     }
 
-}
-
-CourtManager::~CourtManager() {
 }
 
 int CourtManager::do_work() {
@@ -106,11 +102,11 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
     std::string match_between = "entre " + team1.to_string() + " y " + team2.to_string();
     pid_t pid = fork();
     if (pid > 0) {
+        // Proceso padre
         bool occupied = occupy_court(pid);
         if (!occupied) {
             Logger::log(prettyName(), Logger::WARNING, "No se pudo ocupar cancha", Logger::get_date());
         }
-        // Proceso padre
         _matches[pid] = match;
         std::stringstream ss;
         ss << "Despachado MatchProcess[" << pid << "] " << match_between;
@@ -118,11 +114,9 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
     } else {
         MatchProcess match_process(father_pid);
 
-        // Proceso hijo, dispatch crea una SHM y sale con exit de la ejecucion de todo
-        Logger::log(match_process.prettyName(), Logger::INFO, "Arrancando partido " + match_between, Logger::get_date());
+        Logger::log(match_process.prettyName(), Logger::DEBUG, "Arrancando partido " + match_between, Logger::get_date());
         match_process.dispatch_match();
         int match_result = match_process.get_match_result();
-        // Llamo al finalize porque al salir del proceso con un exit, no se ejecuta el destructor del MatchProcess
         match_process.finalize();
         exit(match_result);
     }
@@ -149,7 +143,6 @@ bool CourtManager::occupy_court(pid_t pid) {
     }
     return occupied;
 }
-
 
 void CourtManager::initialize() {
     Logger::log(prettyName(), Logger::DEBUG, "Inicializando", Logger::get_date());
@@ -215,21 +208,15 @@ void CourtManager::tide_rise(int ) {
     for (int row = 0; row < _rows; row++) {
         pid_t match_pid = _court_pid[row][_tide_column];
         if (_court_state[row][_tide_column] == OCCUPIED) {
-            // Cuando se despacho el partido se hizo "p"
             matches_to_kill.push_back(match_pid);
-        } else if (_court_state[row][_tide_column] == EMPTY) {
-            // Si esta libre, hay que decrementar el semaforo para indicar que hay una cancha menos disponible
-
         }
-        std::stringstream ss;
-        ss << "INUNDO CANCHA [" << row << "][" << _tide_column << "] = " << match_pid;
-        Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
+        std::stringstream ss2;
+        ss2 << "INUNDO CANCHA [" << row << "][" << _tide_column << "] = " << match_pid;
+        Logger::log(prettyName(), Logger::INFO, ss2.str(), Logger::get_date());
         _court_state[row][_tide_column] = FLOODED;
     }
-
     for (std::list<pid_t>::iterator it = matches_to_kill.begin(); it != matches_to_kill.end(); ++it) {
-        // Ver si corresponde esto o un SIGUSR1 y que haga un handle de esto
-        kill((*it), SIGTERM);
+        kill((*it), SIGUSR1);
     }
 }
 
@@ -250,7 +237,7 @@ void CourtManager::tide_decrease(int ) {
             } else {
                 s = "FLOODED";
             }
-            ss << " CANCHA [" << row << "][" << _tide_column << "] ESTA EN ESTADO " << s;
+            ss << " CANCHA [" << row << "][" << _tide_column << "] ESTA EN ESTADO INCORRECTO" << s;
             Logger::log(prettyName(), Logger::WARNING, ss.str(), Logger::get_date());
         }
     }
@@ -278,21 +265,7 @@ void CourtManager::clean_courts() {
     _matches_to_process = 0;
 }
 
-void CourtManager::get_row_column(int &row, int &col, pid_t match_pid) {
-    bool set = false;
-    for (int i = 0; i < _rows; i++) {
-        for (int j = 0; j < _columns; j++) {
-            if (_court_pid[i][j] == match_pid) {
-                row = i;
-                col = j;
-                set = true;
-            }
-        }
-    }
-    if (!set) {
-        Logger::log(prettyName(), Logger::WARNING, "NO SE PUDO ENCONTRAR UN PID", Logger::get_date());
-    }
-}
+
 
 
 
@@ -305,8 +278,6 @@ void CourtManager::process_finished_match() {
     get_row_column(row, col, match_pid);
     if (_court_state[row][col] == OCCUPIED) {
         _court_state[row][col] = EMPTY;
-    } else if (_court_state[row][col] == FLOODED) {
-        match.flooded();
     }
     _matches[match_pid] = match;
 
@@ -322,11 +293,11 @@ void CourtManager::process_finished_match() {
         _flooded_matches.push_back(match);
         return;
     }
-    // De aca en adelanta, el partido termino exitosamente
+    // Partido termino exitosamente
     std::stringstream ss;
     ss << "MatchProcess [" << match_pid << "] " << "finalizado";
     Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
-    // El partido termino, por lo que hay que escribir el resultado
+
     _fifo_write_matches.escribir(static_cast<void*>(&match), sizeof(Match));
 
     // Envio a Team Maker T1-P1; T2-P2; T1-P2; T2-P1
@@ -347,16 +318,32 @@ void CourtManager::process_finished_match() {
     _fifo_write_people.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " a TeamMaker", Logger::get_date());
 
-    bool freed = free_court(match_pid);
-    if (!freed) {
-        Logger::log(prettyName(), Logger::WARNING, "No se pudo liberar cancha", Logger::get_date());
+    free_court(match_pid);
+}
+
+void CourtManager::get_row_column(int &row, int &col, pid_t match_pid) {
+    bool set = false;
+    for (int i = 0; i < _rows; i++) {
+        for (int j = 0; j < _columns; j++) {
+            if (_court_pid[i][j] == match_pid) {
+                row = i;
+                col = j;
+                set = true;
+            }
+        }
+    }
+    if (!set) {
+        Logger::log(prettyName(), Logger::WARNING, "NO SE PUDO ENCONTRAR UN PID", Logger::get_date());
     }
 }
+
 
 bool CourtManager::free_court(pid_t pid) {
     int row, col;
     get_row_column(row, col, pid);
-    _court_state[row][col] = EMPTY;
+    if (_court_state[row][col] == OCCUPIED) {
+        _court_state[row][col] = EMPTY;
+    }
     _court_pid[row][col] = 0;
     std::stringstream ss;
     ss << "LIBERO CANCHA en [" << row << "][" << col << "] = " << pid;

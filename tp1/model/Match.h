@@ -2,14 +2,14 @@
 #define TP1_MATCH_H
 
 #include "Team.h"
+#include "../handlers/EventHandler.h"
 
-class Match {
+class Match  {
 private:
     Team _team1;
     Team _team2;
     int _score_team1;
     int _score_team2;
-    bool _flooded;
 
 public:
     Match();
@@ -21,7 +21,6 @@ public:
     Team team2() const;
     int scoreTeam1() const;
     int scoreTeam2() const;
-
     bool valid();
     void flooded();
 

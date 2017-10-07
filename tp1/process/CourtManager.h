@@ -59,7 +59,6 @@ private:
 public:
     CourtManager(int m, int k,int rows, int columns, const std::string& fifo_read,
                  const std::string& fifo_write_people, const std::string& fifo_write_matches );
-    ~CourtManager();
     virtual void initialize();
     virtual int do_work();
     virtual void finalize();

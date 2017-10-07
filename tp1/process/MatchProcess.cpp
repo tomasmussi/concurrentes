@@ -1,12 +1,12 @@
 #include "MatchProcess.h"
 #include "../constants.h"
+#include "../ipc/SignalHandler.h"
 #include <stdlib.h>
 #include <cstdlib>
 #include <signal.h>
 
 MatchProcess::MatchProcess(pid_t parent_process_id) : _father_id(parent_process_id),
-    _probability(0.5), _score_team1(0), _score_team2(0),
-    _lock_matches("/tmp/shm_matches"), _shm_matches(NULL) {
+    _probability(0.5), _score_team1(0), _score_team2(0), _flooded(false) {
 }
 
 MatchProcess::~MatchProcess() {
@@ -14,18 +14,7 @@ MatchProcess::~MatchProcess() {
 }
 
 void MatchProcess::finalize() {
-    if (_shm_matches != NULL) {
-        Logger::log(prettyName(), Logger::INFO, "Destruyendo SHM de matches", Logger::get_date());
-        try {
-            _shm_matches->liberar();
-        } catch (const std::string& excp) {
-            Logger::log(prettyName(), Logger::DEBUG, "SHM LIBERAR ERROR ", Logger::get_date());
-        }
-        delete(_shm_matches);
-        _shm_matches = NULL;
-    } else {
-        Logger::log(prettyName(), Logger::WARNING, "Al eliminar: No toco shm porque es null", Logger::get_date());
-    }
+    SignalHandler::destroy();
 }
 
 /**
@@ -34,19 +23,12 @@ void MatchProcess::finalize() {
  * informacion
  * */
 void MatchProcess::dispatch_match() {
-    Logger::log(prettyName(), Logger::DEBUG, "Creando memoria compartida de matches", Logger::get_date());
-    // TODO: No seria mejor si _shm_matches es una variable estatica en vez de dinamica?
-    _shm_matches = new MemoriaCompartida<int>;
-    _shm_matches->crear(SHM_MATCHES, SHM_MATCHES_CHAR);
-
+    SignalHandler::getInstance()->registrarHandler(SIGUSR1, this);
     this->run_match();
 
     std::string timestamp = Logger::get_date();
     Logger::log(prettyName(), Logger::INFO, "Senializado al CourtManager sobre el fin del partido", timestamp);
     signal_court_manager();
-    Logger::log(prettyName(), Logger::DEBUG, "Ahora deberia venir el dt de SHM", timestamp);
-//    This exit shouldn't be done as it's called from CourtManager
-//    _exit(get_match_result());
 }
 
 // Simular el partido y dar a un equipo como ganador
@@ -84,11 +66,6 @@ void MatchProcess::set_scores(int& score_winner, int& score_loser) {
 }
 
 void MatchProcess::signal_court_manager() {
-    Logger::log(prettyName(), Logger::DEBUG, "Tomando lock de matches", Logger::get_date());
-    _lock_matches.lock();
-    _shm_matches->escribir(_shm_matches->leer() + 1);
-    _lock_matches.release();
-    Logger::log(prettyName(), Logger::DEBUG, "Lock de matches liberado", Logger::get_date());
     kill(_father_id, SIGUSR1);
 }
 
@@ -105,6 +82,9 @@ void MatchProcess::signal_court_manager() {
  * 6 : No termino
  * */
 int MatchProcess::get_match_result() {
+    if (_flooded) {
+        return 6;
+    }
     if (_score_team1 == 3 && _score_team2 == 0) {
         return 0;
     } else if (_score_team1 == 3 && _score_team2 == 1) {
@@ -145,3 +125,8 @@ MatchProcess MatchProcess::operator=(const MatchProcess& other_match) {
     return *this;
 }
  */
+
+int MatchProcess::handleSignal ( int ) {
+    _flooded = true;
+}
+
