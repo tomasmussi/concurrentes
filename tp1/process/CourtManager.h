@@ -32,6 +32,8 @@ private:
     std::map<int, std::map<int, pid_t > > _court_pid; // Que proceso esta en que cancha
     int _tide_column;
 
+    std::list<Match> _flooded_matches;
+
     bool occupy_court(pid_t pid);
     bool free_court(pid_t pid);
 

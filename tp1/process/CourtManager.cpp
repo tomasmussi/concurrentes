@@ -16,7 +16,8 @@ CourtManager::CourtManager(int m, int k, int rows, int columns, const std::strin
     _m(m), _k(k), _rows(rows), _columns(columns), _fifo_read(fifo_read), _fifo_write_people(fifo_write_people), _fifo_write_matches(fifo_write_matches),
     _lock_matches(SHM_MATCHES_LOCK), _shm_matches(),
     _available_courts(SEM_AVAILABLE_COURTS, rows * columns),
-    _court_state(),_tide_column(_columns) {
+    _court_state(),_tide_column(_columns),
+    _flooded_matches() {
 
     for (int i = 0; i < _rows; i++) {
         for (int j = 0; j < _columns; j++) {
@@ -40,22 +41,31 @@ int CourtManager::do_work() {
         status = _available_courts.p();
     }
     Logger::log(prettyName(), Logger::DEBUG, "Cancha desocupada", Logger::get_date());
+    if (_flooded_matches.size() > 0) {
+        // Despacho los que se suspendieron por inundacion
+        Match flooded_match = _flooded_matches.front();
+        _flooded_matches.pop_front();
+        dispatch_match(flooded_match.team1(), flooded_match.team2());
+    } else {
+        // Leo nuevos partidos del FIFO
+        Team team1;
+        Team team2;
+        while (graceQuit() == 0 && !team1.valid()) {
+            _fifo_read.leer(static_cast<void*>(&team1), sizeof(Team));
+        }
+        if (team1.valid()) {
+            Logger::log(prettyName(), Logger::INFO, "Recibido equipo 1: " + team1.to_string(), Logger::get_date());
+            while (graceQuit() == 0 && !team2.valid()) {
+                _fifo_read.leer(static_cast<void*>(&team2), sizeof(Team));
+            }
+            if (team2.valid()) {
+                Logger::log(prettyName(), Logger::INFO, "Recibido equipo 2: " + team2.to_string(), Logger::get_date());
+                dispatch_match(team1, team2);
+            }
+        }
 
-    Team team1;
-    Team team2;
-    while (graceQuit() == 0 && !team1.valid()) {
-        _fifo_read.leer(static_cast<void*>(&team1), sizeof(Team));
     }
-    if (team1.valid()) {
-        Logger::log(prettyName(), Logger::INFO, "Recibido equipo 1: " + team1.to_string(), Logger::get_date());
-        while (graceQuit() == 0 && !team2.valid()) {
-            _fifo_read.leer(static_cast<void*>(&team2), sizeof(Team));
-        }
-        if (team2.valid()) {
-            Logger::log(prettyName(), Logger::INFO, "Recibido equipo 2: " + team2.to_string(), Logger::get_date());
-            dispatch_match(team1, team2);
-        }
-    }
+
     return 0;
 }
 
@@ -265,6 +275,7 @@ void CourtManager::process_finished_match() {
         ss << "inundado " << match.to_string();
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
         // TODO ACA DEBERIA REESCRIBIR LOS EQUIPOS EN EL FIFO DE LECTURA DEL COURTMANAGER!!!!
+        _flooded_matches.push_back(match);
         return;
     }
     // De aca en adelanta, el partido termino exitosamente
