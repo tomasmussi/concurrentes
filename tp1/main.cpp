@@ -7,6 +7,7 @@
 
 #include "handlers/MainSIGIntHandler.h"
 #include "ipc/SignalHandler.h"
+#include "ipc/Semaphore.h"
 #include "handlers/NewPlayerHandler.h"
 
 #include "process/BeachManagerWorker.h"
@@ -22,7 +23,7 @@ int main(int argc, char* argv[]) {
     Logger::log("main", Logger::INFO, "Comienzo", Logger::get_date());
     int m, k, rows, columns;
     // TODO: m debería ser siempre mayor a MIN_PEOPLE (10), ya que sino no puede empezar el torneo
-    m = 12;
+    m = 8;
     k = 4;
     rows = 2;
     columns = 3;
@@ -42,6 +43,8 @@ int main(int argc, char* argv[]) {
     std::string fifo3 = "/tmp/fifo3"; //teams (TeamMaker -> CourtManager)
     std::string fifo4 = "/tmp/fifo4"; //matches (CourtManager -> ResultsReporter)
 
+    Semaphore semaphore("/bin/cat", m);
+
     std::stringstream ss;
     ss << "Agregando handler para nuevos players en " << getpid();
     std::string s = ss.str();
@@ -50,8 +53,8 @@ int main(int argc, char* argv[]) {
     SignalHandler::getInstance()->registrarHandler(SIGUSR1, &new_player_handler);
     Logger::log("main", Logger::DEBUG, "NewPlayerHandler registrado", Logger::get_date());
 
-    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(m, fifo1, fifo2),
-                                     new TeamMaker(m, k, fifo2, fifo3),
+    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(fifo1, fifo2, semaphore),
+                                     new TeamMaker(k, fifo2, fifo3, semaphore),
                                      new CourtManager(m, k, rows, columns, fifo3, fifo2, fifo4),
                                      new ResultsReporter(fifo4)};
 

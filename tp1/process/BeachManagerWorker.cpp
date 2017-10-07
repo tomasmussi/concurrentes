@@ -3,8 +3,8 @@
 
 #define MIN_PEOPLE 10
 
-BeachManagerWorker::BeachManagerWorker(int m, const std::string& fifo_read, const std::string& fifo_write)
-   : _pipe_writer(fifo_write), _pipe_reader(fifo_read), _i(0), _m(m)  {
+BeachManagerWorker::BeachManagerWorker(const std::string& fifo_read, const std::string& fifo_write, Semaphore& semaphore)
+   : _pipe_writer(fifo_write), _pipe_reader(fifo_read), _i(0), _semaphore(semaphore)  {
 }
 
 BeachManagerWorker::~BeachManagerWorker() {
@@ -33,6 +33,7 @@ int BeachManagerWorker::do_work() {
     // Es decir, el número del semáforo debería empezar en _m e ir decrementandolo a medida que ingresan players
     // semaphore--
     // if semaphore != blocked ...
+    _semaphore.p();
 
     // TODO: Esto es sólo si la cantidad de usuarios actuales es menor que _m!
     // Si se cumplio que ya quisieron ingresar MIN_PEOPLE personas, mando a todas haciendo que arranque el torneo
@@ -63,6 +64,8 @@ void BeachManagerWorker::finalize() {
     _pipe_writer.cerrar();
     _pipe_writer.eliminar();
     Logger::log(prettyName(), Logger::DEBUG, "Fin clausura de pipes", Logger::get_date());
+    _semaphore.remove();
+    Logger::log(prettyName(), Logger::DEBUG, "Semaforo removido", Logger::get_date());
     Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());
 }
 

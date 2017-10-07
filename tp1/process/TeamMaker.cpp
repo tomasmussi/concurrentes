@@ -4,8 +4,8 @@
 
 #include <cstring>
 
-TeamMaker::TeamMaker(int m, int k, const std::string& fifo_read, const std::string& fifo_write)
-        : _m(m), _k(k), _fifo_read(fifo_read), _fifo_write(fifo_write),
+TeamMaker::TeamMaker(int k, const std::string& fifo_read, const std::string& fifo_write, Semaphore& semaphore)
+        : _k(k), _fifo_read(fifo_read), _fifo_write(fifo_write), _semaphore(semaphore),
           _have_player(false), _couples(), _waiting_list() {
 }
 
@@ -77,6 +77,8 @@ void TeamMaker::finalize() {
     _fifo_write.cerrar();
     _fifo_write.eliminar();
     Logger::log(prettyName(), Logger::DEBUG, "Fifos cerrados", Logger::get_date());
+    _semaphore.remove();
+    Logger::log(prettyName(), Logger::DEBUG, "Semaforo removido", Logger::get_date());
     Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());
 }
 

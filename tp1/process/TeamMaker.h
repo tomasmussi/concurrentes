@@ -10,13 +10,14 @@
 #include "../ipc/MemoriaCompartida.h"
 #include "../model/Person.h"
 #include "../ipc/LockFile.h"
+#include "../ipc/Semaphore.h"
 
 class TeamMaker : public WorkerProcess {
 private:
-    int _m;
     int _k;
     FifoLectura _fifo_read;
     FifoEscritura _fifo_write;
+    Semaphore _semaphore;
     bool _have_player;
     std::map<std::string,std::map<std::string,bool> > _couples; //True si ya fueron pareja
     std::list<Person> _waiting_list;
@@ -26,7 +27,7 @@ private:
     void new_id_into_map(std::string id);
 
 public:
-    TeamMaker(int m, int k, const std::string& fifo_read, const std::string& fifo_write);
+    TeamMaker(int k, const std::string& fifo_read, const std::string& fifo_write, Semaphore& semaphore);
     virtual void initialize();
     virtual int do_work();
     virtual void finalize();
