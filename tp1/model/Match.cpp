@@ -1,10 +1,10 @@
 #include <sstream>
 #include "Match.h"
 
-Match::Match(const Team& team1, const Team& team2) : _team1(team1), _team2(team2) {
+Match::Match(const Team& team1, const Team& team2) : _team1(team1), _team2(team2), _flooded(false) {
 }
 
-Match::Match() : _team1(), _team2() {
+Match::Match() : _team1(), _team2(), _flooded(false) {
 }
 
 std::string Match::to_string() {
@@ -48,7 +48,7 @@ void Match::set_match_status(int exit_code) {
 }
 
 bool Match::finished() {
-    return _score_team1 != 0 || _score_team2 != 0;
+    return (_score_team1 != 0 || _score_team2 != 0) && !_flooded;
 }
 
 Team Match::team1() const {
@@ -67,6 +67,11 @@ int Match::scoreTeam2() const {
     return _score_team2;
 }
 
+
 bool Match::valid() {
     return _team1.valid() && _team2.valid();
+}
+
+void Match::flooded() {
+    _flooded = true;
 }

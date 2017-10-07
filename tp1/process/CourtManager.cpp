@@ -13,14 +13,10 @@
 
 CourtManager::CourtManager(int m, int k, int rows, int columns, const std::string& fifo_read,
         const std::string& fifo_write_people, const std::string& fifo_write_matches ) :
-
-    _m(m), _k(k), _rows(rows), _columns(columns), _fifo_read(fifo_read), _fifo_write_people(fifo_write_people), _fifo_write_matches(fifo_write_matches),
-
-    _lock_matches(SHM_MATCHES_LOCK), _shm_matches(),
-    _available_courts(SEM_AVAILABLE_COURTS, rows * columns),
-
-    _court_state(),_tide_column(_columns),
-    _flooded_matches() {
+    _m(m), _k(k), _rows(rows), _columns(columns), _fifo_read(fifo_read), _fifo_write_people(fifo_write_people),
+    _fifo_write_matches(fifo_write_matches),
+    _do_process(false), _matches_to_process(0), _matches(),
+    _court_state(), _court_pid(), _tide_column(_columns) {
 
 
     for (int i = 0; i < _rows; i++) {
@@ -36,8 +32,6 @@ CourtManager::~CourtManager() {
 }
 
 int CourtManager::do_work() {
-
-
     Logger::log(prettyName(), Logger::DEBUG, "Esperando que se desocupe cancha", Logger::get_date());
     int status = _available_courts.p(); // Resto una cancha libre
     while (graceQuit() == 0 && status == -1 &&  errno == EINTR) {
@@ -76,9 +70,11 @@ int CourtManager::do_work() {
     while (graceQuit() == 0 && status == -1 &&  errno == EINTR) {
         // Fallo la system call por interrupcion, pero debo seguir trabajando
         status = _available_courts.p();
+=======
+    if (_do_process) {
+        clean_courts();
+>>>>>>> Primeros pasos para el refactor
     }
-    Logger::log(prettyName(), Logger::DEBUG, "Cancha desocupada", Logger::get_date());
-
     Team team1;
     Team team2;
     while (graceQuit() == 0 && !team1.valid()) {
@@ -101,26 +97,6 @@ int CourtManager::do_work() {
     return 0;
 }
 
-bool CourtManager::occupy_court(pid_t pid) {
-    bool occupied = false;
-    int i = 0;
-    while (!occupied && i < _rows) {
-        int j = 0;
-        while (!occupied && j < _columns) {
-            if (_court_state[i][j] == EMPTY) {
-                _court_state[i][j] = OCCUPIED;
-                _court_pid[i][j] = pid;
-                occupied = true;
-                std::stringstream ss;
-                ss << "OCUPO CANCHA en [" << i << "][" << j << "] = " << pid;
-                Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
-            }
-            j++;
-        }
-        i++;
-    }
-    return occupied;
-}
 
 void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
     Match match(team1, team2);
@@ -152,6 +128,29 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
     }
 }
 
+bool CourtManager::occupy_court(pid_t pid) {
+    bool occupied = false;
+    int i = 0;
+    while (!occupied && i < _rows) {
+        int j = 0;
+        while (!occupied && j < _columns) {
+            if (_court_state[i][j] == EMPTY) {
+                _court_state[i][j] = OCCUPIED;
+                _court_pid[i][j] = pid;
+                occupied = true;
+                _matches_to_process++;
+                std::stringstream ss;
+                ss << "OCUPO CANCHA en [" << i << "][" << j << "] = " << pid;
+                Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
+            }
+            j++;
+        }
+        i++;
+    }
+    return occupied;
+}
+
+
 void CourtManager::initialize() {
     Logger::log(prettyName(), Logger::DEBUG, "Inicializando", Logger::get_date());
     _fifo_read.abrir();
@@ -162,13 +161,7 @@ void CourtManager::initialize() {
     _fifo_write_matches.abrir();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de envio de partidos a ResultsReporter abierto", Logger::get_date());
 
-    _shm_matches.crear(SHM_MATCHES, SHM_MATCHES_CHAR);
 
-
-
-    _lock_matches.lock();
-    _shm_matches.escribir(0);
-    _lock_matches.release();
     SignalHandler::getInstance()->registrarHandler(SIGUSR1, this);
     SignalHandler::getInstance()->registrarHandler(SIGUSR2, this);
     SignalHandler::getInstance()->registrarHandler(SIGUNUSED, this);
@@ -181,11 +174,9 @@ void CourtManager::finalize() {
     _fifo_write_people.cerrar();
     _fifo_write_matches.cerrar();
     Logger::log(prettyName(), Logger::DEBUG, "Fifos cerrados", Logger::get_date());
-    _shm_matches.liberar();
-    Logger::log(prettyName(), Logger::DEBUG, "SHM matches destruida", Logger::get_date());
+
     SignalHandler::destroy();
     Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());
-    _available_courts.remove();
 }
 
 std::string CourtManager::prettyName() {
@@ -228,7 +219,7 @@ void CourtManager::tide_rise(int ) {
             matches_to_kill.push_back(match_pid);
         } else if (_court_state[row][_tide_column] == EMPTY) {
             // Si esta libre, hay que decrementar el semaforo para indicar que hay una cancha menos disponible
-            _available_courts.p();
+
         }
         std::stringstream ss;
         ss << "INUNDO CANCHA [" << row << "][" << _tide_column << "] = " << match_pid;
@@ -264,19 +255,42 @@ void CourtManager::tide_decrease(int ) {
         }
     }
     // Ahora tengo "_columnas" de canchas mas disponibles para usar
-    _available_courts.v(_columns);
+
     _tide_column++;
     std::stringstream ss;
     ss << "Ahora la columna de agua esta en: " << _tide_column;
     Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
 }
 
-void CourtManager::handle_matches(int signum) {
-    Logger::log(prettyName(), Logger::INFO, "Handling signal", Logger::get_date());
 
-    if (signum != SIGUSR1) {
-        Logger::log(prettyName(), Logger::ERROR, "Recibi senial distinta a SIGUSR1", Logger::get_date());
-        return;
+void CourtManager::handle_matches(int) {
+    _do_process = true;
+}
+
+
+void CourtManager::clean_courts() {
+    std::stringstream s;
+    s << "Procesando " << _matches_to_process << " partidos";
+    Logger::log(prettyName(), Logger::INFO, s.str(), Logger::get_date());
+    for (int i = 0; i < _matches_to_process; i++) {
+        process_finished_match();
+    }
+    _matches_to_process = 0;
+}
+
+void CourtManager::get_row_column(int &row, int &col, pid_t match_pid) {
+    bool set = false;
+    for (int i = 0; i < _rows; i++) {
+        for (int j = 0; j < _columns; j++) {
+            if (_court_pid[i][j] == match_pid) {
+                row = i;
+                col = j;
+                set = true;
+            }
+        }
+    }
+    if (!set) {
+        Logger::log(prettyName(), Logger::WARNING, "NO SE PUDO ENCONTRAR UN PID", Logger::get_date());
     }
 }
 
@@ -287,6 +301,13 @@ void CourtManager::process_finished_match() {
     pid_t match_pid = wait(&status);
     Match match = _matches[match_pid];
     match.set_match_status(WEXITSTATUS(status));
+    int row, col;
+    get_row_column(row, col, match_pid);
+    if (_court_state[row][col] == OCCUPIED) {
+        _court_state[row][col] = EMPTY;
+    } else if (_court_state[row][col] == FLOODED) {
+        match.flooded();
+    }
     _matches[match_pid] = match;
 
     if (!match.finished()) {
@@ -304,7 +325,6 @@ void CourtManager::process_finished_match() {
     // De aca en adelanta, el partido termino exitosamente
     std::stringstream ss;
     ss << "MatchProcess [" << match_pid << "] " << "finalizado";
-    //ss << "finalizado " << match.to_string();
     Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
     // El partido termino, por lo que hay que escribir el resultado
     _fifo_write_matches.escribir(static_cast<void*>(&match), sizeof(Match));
@@ -331,31 +351,15 @@ void CourtManager::process_finished_match() {
     if (!freed) {
         Logger::log(prettyName(), Logger::WARNING, "No se pudo liberar cancha", Logger::get_date());
     }
-
-    int sem_status = _available_courts.v(); // Sumo a la cantidad de canchas disponible
-    while (graceQuit() == 0 && sem_status == -1 && errno == EINTR) {
-        // Fallo la system call por interrupt
-        sem_status = _available_courts.v();
-    }
 }
 
 bool CourtManager::free_court(pid_t pid) {
-    int i = 0;
-    bool freed = false;
-    while (!freed && i < _rows) {
-        int j = 0;
-        while (!freed && j < _columns) {
-            if (_court_pid[i][j] == pid) {
-                _court_state[i][j] = EMPTY;
-                _court_pid[i][j] = 0;
-                freed = true;
-                std::stringstream ss;
-                ss << "LIBERO CANCHA en [" << i << "][" << j << "] = " << pid;
-                Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
-            }
-            j++;
-        }
-        i++;
-    }
-    return freed;
+    int row, col;
+    get_row_column(row, col, pid);
+    _court_state[row][col] = EMPTY;
+    _court_pid[row][col] = 0;
+    std::stringstream ss;
+    ss << "LIBERO CANCHA en [" << row << "][" << col << "] = " << pid;
+    Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
+    return true;
 }

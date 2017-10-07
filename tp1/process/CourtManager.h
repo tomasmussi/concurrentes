@@ -23,14 +23,14 @@ private:
     FifoEscritura _fifo_write_people;
     FifoEscritura _fifo_write_matches;
 
-    LockFile _lock_matches;
-    MemoriaCompartida<int> _shm_matches;
+    bool _do_process;
+    int _matches_to_process;
     std::map<pid_t, Match> _matches;
-    Semaphore _available_courts;
     std::map<int, std::map<int, int> > _court_state; // Estado de cancha
     std::map<int, std::map<int, pid_t > > _court_pid; // Que proceso esta en que cancha
     int _tide_column;
 
+    void clean_courts();
     bool occupy_court(pid_t pid);
     bool free_court(pid_t pid);
 
@@ -50,6 +50,9 @@ private:
     void handle_matches(int signum);
     void tide_rise(int signum);
     void tide_decrease(int signum);
+
+
+    void get_row_column(int &row, int &col, pid_t match_pid);
 
     void process_finished_match();
     void dispatch_match(const Team& team1, const Team& team2);
