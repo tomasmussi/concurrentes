@@ -1,6 +1,7 @@
 #include <sys/wait.h>
 #include <sstream>
 #include <cstdlib>
+#include <ctime>
 
 #include "CourtManager.h"
 #include "../ipc/SignalHandler.h"
@@ -10,6 +11,7 @@ CourtManager::CourtManager(int m, int k, int rows, int columns, const std::strin
     _m(m), _k(k), _rows(rows), _columns(columns),
     _fifo_read(fifo_read), _fifo_write_people(fifo_write_people), _fifo_write_matches(fifo_write_matches),
     _lock_matches("/tmp/shm_matches"), _shm_matches() {
+    std::srand((unsigned) std::time(NULL));
 }
 
 CourtManager::~CourtManager() {

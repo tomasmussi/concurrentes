@@ -22,9 +22,9 @@ int main(int argc, char* argv[]) {
     Logger::open_logger("log.txt");
     Logger::log("main", Logger::INFO, "Comienzo", Logger::get_date());
     int m, k, rows, columns;
-    // TODO: m debería ser siempre mayor a MIN_PEOPLE (10), ya que sino no puede empezar el torneo
-    m = 8;
-    k = 4;
+    // TODO: m debería ser siempre mayor o igual a MIN_PEOPLE (10), ya que sino no puede empezar el torneo
+    m = 10;
+    k = 2;
     rows = 2;
     columns = 3;
     if (argc == 5) {
@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     std::stringstream ss;
     ss << "Agregando handler para nuevos players en " << getpid();
     std::string s = ss.str();
-    Logger::log("main", Logger::DEBUG, s, Logger::get_date());
+    Logger::log("main", Logger::INFO, s, Logger::get_date());
     NewPlayerHandler new_player_handler(fifo1);
     SignalHandler::getInstance()->registrarHandler(SIGUSR1, &new_player_handler);
     Logger::log("main", Logger::DEBUG, "NewPlayerHandler registrado", Logger::get_date());

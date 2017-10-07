@@ -1,7 +1,6 @@
 #include "MatchProcess.h"
 #include <stdlib.h>
 #include <cstdlib>
-#include <ctime>
 #include <signal.h>
 
 MatchProcess::MatchProcess(pid_t parent_process_id) : _father_id(parent_process_id),
@@ -47,9 +46,8 @@ void MatchProcess::dispatch_match() {
 
 // Simular el partido y dar a un equipo como ganador
 void MatchProcess::run_match() {
-    std::srand((unsigned) std::time(NULL));
-    // TODO: Simular que el partido dura un tiempo aleatorio
-//    sleep(2);
+    int play_time = rand() % 10;
+    sleep(play_time);
     int who_wins = rand() % 100;
     int prob = 100 * _probability;
     if (prob >= who_wins) {
@@ -60,7 +58,7 @@ void MatchProcess::run_match() {
         set_scores(_score_team2, _score_team1);
     }
     std::stringstream ss;
-    ss << "El partido termino: " << _score_team1 << " a " << _score_team2;
+    ss << "El partido duro " << play_time << " segundos y termino: " << _score_team1 << " a " << _score_team2;
     Logger::log(prettyName(), Logger::DEBUG, ss.str(), Logger::get_date());
 }
 

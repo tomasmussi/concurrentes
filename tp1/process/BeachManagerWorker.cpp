@@ -28,12 +28,10 @@ int BeachManagerWorker::do_work() {
 
     // Esto funciona porque el NewPlayerHandler escribe numeros secuenciales. Se podria hacer que solo mande señales y
     // que el contador esté solo del lado del BeachManagerWorker
-    _i = j;
     // _i representa la cantidad de usuarios que quisieron ingresar al torneo, no la cantidad actual de usuarios
-    // Es decir, el número del semáforo debería empezar en _m e ir decrementandolo a medida que ingresan players
-    // semaphore--
-    // if semaphore != blocked ...
+    _i = j;
     _semaphore.p();
+    Logger::log(prettyName(), Logger::DEBUG, "Semaforo decrementado", Logger::get_date());
 
     // TODO: Esto es sólo si la cantidad de usuarios actuales es menor que _m!
     // Si se cumplio que ya quisieron ingresar MIN_PEOPLE personas, mando a todas haciendo que arranque el torneo

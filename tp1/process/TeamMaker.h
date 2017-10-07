@@ -25,6 +25,7 @@ private:
     bool can_play(std::string id_p1, std::string id_p2);
     void add_couple_to_map(std::string id_p1, std::string id_p2);
     void new_id_into_map(std::string id);
+    int matches_played(std::string id);
 
 public:
     TeamMaker(int k, const std::string& fifo_read, const std::string& fifo_write, Semaphore& semaphore);
