@@ -20,6 +20,7 @@ public:
     Team team2() const;
     int scoreTeam1() const;
     int scoreTeam2() const;
+    bool valid();
 };
 
 #endif //TP1_MATCH_H

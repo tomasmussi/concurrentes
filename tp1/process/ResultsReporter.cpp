@@ -18,12 +18,15 @@ int ResultsReporter::do_work() {
     _countdown--;
     Match match;
     _fifo_read.leer(static_cast<void*>(&match), sizeof(Match));
-    Logger::log(prettyName(), Logger::INFO, match.to_string(), Logger::get_date());
-    updateTableWithMatch(match);
-    if (_countdown == 0){
-        //Mostrar Tabla de Posiciones
-        showPointsTable();
-        _countdown = FREQUENCY;
+    // Esto es porque cuando recibe el SIGINT, lee un partido invalido
+    if (match.valid()) {
+        Logger::log(prettyName(), Logger::INFO, match.to_string(), Logger::get_date());
+        updateTableWithMatch(match);
+        if (_countdown == 0){
+            //Mostrar Tabla de Posiciones
+            showPointsTable();
+            _countdown = FREQUENCY;
+        }
     }
     return 0;
 }
@@ -37,6 +40,8 @@ void ResultsReporter::initialize() {
 
 void ResultsReporter::finalize() {
     Logger::log(prettyName(), Logger::DEBUG, "Finalizando", Logger::get_date());
+    // Muestro tabla de resultados al recibir SIGINT
+    showPointsTable();
     _fifo_read.cerrar();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo cerrado", Logger::get_date());
     Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());

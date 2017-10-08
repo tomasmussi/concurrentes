@@ -66,3 +66,7 @@ int Match::scoreTeam1() const {
 int Match::scoreTeam2() const {
     return _score_team2;
 }
+
+bool Match::valid() {
+    return _team1.valid() && _team2.valid();
+}
