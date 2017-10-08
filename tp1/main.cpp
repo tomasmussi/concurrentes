@@ -1,9 +1,10 @@
-#include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <cerrno>
 #include <cstring>
+#include <ctime>
 #include <sstream>
+#include <cstdlib>
 
 #include "handlers/MainSIGIntHandler.h"
 #include "ipc/SignalHandler.h"
@@ -36,7 +37,7 @@ int main(int argc, char* argv[]) {
 
     MainSIGIntHandler sigint_handler;
     SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
-    Logger::log("main", Logger::DEBUG, "MainSIGIntHandler registrado", Logger::get_date());
+    Logger::log("main", Logger::INFO, "MainSIGIntHandler registrado", Logger::get_date());
 
     std::string fifo1 = "/tmp/fifo1"; //people (NewPlayerHandler -> BeachManagerWorker)
     std::string fifo2 = "/tmp/fifo2"; //people (BeachManagerWorker/CourtManager -> TeamMaker)
@@ -57,6 +58,9 @@ int main(int argc, char* argv[]) {
                                      new TeamMaker(k, fifo2, fifo3, semaphore),
                                      new CourtManager(m, k, rows, columns, fifo3, fifo2, fifo4),
                                      new ResultsReporter(fifo4)};
+
+    // Seteo la semilla del random para el programa
+    std::srand((unsigned) std::time(NULL));
 
     bool is_father = true;
     int son_process = 0;

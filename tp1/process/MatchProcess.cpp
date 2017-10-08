@@ -37,7 +37,7 @@ void MatchProcess::dispatch_match() {
     this->run_match();
 
     std::string timestamp = Logger::get_date();
-    Logger::log(prettyName(), Logger::INFO, "CourtManager senializado fin partido", timestamp);
+    Logger::log(prettyName(), Logger::INFO, "Senializado al CourtManager sobre el fin del partido", timestamp);
     signal_court_manager();
     Logger::log(prettyName(), Logger::DEBUG, "Ahora deberia venir el dt de SHM", timestamp);
 //    This exit shouldn't be done as it's called from CourtManager
@@ -59,7 +59,7 @@ void MatchProcess::run_match() {
     }
     std::stringstream ss;
     ss << "El partido duro " << play_time << " segundos y termino: " << _score_team1 << " a " << _score_team2;
-    Logger::log(prettyName(), Logger::DEBUG, ss.str(), Logger::get_date());
+    Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
 }
 
 void MatchProcess::set_scores(int& score_winner, int& score_loser) {

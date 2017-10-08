@@ -91,7 +91,7 @@ void TeamMaker::initialize() {
     _fifo_read.abrir();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de recepcion de nuevas personas abierto" ,Logger::get_date());
     _fifo_write.abrir();
-    Logger::log(prettyName(), Logger::DEBUG, "Fifo de WRITE de equipos a CourtManager abierto", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Fifo de escritura de equipos a CourtManager abierto", Logger::get_date());
     Logger::log(prettyName(), Logger::INFO, "Inicializado", Logger::get_date());
 }
 

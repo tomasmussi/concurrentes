@@ -16,7 +16,7 @@ void BeachManagerWorker::sendPerson(int i) {
     Person p(i);
     std::string timestamp = Logger::get_date();
     _pipe_writer.escribir(static_cast<void*>(&p), sizeof(Person));
-    Logger::log(prettyName(), Logger::DEBUG, "Enviada persona " + p.id() + " para jugar", timestamp);
+    Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " para jugar", timestamp);
 }
 
 int BeachManagerWorker::do_work() {
@@ -28,22 +28,19 @@ int BeachManagerWorker::do_work() {
     std::string s = ss.str();
     Logger::log(prettyName(), Logger::DEBUG, s, Logger::get_date());
 
-    // Esto funciona porque el NewPlayerHandler escribe numeros secuenciales. Se podria hacer que solo mande señales y
-    // que el contador esté solo del lado del BeachManagerWorker
-    // _i representa la cantidad de usuarios que quisieron ingresar al torneo, no la cantidad actual de usuarios
-    _i = j;
+    _i++;
     _semaphore.p();
     Logger::log(prettyName(), Logger::DEBUG, "Semaforo decrementado", Logger::get_date());
 
-    // TODO: Esto es sólo si la cantidad de usuarios actuales es menor que _m!
     // Si se cumplio que ya quisieron ingresar MIN_PEOPLE personas, mando a todas haciendo que arranque el torneo
-    if (j == MIN_PEOPLE - 1) {
+    if (_i == MIN_PEOPLE) {
+        // Se puede hacer esto porque al no haber arrancado el torneo todavía, los que ingresan sabemos que son del 0 al 9
         for(int i = 0; i < MIN_PEOPLE; i++) {
             sendPerson(i);
         }
     } else {
         // Una vez que ya arranco el torneo (Ya quisieron ingresar mas de MIN_PEOPLE), mando de a una persona
-        if (j >= MIN_PEOPLE) {
+        if (_i > MIN_PEOPLE) {
             sendPerson(j);
         }
     }
@@ -51,15 +48,15 @@ int BeachManagerWorker::do_work() {
 }
 
 void BeachManagerWorker::initialize() {
-    Logger::log(prettyName(), Logger::DEBUG, "Inicializando pipes", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Inicializando", Logger::get_date());
     _pipe_reader.abrir();
     _pipe_writer.abrir();
-    Logger::log(prettyName(), Logger::DEBUG, "Fin inicializacion pipes", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Pipes inicializados", Logger::get_date());
     Logger::log(prettyName(), Logger::INFO, "Inicializado", Logger::get_date());
 }
 
 void BeachManagerWorker::finalize() {
-    Logger::log(prettyName(), Logger::DEBUG, "Cerrando pipes", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Finalizando", Logger::get_date());
     _pipe_reader.cerrar();
     _pipe_writer.cerrar();
     _pipe_writer.eliminar();

@@ -17,6 +17,7 @@ private:
     FifoEscritura _pipe_writer;
     FifoLectura _pipe_reader;
     Semaphore _semaphore;
+    // _i representa la cantidad de usuarios que quisieron ingresar al torneo, no la cantidad actual de usuarios
     int _i;
 
     void sendPerson(int i);

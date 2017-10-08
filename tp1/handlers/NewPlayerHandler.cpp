@@ -14,7 +14,7 @@ NewPlayerHandler::~NewPlayerHandler() {
 }
 
 int NewPlayerHandler::handleSignal(int signum) {
-    Logger::log(prettyName(), Logger::DEBUG, "Handleando nuevo player", Logger::get_date());
+    Logger::log(prettyName(), Logger::INFO, "Nuevo player recibido", Logger::get_date());
     _pipe_writer.escribir(static_cast<void*>(&_i), sizeof(int));
     std::stringstream ss;
     ss << "Escribi en el fifo de nuevas personas: " << _i;
@@ -25,8 +25,9 @@ int NewPlayerHandler::handleSignal(int signum) {
 }
 
 void NewPlayerHandler::initialize() {
-    Logger::log(prettyName(), Logger::DEBUG, "Inicializando pipe", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Inicializando", Logger::get_date());
     _pipe_writer.abrir();
+    Logger::log(prettyName(), Logger::INFO, "Inicializado", Logger::get_date());
 }
 
 std::string NewPlayerHandler::prettyName() {
