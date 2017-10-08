@@ -2,6 +2,8 @@
 #define TP1_WORKERPROCESS_H
 
 #include <iostream>
+#include <csignal>
+#include "../handlers/SIGIntHandler.h"
 
 /**
  * Clase que encapsula el trabajo de cada uno de los procesos que componen el programa
@@ -9,6 +11,10 @@
  * cual es su tarea interna
  * */
 class WorkerProcess {
+private:
+    SIGIntHandler sigint_handler;
+protected:
+    sig_atomic_t graceQuit() const;
 public:
     virtual ~WorkerProcess();
     virtual void initialize();

@@ -54,9 +54,13 @@ int TeamMaker::do_work() {
             new_id_into_map(id_p1);
         // Asi no reviso que tenga haya jugado menos que k cuando sabemos que no jugo nunca
         } else {
-            if (matches_played(id_p1) >= _k) {
+            int count = matches_played(id_p1);
+            if (count >= _k) {
+                std::stringstream ss;
+                ss << "La persona con id " << id_p1 << " ya jugo " << count << " partidos por lo que se retira";
+                Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
                 _semaphore.v();
-                Logger::log(prettyName(), Logger::DEBUG, "Aumentando semaforo", Logger::get_date());
+                Logger::log(prettyName(), Logger::DEBUG, "Semaforo aumentado", Logger::get_date());
                 return 0;
             }
         }

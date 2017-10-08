@@ -16,14 +16,16 @@ CourtManager::~CourtManager() {
 }
 
 int CourtManager::do_work() {
-    // TODO: VERIFICAR QUE HAYA CANCHAS LIBRES PARA DESPACHAR!
     Team team1;
     Team team2;
-    _fifo_read.leer(static_cast<void*>(&team1), sizeof(Team));
+    while (graceQuit() == 0 && !team1.valid()) {
+        _fifo_read.leer(static_cast<void*>(&team1), sizeof(Team));
+    }
     if (team1.valid()) {
         Logger::log(prettyName(), Logger::INFO, "Recibido equipo 1: " + team1.to_string(), Logger::get_date());
-        _fifo_read.leer(static_cast<void*>(&team2), sizeof(Team));
-        Logger::log(prettyName(), Logger::DEBUG, "Recibido equipo 2: " + team2.to_string() + " (Verificando que sea valido)", Logger::get_date());
+        while (graceQuit() == 0 && !team2.valid()) {
+            _fifo_read.leer(static_cast<void*>(&team2), sizeof(Team));
+        }
         if (team2.valid()) {
             Logger::log(prettyName(), Logger::INFO, "Recibido equipo 2: " + team2.to_string(), Logger::get_date());
             dispatch_match(team1, team2);
