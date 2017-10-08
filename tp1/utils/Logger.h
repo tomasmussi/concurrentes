@@ -23,7 +23,7 @@ public:
     static void open_logger(const std::string& log_file);
     static void log(const std::string& caller, int error, const std::string& error_message,
                     const std::string& timestamp);
-    static void close_logger();
+    static void close_logger(bool is_last);
     static std::string get_date();
 };
 

@@ -2,7 +2,6 @@
 #define TP1_BEACHMANAGERWORKER_H
 
 #include "WorkerProcess.h"
-#include "../ipc/MemoriaCompartida.h"
 #include "../ipc/FifoEscritura.h"
 #include "../ipc/FifoLectura.h"
 #include "../ipc/Semaphore.h"

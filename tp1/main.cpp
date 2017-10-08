@@ -101,6 +101,6 @@ int main(int argc, char* argv[]) {
         delete arr[i];
     }
     SignalHandler::destroy();
-    Logger::close_logger();
+    Logger::close_logger(is_father);
     return son_process;
 }
