@@ -15,11 +15,11 @@ ResultsReporter::~ResultsReporter() {
 }
 
 int ResultsReporter::do_work() {
-    _countdown--;
     Match match;
     _fifo_read.leer(static_cast<void*>(&match), sizeof(Match));
     // Esto es porque cuando recibe el SIGINT, lee un partido invalido
     if (match.valid()) {
+        _countdown--;
         Logger::log(prettyName(), Logger::INFO, match.to_string(), Logger::get_date());
         updateTableWithMatch(match);
         if (_countdown == 0){
