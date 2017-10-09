@@ -42,7 +42,7 @@ void Logger::log(const std::string& caller, int error, const std::string& error_
     file_stream << "[" << timestamp << "] [" << get_error_flag(error) << "] " << caller << ": " << error_message
             << std::endl;
     if (error > Logger::DEBUG) {
-        std::cout << error_message << std::endl;
+        std::cout << caller << ": " << error_message << std::endl;
     }
     lock.release();
 }
