@@ -1,7 +1,6 @@
 #include "MatchProcess.h"
 #include <stdlib.h>
 #include <cstdlib>
-#include <ctime>
 #include <signal.h>
 
 MatchProcess::MatchProcess(pid_t parent_process_id) : _father_id(parent_process_id),
@@ -38,7 +37,7 @@ void MatchProcess::dispatch_match() {
     this->run_match();
 
     std::string timestamp = Logger::get_date();
-    Logger::log(prettyName(), Logger::INFO, "CourtManager senializado fin partido", timestamp);
+    Logger::log(prettyName(), Logger::INFO, "Senializado al CourtManager sobre el fin del partido", timestamp);
     signal_court_manager();
     Logger::log(prettyName(), Logger::DEBUG, "Ahora deberia venir el dt de SHM", timestamp);
 //    This exit shouldn't be done as it's called from CourtManager
@@ -48,7 +47,9 @@ void MatchProcess::dispatch_match() {
 // Simular el partido y dar a un equipo como ganador
 void MatchProcess::run_match() {
     srand(static_cast<unsigned int>(time(0)+getpid())); //getpid evita que dos partidos que arrancan al mismo tiempo, tengan el mismo resultado
-    sleep(rand() % 5);
+    int play_time = rand() % 10;
+    // Simulo que el partido dura un tiempo aleatorio entre 0 y 9 segundos
+    sleep(play_time);
     int who_wins = rand() % 100;
     int prob = 100 * _probability;
     if (prob >= who_wins) {
@@ -59,8 +60,8 @@ void MatchProcess::run_match() {
         set_scores(_score_team2, _score_team1);
     }
     std::stringstream ss;
-    ss << "El partido termino: " << _score_team1 << " a " << _score_team2;
-    Logger::log(prettyName(), Logger::DEBUG, ss.str(), Logger::get_date());
+    ss << "El partido duro " << play_time << " segundos y termino: " << _score_team1 << " a " << _score_team2;
+    Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
 }
 
 void MatchProcess::set_scores(int& score_winner, int& score_loser) {

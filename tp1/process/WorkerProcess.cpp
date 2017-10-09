@@ -1,5 +1,4 @@
 #include "WorkerProcess.h"
-#include "../handlers/SIGIntHandler.h"
 #include "../ipc/SignalHandler.h"
 #include "../utils/Logger.h"
 
@@ -13,8 +12,6 @@ void WorkerProcess::finalize() {
 }
 
 int WorkerProcess::loop() {
-    SIGIntHandler sigint_handler;
-
     // se registra el event handler declarado antes
     SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
     Logger::log(prettyName(), Logger::DEBUG, "SIGIntHandler registrado", Logger::get_date());
@@ -28,4 +25,8 @@ int WorkerProcess::loop() {
     // se recibio la senial SIGINT, el proceso termina
     SignalHandler::destroy();
     return exit_status;
+}
+
+sig_atomic_t WorkerProcess::graceQuit() const {
+    return this->sigint_handler.getGracefulQuit();
 }

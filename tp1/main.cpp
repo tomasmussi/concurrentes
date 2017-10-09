@@ -1,12 +1,14 @@
-#include <stdlib.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <cerrno>
 #include <cstring>
+#include <ctime>
 #include <sstream>
+#include <cstdlib>
 
 #include "handlers/MainSIGIntHandler.h"
 #include "ipc/SignalHandler.h"
+#include "ipc/Semaphore.h"
 #include "handlers/NewPlayerHandler.h"
 
 #include "process/BeachManagerWorker.h"
@@ -21,9 +23,9 @@ int main(int argc, char* argv[]) {
     Logger::open_logger("log.txt");
     Logger::log("main", Logger::INFO, "Comienzo", Logger::get_date());
     int m, k, rows, columns;
-    // TODO: m debería ser siempre mayor a MIN_PEOPLE (10), ya que sino no puede empezar el torneo
-    m = 12;
-    k = 4;
+    // TODO: m debería ser siempre mayor o igual a MIN_PEOPLE (10), ya que sino no puede empezar el torneo
+    m = 10;
+    k = 2;
     rows = 2;
     columns = 3;
     if (argc == 5) {
@@ -35,25 +37,22 @@ int main(int argc, char* argv[]) {
 
     MainSIGIntHandler sigint_handler;
     SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
-    Logger::log("main", Logger::DEBUG, "MainSIGIntHandler registrado", Logger::get_date());
+    Logger::log("main", Logger::INFO, "MainSIGIntHandler registrado", Logger::get_date());
 
     std::string fifo1 = "/tmp/fifo1"; //people (NewPlayerHandler -> BeachManagerWorker)
     std::string fifo2 = "/tmp/fifo2"; //people (BeachManagerWorker/CourtManager -> TeamMaker)
     std::string fifo3 = "/tmp/fifo3"; //teams (TeamMaker -> CourtManager)
     std::string fifo4 = "/tmp/fifo4"; //matches (CourtManager -> ResultsReporter)
 
-    std::stringstream ss;
-    ss << "Agregando handler para nuevos players en " << getpid();
-    std::string s = ss.str();
-    Logger::log("main", Logger::DEBUG, s, Logger::get_date());
-    NewPlayerHandler new_player_handler(fifo1);
-    SignalHandler::getInstance()->registrarHandler(SIGUSR1, &new_player_handler);
-    Logger::log("main", Logger::DEBUG, "NewPlayerHandler registrado", Logger::get_date());
+    Semaphore semaphore("/bin/cat", m);
 
-    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(m, fifo1, fifo2),
-                                     new TeamMaker(m, k, fifo2, fifo3),
+    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(fifo1, fifo2, semaphore),
+                                     new TeamMaker(k, fifo2, fifo3, semaphore),
                                      new CourtManager(m, k, rows, columns, fifo3, fifo2, fifo4),
                                      new ResultsReporter(fifo4)};
+
+    // Seteo la semilla del random para el programa
+    std::srand((unsigned) std::time(NULL));
 
     bool is_father = true;
     int son_process = 0;
@@ -74,6 +73,13 @@ int main(int argc, char* argv[]) {
 
     if (is_father) {
         // Esto es para que se abra el fifo1 para escribir
+        std::stringstream ss;
+        ss << "Agregando handler para nuevos players en " << getpid();
+        std::string s = ss.str();
+        Logger::log("main", Logger::INFO, s, Logger::get_date());
+        NewPlayerHandler new_player_handler(fifo1);
+        SignalHandler::getInstance()->registrarHandler(SIGUSR1, &new_player_handler);
+        Logger::log("main", Logger::DEBUG, "NewPlayerHandler registrado", Logger::get_date());
         new_player_handler.initialize();
 
         int collected = 0;

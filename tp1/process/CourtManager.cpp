@@ -16,14 +16,16 @@ CourtManager::~CourtManager() {
 }
 
 int CourtManager::do_work() {
-    // TODO: VERIFICAR QUE HAYA CANCHAS LIBRES PARA DESPACHAR!
     Team team1;
     Team team2;
-    _fifo_read.leer(static_cast<void*>(&team1), sizeof(Team));
+    while (graceQuit() == 0 && !team1.valid()) {
+        _fifo_read.leer(static_cast<void*>(&team1), sizeof(Team));
+    }
     if (team1.valid()) {
         Logger::log(prettyName(), Logger::INFO, "Recibido equipo 1: " + team1.to_string(), Logger::get_date());
-        _fifo_read.leer(static_cast<void*>(&team2), sizeof(Team));
-        Logger::log(prettyName(), Logger::INFO, "Recibido equipo 2: " + team2.to_string() + " (Verificando que sea valido)", Logger::get_date());
+        while (graceQuit() == 0 && !team2.valid()) {
+            _fifo_read.leer(static_cast<void*>(&team2), sizeof(Team));
+        }
         if (team2.valid()) {
             Logger::log(prettyName(), Logger::INFO, "Recibido equipo 2: " + team2.to_string(), Logger::get_date());
             dispatch_match(team1, team2);
@@ -48,7 +50,7 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
     } else {
         MatchProcess match_process(father_pid);
         // Proceso hijo, dispatch crea una SHM y sale con exit de la ejecucion de todo
-        Logger::log(match_process.prettyName(), Logger::DEBUG, "Arrancando partido " + match_between, Logger::get_date());
+        Logger::log(match_process.prettyName(), Logger::INFO, "Arrancando partido " + match_between, Logger::get_date());
         match_process.dispatch_match();
         int match_result = match_process.get_match_result();
         // Llamo al finalize porque al salir del proceso con un exit, no se ejecuta el destructor del MatchProcess
@@ -90,7 +92,7 @@ std::string CourtManager::prettyName() {
 }
 
 int CourtManager::handleSignal(int signum) {
-    Logger::log(prettyName(), Logger::INFO, "Handling signal", Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, "Handling signal", Logger::get_date());
     if (signum != SIGUSR1) {
         Logger::log(prettyName(), Logger::ERROR, "Recibi senial distinta a SIGUSR1", Logger::get_date());
         return 1;

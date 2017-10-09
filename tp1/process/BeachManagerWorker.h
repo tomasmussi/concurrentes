@@ -4,6 +4,7 @@
 #include "WorkerProcess.h"
 #include "../ipc/FifoEscritura.h"
 #include "../ipc/FifoLectura.h"
+#include "../ipc/Semaphore.h"
 
 /**
  * Clase encargada de administrar el predio de la playa, que es donde
@@ -15,12 +16,13 @@ class BeachManagerWorker : public WorkerProcess {
 private:
     FifoEscritura _pipe_writer;
     FifoLectura _pipe_reader;
+    Semaphore _semaphore;
+    // _i representa la cantidad de usuarios que quisieron ingresar al torneo, no la cantidad actual de usuarios
     int _i;
-    int _m;
 
     void sendPerson(int i);
 public:
-    BeachManagerWorker(int m, const std::string& fifo_read, const std::string& fifo_write);
+    BeachManagerWorker(const std::string& fifo_read, const std::string& fifo_write, Semaphore& semaphore);
     virtual ~BeachManagerWorker();
     virtual void initialize();
     virtual void finalize();
