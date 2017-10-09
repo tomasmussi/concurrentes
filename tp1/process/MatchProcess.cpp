@@ -46,7 +46,9 @@ void MatchProcess::dispatch_match() {
 
 // Simular el partido y dar a un equipo como ganador
 void MatchProcess::run_match() {
+    srand(static_cast<unsigned int>(time(0)+getpid())); //getpid evita que dos partidos que arrancan al mismo tiempo, tengan el mismo resultado
     int play_time = rand() % 10;
+    // Simulo que el partido dura un tiempo aleatorio entre 0 y 9 segundos
     sleep(play_time);
     int who_wins = rand() % 100;
     int prob = 100 * _probability;
@@ -64,19 +66,15 @@ void MatchProcess::run_match() {
 
 void MatchProcess::set_scores(int& score_winner, int& score_loser) {
     score_winner = 3;
-    int prob = 100 * _probability;
-    int wins_by_difference = rand() % 100;
-    // TODO: No seria mejor hacer si esta entre 0 y 32, entre 33 y 65 o entre 66 y 99?
-    if (prob >= wins_by_difference) {
-        // by 3-0
+    int random = rand() % 100;
+    if (random < 33) {
         score_loser = 0;
-    } else {
-        int final_score = rand() % 100;
-        if (MATCH_PROBABILITY >= final_score) {
-            score_loser = 1;
-        } else {
-            score_loser = 2;
-        }
+    }
+    else if (random < 66) {
+        score_loser = 1;
+    }
+    else {
+        score_loser = 2;
     }
 }
 
