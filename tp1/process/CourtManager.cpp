@@ -34,6 +34,9 @@ int CourtManager::do_work() {
         // Fallo la system call por interrupcion, pero debo seguir trabajando
         status = _available_courts.p();
     }
+    if (_do_process) {
+        clean_courts();
+    }
     Logger::log(prettyName(), Logger::DEBUG, "Cancha desocupada", Logger::get_date());
     if (_flooded_matches.size() > 0) {
         // Despacho los que se suspendieron por inundacion
@@ -55,41 +58,17 @@ int CourtManager::do_work() {
             if (team2.valid()) {
                 Logger::log(prettyName(), Logger::INFO, "Recibido equipo 2: " + team2.to_string(), Logger::get_date());
                 dispatch_match(team1, team2);
+            } else {
+                if (_do_process) {
+                    clean_courts();
+                }
             }
-/*
-=======
-    // TODO: VERIFICAR QUE HAYA CANCHAS LIBRES PARA DESPACHAR!
-=======
->>>>>>> Agrego logica de inundacion de canchas. No funciona
-    Logger::log(prettyName(), Logger::DEBUG, "Esperando que se desocupe cancha", Logger::get_date());
-    int status = _available_courts.p(); // Resto una cancha libre
-    while (graceQuit() == 0 && status == -1 &&  errno == EINTR) {
-        // Fallo la system call por interrupcion, pero debo seguir trabajando
-        status = _available_courts.p();
-=======
-    if (_do_process) {
-        clean_courts();
->>>>>>> Primeros pasos para el refactor
-    }
-    Team team1;
-    Team team2;
-    while (graceQuit() == 0 && !team1.valid()) {
-        _fifo_read.leer(static_cast<void*>(&team1), sizeof(Team));
-    }
-    if (team1.valid()) {
-        Logger::log(prettyName(), Logger::INFO, "Recibido equipo 1: " + team1.to_string(), Logger::get_date());
-        while (graceQuit() == 0 && !team2.valid()) {
-            _fifo_read.leer(static_cast<void*>(&team2), sizeof(Team));
+        } else {
+            if (_do_process) {
+                clean_courts();
+            }
         }
-        if (team2.valid()) {
-            Logger::log(prettyName(), Logger::INFO, "Recibido equipo 2: " + team2.to_string(), Logger::get_date());
-            dispatch_match(team1, team2);
->>>>>>> Elimino codigo de CourtManager debido al cambio en disenio. Agrego clase semaforo
-*/
-        }
-
     }
-
     return 0;
 }
 
