@@ -13,6 +13,8 @@
 #include "../ipc/MemoriaCompartida.h"
 
 #define MAX_GONE_PLAYERS 128
+// Probabilidad de que un jugador decida irse
+#define LEAVE_PROBABILITY 20
 
 class TeamMaker : public WorkerProcess {
 private:

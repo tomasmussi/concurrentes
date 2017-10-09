@@ -4,6 +4,7 @@
 
 #include <cstring>
 #include <sstream>
+#include <cstdlib>
 
 TeamMaker::TeamMaker(int k, const std::string& fifo_read, const std::string& fifo_write, Semaphore& semaphore)
         : _k(k), _fifo_read(fifo_read), _fifo_write(fifo_write), _semaphore(semaphore),
@@ -76,11 +77,14 @@ int TeamMaker::do_work() {
             }
         }
 
-        // TODO: Agregar que acá la persona se puede ir. Habria que escribir en una SHM que esa persona se fue y puede volver, asi el NewPlayerHandler lo puede volver a mandar
-        Logger::log(prettyName(), Logger::INFO, "Persona retirandose: " + id_p1, timestamp);
-        write_shm_gone_players(p1.int_id());
-        _semaphore.v();
-        return 0;
+        // La persona puede elegir retirarse aleatoriamente
+        if (rand() % 100 < LEAVE_PROBABILITY) {
+            Logger::log(prettyName(), Logger::INFO, "Persona retirandose voluntariamente: " + id_p1, timestamp);
+            write_shm_gone_players(p1.int_id());
+            _semaphore.v();
+            Logger::log(prettyName(), Logger::DEBUG, "Semaforo aumentado", Logger::get_date());
+            return 0;
+        }
 
         bool played = false;
         if (_waiting_list.size() > 0) {
@@ -111,6 +115,7 @@ void TeamMaker::initialize_shm_gone_players() {
     for (int i = 0; i < MAX_GONE_PLAYERS; i++) {
         // TODO WARNING!!!! NO SE PUEDEN CREAR MAS DE 256 CON ESTO!!!!!!
         _shm_gone_players[i].crear("/bin/bash", i);
+        _shm_gone_players[i].escribir(-1);
     }
     _lock_shm_gone_players.release();
 }
