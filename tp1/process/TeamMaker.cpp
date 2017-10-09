@@ -7,7 +7,8 @@
 
 TeamMaker::TeamMaker(int k, const std::string& fifo_read, const std::string& fifo_write, Semaphore& semaphore)
         : _k(k), _fifo_read(fifo_read), _fifo_write(fifo_write), _semaphore(semaphore),
-          _have_player(false), _couples(), _waiting_list() {
+          _lock_shm_gone_players("/tmp/shm_gone_users"), _shm_gone_players(NULL),
+          _have_player(false), _couples(), _waiting_list(), _last_gone(0) {
 }
 
 bool TeamMaker::can_play(std::string id_p1, std::string id_p2) {
@@ -41,6 +42,16 @@ int TeamMaker::matches_played(std::string id) {
     return count;
 }
 
+void TeamMaker::write_shm_gone_players(int id) {
+    _lock_shm_gone_players.lock();
+    _shm_gone_players[_last_gone++].escribir(id);
+    // Esto no deberia pasar a menos que se hayan ido MAX_GONE_PLAYERS. A partir de ahi vuelve a arrancar
+    if(_last_gone == MAX_GONE_PLAYERS) {
+        _last_gone = 0;
+    }
+    _lock_shm_gone_players.release();
+}
+
 int TeamMaker::do_work() {
     Person p1(-1);
     ssize_t read = _fifo_read.leer(static_cast<void*>(&p1), sizeof(Person));
@@ -66,6 +77,10 @@ int TeamMaker::do_work() {
         }
 
         // TODO: Agregar que acá la persona se puede ir. Habria que escribir en una SHM que esa persona se fue y puede volver, asi el NewPlayerHandler lo puede volver a mandar
+        Logger::log(prettyName(), Logger::INFO, "Persona retirandose: " + id_p1, timestamp);
+        write_shm_gone_players(p1.int_id());
+        _semaphore.v();
+        return 0;
 
         bool played = false;
         if (_waiting_list.size() > 0) {
@@ -90,13 +105,34 @@ int TeamMaker::do_work() {
     return 0;
 }
 
+void TeamMaker::initialize_shm_gone_players() {
+    _lock_shm_gone_players.lock();
+    _shm_gone_players = new MemoriaCompartida<int>[MAX_GONE_PLAYERS];
+    for (int i = 0; i < MAX_GONE_PLAYERS; i++) {
+        // TODO WARNING!!!! NO SE PUEDEN CREAR MAS DE 256 CON ESTO!!!!!!
+        _shm_gone_players[i].crear("/bin/bash", i);
+    }
+    _lock_shm_gone_players.release();
+}
+
 void TeamMaker::initialize() {
     Logger::log(prettyName(), Logger::DEBUG, "Inicializando" ,Logger::get_date());
     _fifo_read.abrir();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de recepcion de nuevas personas abierto" ,Logger::get_date());
     _fifo_write.abrir();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de escritura de equipos a CourtManager abierto", Logger::get_date());
+    initialize_shm_gone_players();
+    Logger::log(prettyName(), Logger::DEBUG, "SHM de jugadores que se fueron creada", Logger::get_date());
     Logger::log(prettyName(), Logger::INFO, "Inicializado", Logger::get_date());
+}
+
+void TeamMaker::destroy_shm_gone_players() {
+    _lock_shm_gone_players.lock();
+    for (int i = 0; i < MAX_GONE_PLAYERS; i++) {
+        _shm_gone_players[i].liberar();
+    }
+    _lock_shm_gone_players.release();
+    delete [] _shm_gone_players;
 }
 
 void TeamMaker::finalize() {
@@ -107,6 +143,8 @@ void TeamMaker::finalize() {
     Logger::log(prettyName(), Logger::DEBUG, "Fifos cerrados", Logger::get_date());
     _semaphore.remove();
     Logger::log(prettyName(), Logger::DEBUG, "Semaforo removido", Logger::get_date());
+    destroy_shm_gone_players();
+    Logger::log(prettyName(), Logger::DEBUG, "SHM de jugadores que se fueron destruida", Logger::get_date());
     Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());
 }
 

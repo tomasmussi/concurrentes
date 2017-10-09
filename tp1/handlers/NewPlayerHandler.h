@@ -4,6 +4,10 @@
 #include <unistd.h>
 #include "EventHandler.h"
 #include "../ipc/FifoEscritura.h"
+#include "../ipc/LockFile.h"
+#include "../ipc/MemoriaCompartida.h"
+
+#define MAX_GONE_PLAYERS 128
 
 /**
  * Clase encargada de registrar personas que quieren entrar al predio
@@ -14,7 +18,14 @@
 class NewPlayerHandler : public EventHandler {
 private:
     FifoEscritura _pipe_writer;
+    LockFile _lock_shm_gone_players;
+    MemoriaCompartida<int>* _shm_gone_players;
     int _i;
+
+    void initialize_shm_gone_players();
+    void destroy_shm_gone_players();
+    int read_shm_gone_players();
+    int _last_gone;
 public:
     NewPlayerHandler(const std::string& fifo_write);
     ~NewPlayerHandler();

@@ -37,6 +37,7 @@ template <class T> MemoriaCompartida<T>::~MemoriaCompartida() {
 
 template <class T> void MemoriaCompartida<T>::crear(const std::string& archivo, const char letra) {
     key_t clave = ftok(archivo.c_str(), letra);
+    std::stringstream s;
 
     if (clave > 0) {
         this->shmId = shmget(clave, sizeof(T), 0644|IPC_CREAT);
@@ -46,22 +47,24 @@ template <class T> void MemoriaCompartida<T>::crear(const std::string& archivo, 
             if (tmpPtr != (void*) -1) {
                 this->ptrDatos = static_cast<T*>(tmpPtr);
             } else {
-                Logger::log("SHM", Logger::WARNING, "Error al crear 1", Logger::get_date());
+                s << "[" << getpid() << "] Error al crear 1: " << std::string(strerror(errno));
+                Logger::log("SHM", Logger::WARNING, s.str(), Logger::get_date());
                 std::string mensaje = std::string("Error en shmat(): ") + std::string(strerror(errno));
                 throw mensaje;
             }
         } else {
-            Logger::log("SHM", Logger::WARNING, "Error al crear 2", Logger::get_date());
+            s << "[" << getpid() << "] Error al crear 2: " << std::string(strerror(errno));
+            Logger::log("SHM", Logger::WARNING, s.str(), Logger::get_date());
             std::string mensaje = std::string("Error en shmget(): ") + std::string(strerror(errno));
             throw mensaje;
         }
     } else {
-        Logger::log("SHM", Logger::WARNING, "Error al crear 3", Logger::get_date());
+        s << "[" << getpid() << "] Error al crear 3: " << std::string(strerror(errno));
+        Logger::log("SHM", Logger::WARNING, s.str(), Logger::get_date());
         std::string mensaje = std::string("Error en ftok(): ") + std::string(strerror(errno));
         throw mensaje;
     }
 }
-
 
 template <class T> void MemoriaCompartida<T>::liberar() {
     int errorDt = shmdt((void *)this->ptrDatos);

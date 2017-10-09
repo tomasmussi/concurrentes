@@ -46,14 +46,6 @@ int main(int argc, char* argv[]) {
 
     Semaphore semaphore("/bin/cat", m);
 
-    std::stringstream ss;
-    ss << "Agregando handler para nuevos players en " << getpid();
-    std::string s = ss.str();
-    Logger::log("main", Logger::INFO, s, Logger::get_date());
-    NewPlayerHandler new_player_handler(fifo1);
-    SignalHandler::getInstance()->registrarHandler(SIGUSR1, &new_player_handler);
-    Logger::log("main", Logger::DEBUG, "NewPlayerHandler registrado", Logger::get_date());
-
     WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(fifo1, fifo2, semaphore),
                                      new TeamMaker(k, fifo2, fifo3, semaphore),
                                      new CourtManager(m, k, rows, columns, fifo3, fifo2, fifo4),
@@ -81,6 +73,13 @@ int main(int argc, char* argv[]) {
 
     if (is_father) {
         // Esto es para que se abra el fifo1 para escribir
+        std::stringstream ss;
+        ss << "Agregando handler para nuevos players en " << getpid();
+        std::string s = ss.str();
+        Logger::log("main", Logger::INFO, s, Logger::get_date());
+        NewPlayerHandler new_player_handler(fifo1);
+        SignalHandler::getInstance()->registrarHandler(SIGUSR1, &new_player_handler);
+        Logger::log("main", Logger::DEBUG, "NewPlayerHandler registrado", Logger::get_date());
         new_player_handler.initialize();
 
         int collected = 0;
