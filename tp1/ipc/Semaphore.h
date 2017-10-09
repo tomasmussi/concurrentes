@@ -21,6 +21,8 @@ public:
 
     int p() const;  // decrementa
     int v() const;  // incrementa
+    int p(short n) const; // decrementa n
+    int v(short n) const; // incrementa n
     int w() const;  // espera a que sea 0
     void remove() const;
 };

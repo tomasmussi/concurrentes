@@ -1,4 +1,5 @@
 #include "MatchProcess.h"
+#include "../constants.h"
 #include <stdlib.h>
 #include <cstdlib>
 #include <signal.h>
@@ -15,7 +16,11 @@ MatchProcess::~MatchProcess() {
 void MatchProcess::finalize() {
     if (_shm_matches != NULL) {
         Logger::log(prettyName(), Logger::INFO, "Destruyendo SHM de matches", Logger::get_date());
-        _shm_matches->liberar();
+        try {
+            _shm_matches->liberar();
+        } catch (const std::string& excp) {
+            Logger::log(prettyName(), Logger::DEBUG, "SHM LIBERAR ERROR ", Logger::get_date());
+        }
         delete(_shm_matches);
         _shm_matches = NULL;
     } else {
@@ -32,7 +37,7 @@ void MatchProcess::dispatch_match() {
     Logger::log(prettyName(), Logger::DEBUG, "Creando memoria compartida de matches", Logger::get_date());
     // TODO: No seria mejor si _shm_matches es una variable estatica en vez de dinamica?
     _shm_matches = new MemoriaCompartida<int>;
-    _shm_matches->crear("/bin/grep", 'a');
+    _shm_matches->crear(SHM_MATCHES, SHM_MATCHES_CHAR);
 
     this->run_match();
 
