@@ -103,8 +103,6 @@ void MatchProcess::signal_court_manager() {
 
 /**
  * Recordar:
- * 3-0 y 3-1 son 3 puntos ganadores y 0 puntos perdedores
- * 3-2 son 2 puntos ganadores y 1 punto perdedores
  * 0 : Termino 3-0
  * 1 : Termino 3-1
  * 2 : Termino 3-2

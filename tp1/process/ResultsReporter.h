@@ -22,7 +22,7 @@ private:
     void updateTableWithMatch(Match match);
     void updateTableWithTeam(Team team, int points);
     void updateTableWithPerson(Person person, int points);
-    int pointsFromScore(int score) const;
+    int pointsFromScore(int score, int opponent_score) const;
     void showPointsTable();
 
     static bool comp(std::pair<std::string,int> a, std::pair<std::string,int> b) { return a.second > b.second;}

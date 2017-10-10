@@ -50,8 +50,8 @@ void ResultsReporter::finalize() {
 void ResultsReporter::updateTableWithMatch(Match match){
     Team team1 = match.team1();
     Team team2 = match.team2();
-    int pointsTeam1 = pointsFromScore(match.scoreTeam1());
-    int pointsTeam2 = pointsFromScore(match.scoreTeam2());
+    int pointsTeam1 = pointsFromScore(match.scoreTeam1(), match.scoreTeam2());
+    int pointsTeam2 = pointsFromScore(match.scoreTeam2(), match.scoreTeam1());
     updateTableWithTeam(team1, pointsTeam1);
     updateTableWithTeam(team2, pointsTeam2);
 }
@@ -72,14 +72,21 @@ void ResultsReporter::updateTableWithPerson(Person p, int points){
     }
 }
 
-int ResultsReporter::pointsFromScore(int score) const {
+/**
+ * Recordar:
+ * 3-0 y 3-1 son 3 puntos ganadores y 0 puntos perdedores
+ * 3-2 son 2 puntos ganadores y 1 punto perdedores
+ * */
+int ResultsReporter::pointsFromScore(int score, int opponent_score) const {
     if (score == 0 || score == 1){
         return 0;
-    }
-    else if (score == 2){
+    } else if (score == 2){
         return 1;
     }
-    else{
+    // El score es igual a 3
+    if (opponent_score == 2) {
+        return 2;
+    } else {
         return 3;
     }
 }
