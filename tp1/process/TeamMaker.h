@@ -14,7 +14,7 @@
 
 #define MAX_GONE_PLAYERS 128
 // Probabilidad de que un jugador decida irse
-#define LEAVE_PROBABILITY 20
+#define LEAVE_PROBABILITY 0
 
 class TeamMaker : public WorkerProcess {
 private:
