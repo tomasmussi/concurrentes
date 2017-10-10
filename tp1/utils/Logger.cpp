@@ -48,7 +48,7 @@ void Logger::log(const std::string& caller, int error, const std::string& error_
 }
 
 void Logger::open_logger(const std::string& log_file) {
-    lock = LockFile("/tmp/logger_lock");
+    lock = LockFile(LOGGER_LOCK);
     file_stream.open(log_file.c_str(), std::ofstream::out | std::ofstream::app);
     lock.lock();
     initialize_log();

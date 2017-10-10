@@ -25,15 +25,12 @@ CourtManager::CourtManager(int m, int k, int rows, int columns, const std::strin
             _court_pid[i][j] = 0;
         }
     }
-
-
 }
 
 CourtManager::~CourtManager() {
 }
 
 int CourtManager::do_work() {
-
     Logger::log(prettyName(), Logger::DEBUG, "Esperando que se desocupe cancha", Logger::get_date());
     int status = _available_courts.p(); // Resto una cancha libre
     while (graceQuit() == 0 && status == -1 &&  errno == EINTR) {
@@ -63,9 +60,7 @@ int CourtManager::do_work() {
                 dispatch_match(team1, team2);
             }
         }
-
     }
-
     return 0;
 }
 
@@ -214,7 +209,7 @@ void CourtManager::tide_rise(int ) {
     }
 
     for (std::list<pid_t>::iterator it = matches_to_kill.begin(); it != matches_to_kill.end(); ++it) {
-        // Ver si corresponde esto o un SIGUSR1 y que haga un handle de esto
+        // TODO Ver si corresponde esto o un SIGUSR1 y que haga un handle de esto
         kill((*it), SIGTERM);
     }
 }

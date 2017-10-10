@@ -7,7 +7,7 @@
 
 MatchProcess::MatchProcess(pid_t parent_process_id) : _father_id(parent_process_id),
     _probability(0.5), _score_team1(0), _score_team2(0),
-    _lock_matches("/tmp/shm_matches"), _shm_matches(NULL) {
+    _lock_matches(SHM_MATCHES_LOCK), _shm_matches(NULL) {
         SignalHandler::getInstance()->registrarHandler(SIGINT, this);
 }
 
@@ -20,6 +20,7 @@ int MatchProcess::handleSignal(int signum) {
         Logger::log(prettyName(), Logger::ERROR, "Recibi senial distinta a SIGINT", Logger::get_date());
         return -1;
     }
+    Logger::log(prettyName(), Logger::DEBUG, "Finalizando debido a SIGINT", Logger::get_date());
     finalize();
     exit(7); //Un número distinto a todos los resultados posibles del partido
 }
@@ -56,19 +57,16 @@ void MatchProcess::dispatch_match() {
     Logger::log(prettyName(), Logger::INFO, "Senializado al CourtManager sobre el fin del partido", timestamp);
     signal_court_manager();
     Logger::log(prettyName(), Logger::DEBUG, "Ahora deberia venir el dt de SHM", timestamp);
-//    This exit shouldn't be done as it's called from CourtManager
-//    _exit(get_match_result());
 }
 
 // Simular el partido y dar a un equipo como ganador
 void MatchProcess::run_match() {
     srand(static_cast<unsigned int>(time(0)+getpid())); //getpid evita que dos partidos que arrancan al mismo tiempo, tengan el mismo resultado
-    int play_time = rand() % 10;
+    int play_time = rand() % MAX_MATCH_DURATION;
     // Simulo que el partido dura un tiempo aleatorio entre 0 y 9 segundos
     sleep(play_time);
     int who_wins = rand() % 100;
-    int prob = 100 * _probability;
-    if (prob >= who_wins) {
+    if (MATCH_PROBABILITY >= who_wins) {
         // team1 wins
         set_scores(_score_team1, _score_team2);
     } else {
@@ -137,22 +135,3 @@ std::string MatchProcess::prettyName() {
     ss << "Match Process (" << getpid() << ")";
     return ss.str();
 }
-
-/*
-MatchProcess::MatchProcess(const MatchProcess& other_match) : _lock_matches("/tmp/shm_matches"), _son_process(false) {
-    Logger::log("MatchProcess", Logger::DEBUG, "Construyendo COPIA", Logger::get_date());
-    this->_team1 = other_match._team1;
-    this->_team2 = other_match._team2;
-    this->_score_team1 = other_match._score_team1;
-    this->_score_team2 = other_match._score_team2;
-}
-
-MatchProcess MatchProcess::operator=(const MatchProcess& other_match) {
-    this->_team1 = other_match._team1;
-    this->_team2 = other_match._team2;
-    this->_score_team1 = other_match._score_team1;
-    this->_score_team2 = other_match._score_team2;
-    this->_son_process = false;
-    return *this;
-}
- */

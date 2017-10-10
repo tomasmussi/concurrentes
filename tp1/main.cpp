@@ -16,11 +16,13 @@
 #include "process/CourtManager.h"
 #include "process/ResultsReporter.h"
 
+#include "constants.h"
+
 // TODO: CUIDADO CON ESTO, CUANDO SE AGREGUE UN PROCESO HAY QUE TOCAR ESTE DEFINE
 #define N_WORKERS 4
 
 int main(int argc, char* argv[]) {
-    Logger::open_logger("log.txt");
+    Logger::open_logger(LOG_NAME);
     Logger::log("main", Logger::INFO, "Comienzo", Logger::get_date());
     int m, k, rows, columns;
     // TODO: m debería ser siempre mayor o igual a MIN_PEOPLE (10), ya que sino no puede empezar el torneo
@@ -39,15 +41,15 @@ int main(int argc, char* argv[]) {
     SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
     Logger::log("main", Logger::INFO, "MainSIGIntHandler registrado", Logger::get_date());
 
-    std::string fifo1 = "/tmp/fifo1"; //people (NewPlayerHandler -> BeachManagerWorker)
-    std::string fifo2 = "/tmp/fifo2"; //people (BeachManagerWorker/CourtManager -> TeamMaker)
-    std::string fifo3 = "/tmp/fifo3"; //teams (TeamMaker -> CourtManager)
-    std::string fifo4 = "/tmp/fifo4"; //matches (CourtManager -> ResultsReporter)
+    std::string fifo1 = FIFO1; // people (NewPlayerHandler -> BeachManagerWorker)
+    std::string fifo2 = FIFO2; // people (BeachManagerWorker/CourtManager -> TeamMaker)
+    std::string fifo3 = FIFO3; // teams (TeamMaker -> CourtManager)
+    std::string fifo4 = FIFO4; // matches (CourtManager -> ResultsReporter)
 
-    Semaphore semaphore("/bin/cat", m);
+    Semaphore players_playing(SEM_PLAYERS_PLAYING, m);
 
-    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(fifo1, fifo2, semaphore),
-                                     new TeamMaker(k, fifo2, fifo3, semaphore),
+    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(fifo1, fifo2, players_playing),
+                                     new TeamMaker(k, fifo2, fifo3, players_playing),
                                      new CourtManager(m, k, rows, columns, fifo3, fifo2, fifo4),
                                      new ResultsReporter(fifo4)};
 

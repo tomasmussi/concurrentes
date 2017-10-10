@@ -7,9 +7,8 @@
 #include "../ipc/FifoLectura.h"
 #include "../handlers/EventHandler.h"
 #include "../model/Match.h"
+#include "../constants.h"
 #include <utility>
-
-#define FREQUENCY 5
 
 /**
  * Clase encargada de informar los resultados de los partidos que

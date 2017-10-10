@@ -5,10 +5,9 @@
 #include "../ipc/LockFile.h"
 #include "../ipc/MemoriaCompartida.h"
 #include "../handlers/EventHandler.h"
+#include "../constants.h"
 #include <list>
 #include <map>
-
-#define MATCH_PROBABILITY 50
 
 /**
  * Proceso encargado de recibir dos parejas de equipos

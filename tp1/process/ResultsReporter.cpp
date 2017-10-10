@@ -8,7 +8,7 @@
 
 
 ResultsReporter::ResultsReporter(const std::string& fifo_read):
-    _fifo_read(fifo_read), _countdown(FREQUENCY){
+    _fifo_read(fifo_read), _countdown(RESULTS_TABLE_FREQUENCY){
 }
 
 ResultsReporter::~ResultsReporter() {
@@ -25,7 +25,7 @@ int ResultsReporter::do_work() {
         if (_countdown == 0){
             //Mostrar Tabla de Posiciones
             showPointsTable();
-            _countdown = FREQUENCY;
+            _countdown = RESULTS_TABLE_FREQUENCY;
         }
     }
     return 0;

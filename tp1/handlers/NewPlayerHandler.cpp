@@ -5,7 +5,7 @@
 #include "NewPlayerHandler.h"
 
 NewPlayerHandler::NewPlayerHandler(const std::string& fifo_write)
-        : _pipe_writer(fifo_write), _lock_shm_gone_players("/tmp/shm_gone_users"),
+        : _pipe_writer(fifo_write), _lock_shm_gone_players(SHM_GONE_PLAYERS_LOCK),
           _shm_gone_players(NULL), _i(0), _last_gone(0) {
 }
 
@@ -85,7 +85,7 @@ void NewPlayerHandler::initialize_shm_gone_players() {
     _shm_gone_players = new MemoriaCompartida<int>[MAX_GONE_PLAYERS];
     for (int i = 0; i < MAX_GONE_PLAYERS; i++) {
         // TODO WARNING!!!! NO SE PUEDEN CREAR MAS DE 256 CON ESTO!!!!!!
-        _shm_gone_players[i].crear("/bin/bash", i);
+        _shm_gone_players[i].crear(SHM_GONE_PLAYERS, i);
     }
     _lock_shm_gone_players.release();
 }
