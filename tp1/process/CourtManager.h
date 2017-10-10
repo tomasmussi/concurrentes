@@ -38,6 +38,7 @@ private:
     bool free_court(pid_t pid);
 
     void handle_matches(int signum);
+    void kill_matches();
     void tide_rise(int signum);
     void tide_decrease(int signum);
 

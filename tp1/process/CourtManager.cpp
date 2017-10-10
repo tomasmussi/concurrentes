@@ -145,6 +145,7 @@ void CourtManager::initialize() {
 
 void CourtManager::finalize() {
     Logger::log(prettyName(), Logger::DEBUG, "Finalizando", Logger::get_date());
+    kill_matches();
     _fifo_read.cerrar();
     _fifo_write_people.cerrar();
     _fifo_write_matches.cerrar();
@@ -174,6 +175,16 @@ int CourtManager::handleSignal(int signum) {
             break;
     }
     return 0;
+}
+
+void CourtManager::kill_matches() {
+    Logger::log(prettyName(), Logger::INFO, "Recibido SIGINT, enviando señal a los MatchProcess en curso", Logger::get_date());
+    for (std::map<pid_t,Match>::iterator it = _matches.begin(); it != _matches.end(); it++ ){
+        std::stringstream ss;
+        ss << "Notificando SIGINT a MatchProcess[" << it->first << "] ";
+        Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
+        kill(it->first, SIGINT);
+    }
 }
 
 void CourtManager::tide_rise(int ) {
@@ -265,8 +276,9 @@ void CourtManager::process_finished_match() {
     pid_t match_pid = wait(&status);
     Match match = _matches[match_pid];
     match.set_match_status(WEXITSTATUS(status));
-    _matches[match_pid] = match;
-
+    //_matches[match_pid] = match;
+    //Finalizado el partido, lo borro para mantener los MatchProcess activos
+    _matches.erase(match_pid);
     if (!match.finished()) {
         // La cancha se inundo
 

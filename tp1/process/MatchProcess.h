@@ -4,6 +4,7 @@
 #include "../model/Team.h"
 #include "../ipc/LockFile.h"
 #include "../ipc/MemoriaCompartida.h"
+#include "../handlers/EventHandler.h"
 #include <list>
 #include <map>
 
@@ -14,7 +15,7 @@
  * y realizar la simulacion del partido y devolver un resultado
  * con los puntos que gano cada uno de los integrantes y el partido como salio
  * */
-class MatchProcess {
+class MatchProcess: public EventHandler {
 private:
     pid_t _father_id;
     float _probability;
@@ -33,6 +34,7 @@ public:
     void dispatch_match();
     std::string prettyName();
     void finalize();
+    int handleSignal(int signum);
 };
 
 #endif //TP1_MATCHPROCESS_H

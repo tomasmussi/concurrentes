@@ -1,5 +1,6 @@
 #include "MatchProcess.h"
 #include "../constants.h"
+#include "../ipc/SignalHandler.h"
 #include <stdlib.h>
 #include <cstdlib>
 #include <signal.h>
@@ -7,10 +8,20 @@
 MatchProcess::MatchProcess(pid_t parent_process_id) : _father_id(parent_process_id),
     _probability(0.5), _score_team1(0), _score_team2(0),
     _lock_matches("/tmp/shm_matches"), _shm_matches(NULL) {
+        SignalHandler::getInstance()->registrarHandler(SIGINT, this);
 }
 
 MatchProcess::~MatchProcess() {
     finalize();
+}
+
+int MatchProcess::handleSignal(int signum) {
+    if (signum != SIGINT) {
+        Logger::log(prettyName(), Logger::ERROR, "Recibi senial distinta a SIGINT", Logger::get_date());
+        return -1;
+    }
+    finalize();
+    exit(7); //Un número distinto a todos los resultados posibles del partido
 }
 
 void MatchProcess::finalize() {
