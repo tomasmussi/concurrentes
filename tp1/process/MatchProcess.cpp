@@ -53,17 +53,16 @@ void MatchProcess::dispatch_match() {
 
     this->run_match();
 
-    std::string timestamp = Logger::get_date();
-    Logger::log(prettyName(), Logger::INFO, "Senializado al CourtManager sobre el fin del partido", timestamp);
+    Logger::log(prettyName(), Logger::INFO, "Senializado al CourtManager sobre el fin del partido", Logger::get_date());
     signal_court_manager();
-    Logger::log(prettyName(), Logger::DEBUG, "Ahora deberia venir el dt de SHM", timestamp);
+    Logger::log(prettyName(), Logger::DEBUG, "Ahora deberia venir el dt de SHM", Logger::get_date());
 }
 
 // Simular el partido y dar a un equipo como ganador
 void MatchProcess::run_match() {
     srand(static_cast<unsigned int>(time(0)+getpid())); //getpid evita que dos partidos que arrancan al mismo tiempo, tengan el mismo resultado
-    int play_time = rand() % MAX_MATCH_DURATION;
-    // Simulo que el partido dura un tiempo aleatorio entre 0 y 9 segundos
+    int play_time = (rand() % MAX_MATCH_DURATION) + 1;
+    // Simulo que el partido dura un tiempo aleatorio entre 1 y MAX_MATCH_DURATION segundos
     sleep(play_time);
     int who_wins = rand() % 100;
     if (MATCH_PROBABILITY >= who_wins) {

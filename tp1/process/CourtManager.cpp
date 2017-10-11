@@ -87,7 +87,6 @@ bool CourtManager::occupy_court(pid_t pid) {
 
 void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
     Match match(team1, team2);
-    std::string timestamp = Logger::get_date();
     // Esto es para crear el MatchProcess solo en el hijo, donde tiene sentido
     pid_t father_pid = getpid();
     std::string match_between = "entre " + team1.to_string() + " y " + team2.to_string();
@@ -101,7 +100,7 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
         _matches[pid] = match;
         std::stringstream ss;
         ss << "Despachado MatchProcess[" << pid << "] " << match_between;
-        Logger::log(prettyName(), Logger::INFO, ss.str(), timestamp);
+        Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
     } else {
         MatchProcess match_process(father_pid);
 

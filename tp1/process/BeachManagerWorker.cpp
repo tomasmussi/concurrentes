@@ -13,9 +13,8 @@ BeachManagerWorker::~BeachManagerWorker() {
 
 void BeachManagerWorker::sendPerson(int i) {
     Person p(i);
-    std::string timestamp = Logger::get_date();
     _pipe_writer.escribir(static_cast<void*>(&p), sizeof(Person));
-    Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " para jugar", timestamp);
+    Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " para jugar", Logger::get_date());
 }
 
 int BeachManagerWorker::do_work() {

@@ -56,10 +56,9 @@ void TeamMaker::write_shm_gone_players(int id) {
 int TeamMaker::do_work() {
     Person p1(-1);
     ssize_t read = _fifo_read.leer(static_cast<void*>(&p1), sizeof(Person));
-    std::string timestamp = Logger::get_date();
     if (read && p1.valid()) {
         std::string id_p1 = p1.id();
-        Logger::log(prettyName(), Logger::INFO, "Llego persona de id: " + id_p1, timestamp);
+        Logger::log(prettyName(), Logger::INFO, "Llego persona de id: " + id_p1, Logger::get_date());
 
         if (_couples.find(id_p1) == _couples.end()){
             // NO esta registrado (nuevo jugador)
@@ -79,7 +78,7 @@ int TeamMaker::do_work() {
 
         // La persona puede elegir retirarse aleatoriamente
         if (rand() % 100 < LEAVE_PROBABILITY) {
-            Logger::log(prettyName(), Logger::INFO, "Persona retirandose voluntariamente: " + id_p1, timestamp);
+            Logger::log(prettyName(), Logger::INFO, "Persona retirandose voluntariamente: " + id_p1, Logger::get_date());
             write_shm_gone_players(p1.int_id());
             _players_playing.v();
             Logger::log(prettyName(), Logger::DEBUG, "Semaforo aumentado", Logger::get_date());
