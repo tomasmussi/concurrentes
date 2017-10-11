@@ -231,22 +231,19 @@ void CourtManager::tide_decrease(int ) {
 }
 
 void CourtManager::handle_matches(int signum) {
-    if (signum != SIGCHLD) {
-        Logger::log(prettyName(), Logger::ERROR, "Recibi senial distinta a SIGCHLD", Logger::get_date());
-        return;
-    }
     int saved_errno = errno;
     int status;
+    //Al recibir SIGINT, ejecuto waitpid tantas veces como sea necesario para recolectar todos los MatchProcess que hayan finalizado
     pid_t pid = waitpid((pid_t)(-1), &status, 0);
     while ( pid > 0) {
         std::stringstream ss;
-        ss << "Waitpid process: " << pid;
+        ss << "Procesando MatchProcess: " << pid;
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
         process_finished_match(pid,status);
         pid = waitpid((pid_t)(-1), &status, 0);
     }
     if ( pid == -1) {
-        Logger::log(prettyName(), Logger::ERROR, std::strerror(errno), Logger::get_date());
+        Logger::log(prettyName(), Logger::INFO, "No hay más partidos para procesar", Logger::get_date());
     }
     errno = saved_errno;
 }

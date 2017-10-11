@@ -22,7 +22,7 @@ void MatchProcess::run_match() {
     srand(static_cast<unsigned int>(time(0)+getpid())); //getpid evita que dos partidos que arrancan al mismo tiempo, tengan el mismo resultado
     int play_time = rand() % 10;
     // Simulo que el partido dura un tiempo aleatorio entre 0 y 9 segundos
-    //sleep(play_time);
+    sleep(play_time);
     int who_wins = rand() % 100;
     int prob = 100 * _probability;
     if (prob >= who_wins) {
