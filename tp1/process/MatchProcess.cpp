@@ -31,7 +31,7 @@ void MatchProcess::finalize() {
 
 // Simular el partido y dar a un equipo como ganador
 void MatchProcess::run_match() {
-    srand(static_cast<unsigned int>(time(0)+getpid())); //getpid evita que dos partidos que arrancan al mismo tiempo, tengan el mismo resultado
+    srand(static_cast<unsigned int>(time(0) + getpid())); // getpid evita que dos partidos que arrancan al mismo tiempo tengan el mismo resultado
     int play_time = (rand() % MAX_MATCH_DURATION) + 1;
     // Simulo que el partido dura un tiempo aleatorio entre 1 y MAX_MATCH_DURATION segundos
     sleep(play_time);

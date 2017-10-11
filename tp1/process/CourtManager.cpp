@@ -14,12 +14,9 @@
 
 CourtManager::CourtManager(int m, int k, int rows, int columns, const std::string& fifo_read,
         const std::string& fifo_write_people, const std::string& fifo_write_matches ) :
-
-    _m(m), _k(k), _rows(rows), _columns(columns), _fifo_read(fifo_read), _fifo_write_people(fifo_write_people), _fifo_write_matches(fifo_write_matches),
-    _available_courts(SEM_AVAILABLE_COURTS, rows * columns),
-    _court_state(),_tide_column(_columns),
-    _flooded_matches() {
-
+    _m(m), _k(k), _rows(rows), _columns(columns),
+    _fifo_read(fifo_read), _fifo_write_people(fifo_write_people), _fifo_write_matches(fifo_write_matches),
+    _available_courts(SEM_AVAILABLE_COURTS, rows * columns), _court_state(),_tide_column(_columns), _flooded_matches() {
     for (int i = 0; i < _rows; i++) {
         for (int j = 0; j < _columns; j++) {
             _court_state[i][j] = EMPTY;
@@ -39,6 +36,7 @@ int CourtManager::do_work() {
         status = _available_courts.p();
     }
     Logger::log(prettyName(), Logger::DEBUG, "Cancha desocupada", Logger::get_date());
+    // TODO: Cambiar para que se encolen teams en el fifo como si recien ingresaran
     if (_flooded_matches.size() > 0) {
         // Despacho los que se suspendieron por inundacion
         Match flooded_match = _flooded_matches.front();
@@ -122,7 +120,6 @@ void CourtManager::initialize() {
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de lectura de equipos de TeamMaker abierto", Logger::get_date());
     _fifo_write_people.abrir();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de envio de personas a TeamMaker abierto", Logger::get_date());
-
     _fifo_write_matches.abrir();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de envio de partidos a ResultsReporter abierto", Logger::get_date());
 
@@ -135,13 +132,15 @@ void CourtManager::initialize() {
 void CourtManager::finalize() {
     Logger::log(prettyName(), Logger::DEBUG, "Finalizando", Logger::get_date());
     kill_matches();
+    Logger::log(prettyName(), Logger::DEBUG, "Partidos cancelados", Logger::get_date());
     _fifo_read.cerrar();
     _fifo_write_people.cerrar();
     _fifo_write_matches.cerrar();
     Logger::log(prettyName(), Logger::DEBUG, "Fifos cerrados", Logger::get_date());
+    _available_courts.remove();
+    Logger::log(prettyName(), Logger::DEBUG, "Semaforo removido", Logger::get_date());
     SignalHandler::destroy();
     Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());
-    _available_courts.remove();
 }
 
 std::string CourtManager::prettyName() {
@@ -171,19 +170,21 @@ void CourtManager::kill_matches() {
         ss << "Notificando SIGINT a MatchProcess[" << it->first << "] ";
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
         kill(it->first, SIGINT);
+        // TODO: No tendria que hacer un wait despues?
     }
 }
 
 void CourtManager::tide_rise(int ) {
-    Logger::log(prettyName(), Logger::INFO, "TIDE RISE SIGNUM SIGUSR2", Logger::get_date());
-    if (_tide_column == 0) {
+    Logger::log(prettyName(), Logger::INFO, "Subiendo marea", Logger::get_date());
+    if (_tide_column == 1) {
         // No puede subir mas la marea
+        Logger::log(prettyName(), Logger::WARNING, "La marea no puede aumentar mas", Logger::get_date());
         return;
     }
     _tide_column--;
     std::stringstream ss;
     ss << "Ahora la columna de agua esta en: " << _tide_column;
-    Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, ss.str(), Logger::get_date());
     std::list<pid_t> matches_to_kill;
     for (int row = 0; row < _rows; row++) {
         pid_t match_pid = _court_pid[row][_tide_column];
@@ -195,21 +196,26 @@ void CourtManager::tide_rise(int ) {
             _available_courts.p();
         }
         std::stringstream ss;
-        ss << "INUNDO CANCHA [" << row << "][" << _tide_column << "] = " << match_pid;
+        ss << "Inundando cancha [" << row << "][" << _tide_column << "] = " << match_pid;
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
         _court_state[row][_tide_column] = FLOODED;
     }
 
     for (std::list<pid_t>::iterator it = matches_to_kill.begin(); it != matches_to_kill.end(); ++it) {
-        // TODO Ver si corresponde esto o un SIGUSR1 y que haga un handle de esto
-        kill((*it), SIGTERM);
+        kill((*it), SIGINT);
+        int status;
+        pid_t pid = waitpid(*it, &status, 0);
+        std::stringstream ss;
+        ss << "MatchProcess " << pid << " finalizado por inundacion";
+        Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
     }
 }
 
 void CourtManager::tide_decrease(int ) {
-    Logger::log(prettyName(), Logger::INFO, "TIDE DECREASE SIGNUM SIGUNUSED", Logger::get_date());
+    Logger::log(prettyName(), Logger::INFO, "Bajando marea", Logger::get_date());
     if (_tide_column == _columns) {
         // No puede bajar mas la marea;
+        Logger::log(prettyName(), Logger::WARNING, "La marea no puede bajar mas: ya estan todas las canchas disponibles", Logger::get_date());
         return;
     }
     for (int row = 0; row < _rows; row++) {
@@ -217,14 +223,13 @@ void CourtManager::tide_decrease(int ) {
             _court_state[row][_tide_column] = EMPTY;
         } else {
             std::stringstream ss;
-            std::string s;
+            ss << " Cancha [" << row << "][" << _tide_column << "] esta en estado ";
             if (_court_state[row][_tide_column] == EMPTY){
-                s = "EMPTY";
+                ss << "EMPTY";
             } else {
-                s = "FLOODED";
+                ss << "FLOODED";
             }
-            ss << " CANCHA [" << row << "][" << _tide_column << "] ESTA EN ESTADO " << s;
-            Logger::log(prettyName(), Logger::WARNING, ss.str(), Logger::get_date());
+            Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
         }
     }
     // Ahora tengo "_columnas" de canchas mas disponibles para usar
@@ -232,13 +237,14 @@ void CourtManager::tide_decrease(int ) {
     _tide_column++;
     std::stringstream ss;
     ss << "Ahora la columna de agua esta en: " << _tide_column;
-    Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
+    Logger::log(prettyName(), Logger::DEBUG, ss.str(), Logger::get_date());
 }
 
 void CourtManager::handle_matches(int signum) {
     int saved_errno = errno;
     int status;
-    //Al recibir SIGINT, ejecuto waitpid tantas veces como sea necesario para recolectar todos los MatchProcess que hayan finalizado
+    // Al recibir SIGCHLD, ejecuto waitpid tantas veces como sea necesario para recolectar todos los MatchProcess que hayan finalizado
+    // TODO: Esto puede ser que se quede esperando un proceso que va a terminar mas tarde, mientras podría estar despachando otros procesos?
     pid_t pid = waitpid((pid_t)(-1), &status, 0);
     while ( pid > 0) {
         std::stringstream ss;
@@ -263,17 +269,15 @@ void CourtManager::process_finished_match(pid_t match_pid, int status) {
         // La cancha se inundo
 
         std::stringstream ss;
-        ss << "MatchProcess [" << match_pid << "] ";
-        ss << "inundado " << match.to_string();
+        ss << "MatchProcess [" << match_pid << "] inundado";
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
         // TODO ACA DEBERIA REESCRIBIR LOS EQUIPOS EN EL FIFO DE LECTURA DEL COURTMANAGER!!!!
         _flooded_matches.push_back(match);
         return;
     }
-    // De aca en adelanta, el partido termino exitosamente
+    // De aca en adelante, el partido termino exitosamente
     std::stringstream ss;
-    ss << "MatchProcess [" << match_pid << "] " << "finalizado";
-    //ss << "finalizado " << match.to_string();
+    ss << "MatchProcess [" << match_pid << "] finalizado";
     Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
     // El partido termino, por lo que hay que escribir el resultado
     _fifo_write_matches.escribir(static_cast<void*>(&match), sizeof(Match));
@@ -319,7 +323,7 @@ bool CourtManager::free_court(pid_t pid) {
                 _court_pid[i][j] = 0;
                 freed = true;
                 std::stringstream ss;
-                ss << "LIBERO CANCHA en [" << i << "][" << j << "] = " << pid;
+                ss << "Libero cancha en [" << i << "][" << j << "] = " << pid;
                 Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
             }
             j++;

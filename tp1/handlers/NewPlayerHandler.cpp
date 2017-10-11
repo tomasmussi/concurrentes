@@ -20,28 +20,26 @@ NewPlayerHandler::~NewPlayerHandler() {
 }
 
 int NewPlayerHandler::handleSignal(int signum) {
-    Logger::log(prettyName(), Logger::INFO, "Nuevo player recibido", Logger::get_date());
+    Logger::log(prettyName(), Logger::INFO, "Nuevo jugador recibido", Logger::get_date());
     bool old_player = false;
     int id = -1;
     int prob = rand() % 100;
     // Me fijo si quiere entrar uno de los players que se fue
     if (prob < GONE_PLAYER_PROBABILITY) {
-        std::stringstream ss;
-        ss << "Leyendo new player de la SHM de gone players ya que el random fue: " << prob;
-        Logger::log(prettyName(), Logger::DEBUG, ss.str(), Logger::get_date());
+        Logger::log(prettyName(), Logger::DEBUG, "Leyendo new player de la SHM de jugadores que se fueron", Logger::get_date());
         id = read_shm_gone_players();
         if (id != -1) {
             old_player = true;
         }
     }
     if (not old_player) {
-        Logger::log(prettyName(), Logger::DEBUG, "El new player es realmente un new player", Logger::get_date());
+        Logger::log(prettyName(), Logger::DEBUG, "No habia jugadores que se hayan ido, por lo que el nuevo es realmente un nuevo jugador", Logger::get_date());
         id = _i;
         _i++;
     }
     _pipe_writer.escribir(static_cast<void*>(&id), sizeof(int));
     std::stringstream ss;
-    ss << "Escribi en el fifo de nuevas personas: " << id;
+    ss << "Enviando jugador al predio: " << id;
     std::string s = ss.str();
     Logger::log(prettyName(), Logger::DEBUG, s, Logger::get_date());
     return 0;

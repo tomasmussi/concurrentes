@@ -27,9 +27,9 @@ int main(int argc, char* argv[]) {
     int m, k, rows, columns;
     // TODO: m debería ser siempre mayor o igual a MIN_PEOPLE (10), ya que sino no puede empezar el torneo
     m = 10;
-    k = 2;
-    rows = 2;
-    columns = 3;
+    k = 5;
+    rows = 1;
+    columns = 2;
     if (argc == 5) {
         m = atoi(argv[1]);
         k = atoi(argv[2]);

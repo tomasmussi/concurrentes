@@ -31,9 +31,9 @@ void TeamMaker::add_couple_to_map(std::string id_p1, std::string id_p2){
 
 int TeamMaker::matches_played(std::string id) {
     int count = 0;
-    std::map<std::string, bool> asd = _couples[id];
-    for(std::map<std::string, bool>::iterator it = asd.begin(); it != asd.end(); it++) {
-        if (asd[it->first] and it->first != id) {
+    std::map<std::string, bool> player_couples = _couples[id];
+    for(std::map<std::string, bool>::iterator it = player_couples.begin(); it != player_couples.end(); it++) {
+        if (player_couples[it->first] and it->first != id) {
             count++;
         }
     }
