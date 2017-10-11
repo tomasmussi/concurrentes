@@ -12,9 +12,7 @@
 #include "../ipc/Semaphore.h"
 #include "../ipc/MemoriaCompartida.h"
 
-#define MAX_GONE_PLAYERS 128
-// Probabilidad de que un jugador decida irse
-#define LEAVE_PROBABILITY 10
+#include "../constants.h"
 
 class TeamMaker : public WorkerProcess {
 private:
@@ -23,7 +21,7 @@ private:
     FifoEscritura _fifo_write;
     LockFile _lock_shm_gone_players;
     MemoriaCompartida<int>* _shm_gone_players;
-    Semaphore _semaphore;
+    Semaphore _players_playing;
     bool _have_player;
     std::map<std::string,std::map<std::string,bool> > _couples; //True si ya fueron pareja
     std::list<Person> _waiting_list;
@@ -39,7 +37,7 @@ private:
     int _last_gone;
 
 public:
-    TeamMaker(int k, const std::string& fifo_read, const std::string& fifo_write, Semaphore& semaphore);
+    TeamMaker(int k, const std::string& fifo_read, const std::string& fifo_write, Semaphore& players_playing);
     virtual void initialize();
     virtual int do_work();
     virtual void finalize();

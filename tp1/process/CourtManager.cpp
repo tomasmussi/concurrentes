@@ -26,15 +26,12 @@ CourtManager::CourtManager(int m, int k, int rows, int columns, const std::strin
             _court_pid[i][j] = 0;
         }
     }
-
-
 }
 
 CourtManager::~CourtManager() {
 }
 
 int CourtManager::do_work() {
-
     Logger::log(prettyName(), Logger::DEBUG, "Esperando que se desocupe cancha", Logger::get_date());
     int status = _available_courts.p(); // Resto una cancha libre
     while (graceQuit() == 0 && status == -1 &&  errno == EINTR) {
@@ -64,9 +61,7 @@ int CourtManager::do_work() {
                 dispatch_match(team1, team2);
             }
         }
-
     }
-
     return 0;
 }
 
@@ -93,7 +88,6 @@ bool CourtManager::occupy_court(pid_t pid) {
 
 void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
     Match match(team1, team2);
-    std::string timestamp = Logger::get_date();
     // Esto es para crear el MatchProcess solo en el hijo, donde tiene sentido
     pid_t father_pid = getpid();
     std::string match_between = "entre " + team1.to_string() + " y " + team2.to_string();
@@ -107,7 +101,7 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
         _matches[pid] = match;
         std::stringstream ss;
         ss << "Despachado MatchProcess[" << pid << "] " << match_between;
-        Logger::log(prettyName(), Logger::INFO, ss.str(), timestamp);
+        Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
     } else {
         MatchProcess match_process(father_pid);
 
@@ -140,6 +134,7 @@ void CourtManager::initialize() {
 
 void CourtManager::finalize() {
     Logger::log(prettyName(), Logger::DEBUG, "Finalizando", Logger::get_date());
+    kill_matches();
     _fifo_read.cerrar();
     _fifo_write_people.cerrar();
     _fifo_write_matches.cerrar();
@@ -169,6 +164,16 @@ int CourtManager::handleSignal(int signum) {
     return 0;
 }
 
+void CourtManager::kill_matches() {
+    Logger::log(prettyName(), Logger::INFO, "Recibido SIGINT, enviando señal a los MatchProcess en curso", Logger::get_date());
+    for (std::map<pid_t,Match>::iterator it = _matches.begin(); it != _matches.end(); it++ ){
+        std::stringstream ss;
+        ss << "Notificando SIGINT a MatchProcess[" << it->first << "] ";
+        Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
+        kill(it->first, SIGINT);
+    }
+}
+
 void CourtManager::tide_rise(int ) {
     Logger::log(prettyName(), Logger::INFO, "TIDE RISE SIGNUM SIGUSR2", Logger::get_date());
     if (_tide_column == 0) {
@@ -196,7 +201,7 @@ void CourtManager::tide_rise(int ) {
     }
 
     for (std::list<pid_t>::iterator it = matches_to_kill.begin(); it != matches_to_kill.end(); ++it) {
-        // Ver si corresponde esto o un SIGUSR1 y que haga un handle de esto
+        // TODO Ver si corresponde esto o un SIGUSR1 y que haga un handle de esto
         kill((*it), SIGTERM);
     }
 }
@@ -251,8 +256,9 @@ void CourtManager::handle_matches(int signum) {
 void CourtManager::process_finished_match(pid_t match_pid, int status) {
     Match match = _matches[match_pid];
     match.set_match_status(WEXITSTATUS(status));
-    _matches[match_pid] = match;
-
+    //_matches[match_pid] = match;
+    //Finalizado el partido, lo borro para mantener los MatchProcess activos
+    _matches.erase(match_pid);
     if (!match.finished()) {
         // La cancha se inundo
 

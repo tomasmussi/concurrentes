@@ -6,9 +6,9 @@
 #include <sstream>
 #include <cstdlib>
 
-TeamMaker::TeamMaker(int k, const std::string& fifo_read, const std::string& fifo_write, Semaphore& semaphore)
-        : _k(k), _fifo_read(fifo_read), _fifo_write(fifo_write), _semaphore(semaphore),
-          _lock_shm_gone_players("/tmp/shm_gone_users"), _shm_gone_players(NULL),
+TeamMaker::TeamMaker(int k, const std::string& fifo_read, const std::string& fifo_write, Semaphore& players_playing)
+        : _k(k), _fifo_read(fifo_read), _fifo_write(fifo_write), _players_playing(players_playing),
+          _lock_shm_gone_players(SHM_GONE_PLAYERS_LOCK), _shm_gone_players(NULL),
           _have_player(false), _couples(), _waiting_list(), _last_gone(0) {
 }
 
@@ -56,10 +56,9 @@ void TeamMaker::write_shm_gone_players(int id) {
 int TeamMaker::do_work() {
     Person p1(-1);
     ssize_t read = _fifo_read.leer(static_cast<void*>(&p1), sizeof(Person));
-    std::string timestamp = Logger::get_date();
     if (read && p1.valid()) {
         std::string id_p1 = p1.id();
-        Logger::log(prettyName(), Logger::INFO, "Llego persona de id: " + id_p1, timestamp);
+        Logger::log(prettyName(), Logger::INFO, "Llego persona de id: " + id_p1, Logger::get_date());
 
         if (_couples.find(id_p1) == _couples.end()){
             // NO esta registrado (nuevo jugador)
@@ -71,7 +70,7 @@ int TeamMaker::do_work() {
                 std::stringstream ss;
                 ss << "La persona con id " << id_p1 << " ya jugo " << count << " partidos por lo que se retira";
                 Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
-                _semaphore.v();
+                _players_playing.v();
                 Logger::log(prettyName(), Logger::DEBUG, "Semaforo aumentado", Logger::get_date());
                 return 0;
             }
@@ -79,9 +78,9 @@ int TeamMaker::do_work() {
 
         // La persona puede elegir retirarse aleatoriamente
         if (rand() % 100 < LEAVE_PROBABILITY) {
-            Logger::log(prettyName(), Logger::INFO, "Persona retirandose voluntariamente: " + id_p1, timestamp);
+            Logger::log(prettyName(), Logger::INFO, "Persona retirandose voluntariamente: " + id_p1, Logger::get_date());
             write_shm_gone_players(p1.int_id());
-            _semaphore.v();
+            _players_playing.v();
             Logger::log(prettyName(), Logger::DEBUG, "Semaforo aumentado", Logger::get_date());
             return 0;
         }
@@ -114,7 +113,7 @@ void TeamMaker::initialize_shm_gone_players() {
     _shm_gone_players = new MemoriaCompartida<int>[MAX_GONE_PLAYERS];
     for (int i = 0; i < MAX_GONE_PLAYERS; i++) {
         // TODO WARNING!!!! NO SE PUEDEN CREAR MAS DE 256 CON ESTO!!!!!!
-        _shm_gone_players[i].crear("/bin/bash", i);
+        _shm_gone_players[i].crear(SHM_GONE_PLAYERS, i);
         _shm_gone_players[i].escribir(-1);
     }
     _lock_shm_gone_players.release();
@@ -146,7 +145,7 @@ void TeamMaker::finalize() {
     _fifo_write.cerrar();
     _fifo_write.eliminar();
     Logger::log(prettyName(), Logger::DEBUG, "Fifos cerrados", Logger::get_date());
-    _semaphore.remove();
+    _players_playing.remove();
     Logger::log(prettyName(), Logger::DEBUG, "Semaforo removido", Logger::get_date());
     destroy_shm_gone_players();
     Logger::log(prettyName(), Logger::DEBUG, "SHM de jugadores que se fueron destruida", Logger::get_date());

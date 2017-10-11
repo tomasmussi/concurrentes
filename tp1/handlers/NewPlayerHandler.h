@@ -6,10 +6,7 @@
 #include "../ipc/FifoEscritura.h"
 #include "../ipc/LockFile.h"
 #include "../ipc/MemoriaCompartida.h"
-
-#define MAX_GONE_PLAYERS 128
-// Probabilidad de querer agarrar un jugador que ya se fue
-#define GONE_PLAYER_PROBABILITY 50
+#include "../constants.h"
 
 /**
  * Clase encargada de registrar personas que quieren entrar al predio

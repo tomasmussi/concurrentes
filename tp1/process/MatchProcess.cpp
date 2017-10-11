@@ -1,5 +1,6 @@
 #include "MatchProcess.h"
 #include "../constants.h"
+#include "../ipc/SignalHandler.h"
 #include <stdlib.h>
 #include <cstdlib>
 #include <signal.h>
@@ -7,10 +8,21 @@
 
 MatchProcess::MatchProcess(pid_t parent_process_id) : _father_id(parent_process_id),
     _probability(0.5), _score_team1(0), _score_team2(0) {
+        SignalHandler::getInstance()->registrarHandler(SIGINT, this);
 }
 
 MatchProcess::~MatchProcess() {
     finalize();
+}
+
+int MatchProcess::handleSignal(int signum) {
+    if (signum != SIGINT) {
+        Logger::log(prettyName(), Logger::ERROR, "Recibi senial distinta a SIGINT", Logger::get_date());
+        return -1;
+    }
+    Logger::log(prettyName(), Logger::DEBUG, "Finalizando debido a SIGINT", Logger::get_date());
+    finalize();
+    exit(7); //Un número distinto a todos los resultados posibles del partido
 }
 
 void MatchProcess::finalize() {
@@ -20,12 +32,11 @@ void MatchProcess::finalize() {
 // Simular el partido y dar a un equipo como ganador
 void MatchProcess::run_match() {
     srand(static_cast<unsigned int>(time(0)+getpid())); //getpid evita que dos partidos que arrancan al mismo tiempo, tengan el mismo resultado
-    int play_time = rand() % 10;
-    // Simulo que el partido dura un tiempo aleatorio entre 0 y 9 segundos
+    int play_time = (rand() % MAX_MATCH_DURATION) + 1;
+    // Simulo que el partido dura un tiempo aleatorio entre 1 y MAX_MATCH_DURATION segundos
     sleep(play_time);
     int who_wins = rand() % 100;
-    int prob = 100 * _probability;
-    if (prob >= who_wins) {
+    if (MATCH_PROBABILITY >= who_wins) {
         // team1 wins
         set_scores(_score_team1, _score_team2);
     } else {
@@ -53,8 +64,6 @@ void MatchProcess::set_scores(int& score_winner, int& score_loser) {
 
 /**
  * Recordar:
- * 3-0 y 3-1 son 3 puntos ganadores y 0 puntos perdedores
- * 3-2 son 2 puntos ganadores y 1 punto perdedores
  * 0 : Termino 3-0
  * 1 : Termino 3-1
  * 2 : Termino 3-2
@@ -85,22 +94,3 @@ std::string MatchProcess::prettyName() {
     ss << "Match Process (" << getpid() << ")";
     return ss.str();
 }
-
-/*
-MatchProcess::MatchProcess(const MatchProcess& other_match) : _lock_matches("/tmp/shm_matches"), _son_process(false) {
-    Logger::log("MatchProcess", Logger::DEBUG, "Construyendo COPIA", Logger::get_date());
-    this->_team1 = other_match._team1;
-    this->_team2 = other_match._team2;
-    this->_score_team1 = other_match._score_team1;
-    this->_score_team2 = other_match._score_team2;
-}
-
-MatchProcess MatchProcess::operator=(const MatchProcess& other_match) {
-    this->_team1 = other_match._team1;
-    this->_team2 = other_match._team2;
-    this->_score_team1 = other_match._score_team1;
-    this->_score_team2 = other_match._score_team2;
-    this->_son_process = false;
-    return *this;
-}
- */

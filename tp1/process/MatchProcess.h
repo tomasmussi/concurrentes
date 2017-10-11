@@ -2,18 +2,18 @@
 #define TP1_MATCHPROCESS_H
 
 #include "../model/Team.h"
+#include "../handlers/EventHandler.h"
+#include "../constants.h"
 #include <list>
 #include <map>
 #include "../utils/Logger.h"
-
-#define MATCH_PROBABILITY 50
 
 /**
  * Proceso encargado de recibir dos parejas de equipos
  * y realizar la simulacion del partido y devolver un resultado
  * con los puntos que gano cada uno de los integrantes y el partido como salio
  * */
-class MatchProcess {
+class MatchProcess: public EventHandler {
 private:
     pid_t _father_id;
     float _probability;
@@ -29,6 +29,7 @@ public:
     void run_match();
     std::string prettyName();
     void finalize();
+    int handleSignal(int signum);
 };
 
 #endif //TP1_MATCHPROCESS_H

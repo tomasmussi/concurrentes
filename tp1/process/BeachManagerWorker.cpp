@@ -1,12 +1,11 @@
 #include "BeachManagerWorker.h"
 #include "../model/Person.h"
 #include "../utils/Logger.h"
+#include "../constants.h"
 #include <sstream>
 
-#define MIN_PEOPLE 10
-
-BeachManagerWorker::BeachManagerWorker(const std::string& fifo_read, const std::string& fifo_write, Semaphore& semaphore)
-   : _pipe_writer(fifo_write), _pipe_reader(fifo_read), _i(0), _semaphore(semaphore)  {
+BeachManagerWorker::BeachManagerWorker(const std::string& fifo_read, const std::string& fifo_write, Semaphore& players_playing)
+   : _pipe_writer(fifo_write), _pipe_reader(fifo_read), _i(0), _players_playing(players_playing)  {
 }
 
 BeachManagerWorker::~BeachManagerWorker() {
@@ -14,9 +13,8 @@ BeachManagerWorker::~BeachManagerWorker() {
 
 void BeachManagerWorker::sendPerson(int i) {
     Person p(i);
-    std::string timestamp = Logger::get_date();
     _pipe_writer.escribir(static_cast<void*>(&p), sizeof(Person));
-    Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " para jugar", timestamp);
+    Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " para jugar", Logger::get_date());
 }
 
 int BeachManagerWorker::do_work() {
@@ -29,7 +27,7 @@ int BeachManagerWorker::do_work() {
     Logger::log(prettyName(), Logger::DEBUG, s, Logger::get_date());
 
     _i++;
-    _semaphore.p();
+    _players_playing.p();
     Logger::log(prettyName(), Logger::DEBUG, "Semaforo decrementado", Logger::get_date());
 
     // Si se cumplio que ya quisieron ingresar MIN_PEOPLE personas, mando a todas haciendo que arranque el torneo
@@ -61,7 +59,7 @@ void BeachManagerWorker::finalize() {
     _pipe_writer.cerrar();
     _pipe_writer.eliminar();
     Logger::log(prettyName(), Logger::DEBUG, "Fin clausura de pipes", Logger::get_date());
-    _semaphore.remove();
+    _players_playing.remove();
     Logger::log(prettyName(), Logger::DEBUG, "Semaforo removido", Logger::get_date());
     Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());
 }

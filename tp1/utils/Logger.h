@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include "../ipc/LockFile.h"
+#include "../constants.h"
 
 class Logger {
 private:
