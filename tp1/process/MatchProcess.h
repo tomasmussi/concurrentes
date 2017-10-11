@@ -2,12 +2,11 @@
 #define TP1_MATCHPROCESS_H
 
 #include "../model/Team.h"
-#include "../ipc/LockFile.h"
-#include "../ipc/MemoriaCompartida.h"
 #include "../handlers/EventHandler.h"
 #include "../constants.h"
 #include <list>
 #include <map>
+#include "../utils/Logger.h"
 
 /**
  * Proceso encargado de recibir dos parejas de equipos
@@ -20,17 +19,14 @@ private:
     float _probability;
     int _score_team1;
     int _score_team2;
-    LockFile _lock_matches;
-    MemoriaCompartida<int>* _shm_matches;
 
-    void run_match();
     void set_scores(int& score_winner, int& score_loser);
     void signal_court_manager();
 public:
     MatchProcess(pid_t parent_process_id);
     ~MatchProcess();
     int get_match_result();
-    void dispatch_match();
+    void run_match();
     std::string prettyName();
     void finalize();
     int handleSignal(int signum);

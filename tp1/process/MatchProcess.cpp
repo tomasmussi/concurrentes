@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include <signal.h>
+#include <sstream>
 
 MatchProcess::MatchProcess(pid_t parent_process_id) : _father_id(parent_process_id),
-    _probability(0.5), _score_team1(0), _score_team2(0),
-    _lock_matches(SHM_MATCHES_LOCK), _shm_matches(NULL) {
+    _probability(0.5), _score_team1(0), _score_team2(0) {
         SignalHandler::getInstance()->registrarHandler(SIGINT, this);
 }
 
@@ -26,36 +26,7 @@ int MatchProcess::handleSignal(int signum) {
 }
 
 void MatchProcess::finalize() {
-    if (_shm_matches != NULL) {
-        Logger::log(prettyName(), Logger::INFO, "Destruyendo SHM de matches", Logger::get_date());
-        try {
-            _shm_matches->liberar();
-        } catch (const std::string& excp) {
-            Logger::log(prettyName(), Logger::DEBUG, "SHM LIBERAR ERROR ", Logger::get_date());
-        }
-        delete(_shm_matches);
-        _shm_matches = NULL;
-    } else {
-        Logger::log(prettyName(), Logger::WARNING, "Al eliminar: No toco shm porque es null", Logger::get_date());
-    }
-}
-
-/**
- * Al llamar a esta funcion, se pasa a desarrollar un partido en un proceso aparte
- * Si no se llama a esta funcion, se puede utilizar el objeto como contenedor de
- * informacion
- * */
-void MatchProcess::dispatch_match() {
-    Logger::log(prettyName(), Logger::DEBUG, "Creando memoria compartida de matches", Logger::get_date());
-    // TODO: No seria mejor si _shm_matches es una variable estatica en vez de dinamica?
-    _shm_matches = new MemoriaCompartida<int>;
-    _shm_matches->crear(SHM_MATCHES, SHM_MATCHES_CHAR);
-
-    this->run_match();
-
-    Logger::log(prettyName(), Logger::INFO, "Senializado al CourtManager sobre el fin del partido", Logger::get_date());
-    signal_court_manager();
-    Logger::log(prettyName(), Logger::DEBUG, "Ahora deberia venir el dt de SHM", Logger::get_date());
+    Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());
 }
 
 // Simular el partido y dar a un equipo como ganador
@@ -89,15 +60,6 @@ void MatchProcess::set_scores(int& score_winner, int& score_loser) {
     else {
         score_loser = 2;
     }
-}
-
-void MatchProcess::signal_court_manager() {
-    Logger::log(prettyName(), Logger::DEBUG, "Tomando lock de matches", Logger::get_date());
-    _lock_matches.lock();
-    _shm_matches->escribir(_shm_matches->leer() + 1);
-    _lock_matches.release();
-    Logger::log(prettyName(), Logger::DEBUG, "Lock de matches liberado", Logger::get_date());
-    kill(_father_id, SIGUSR1);
 }
 
 /**

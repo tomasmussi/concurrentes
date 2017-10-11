@@ -23,9 +23,6 @@ private:
     FifoEscritura _fifo_write_people;
     FifoEscritura _fifo_write_matches;
 
-
-    LockFile _lock_matches;
-    MemoriaCompartida<int> _shm_matches;
     std::map<pid_t, Match> _matches;
     Semaphore _available_courts;
     std::map<int, std::map<int, int> > _court_state; // Estado de cancha
@@ -42,7 +39,7 @@ private:
     void tide_rise(int signum);
     void tide_decrease(int signum);
 
-    void process_finished_match();
+    void process_finished_match(pid_t match_pid, int status);
     void dispatch_match(const Team& team1, const Team& team2);
 public:
     CourtManager(int m, int k,int rows, int columns, const std::string& fifo_read,
