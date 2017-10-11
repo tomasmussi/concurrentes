@@ -6,7 +6,6 @@
 #include <iostream>
 #include <sstream>
 
-
 ResultsReporter::ResultsReporter(const std::string& fifo_read):
     _fifo_read(fifo_read), _countdown(RESULTS_TABLE_FREQUENCY){
 }
@@ -42,6 +41,7 @@ void ResultsReporter::finalize() {
     Logger::log(prettyName(), Logger::DEBUG, "Finalizando", Logger::get_date());
     // Muestro tabla de resultados al recibir SIGINT
     showPointsTable();
+    showChampion();
     _fifo_read.cerrar();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo cerrado", Logger::get_date());
     Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());
@@ -65,10 +65,14 @@ void ResultsReporter::updateTableWithPerson(Person p, int points){
     std::string id = p.id();
     //Es el primer partido que jugo
     if ( _pointsTable.count(id) == 0){
-        _pointsTable[id] = points;
+        player_t p;
+        p.points = points;
+        p.matchesPlayed = 1;
+        _pointsTable[id] = p;
     }
     else{
-        _pointsTable[id] += points;
+        _pointsTable[id].points += points;
+        _pointsTable[id].matchesPlayed += 1;
     }
 }
 
@@ -92,12 +96,32 @@ int ResultsReporter::pointsFromScore(int score, int opponent_score) const {
 }
 
 void ResultsReporter::showPointsTable() {
-    std::vector<std::pair<std::string, int> > elems(_pointsTable.begin(), _pointsTable.end());
+    std::vector<std::pair<std::string, player_t> > elems(_pointsTable.begin(), _pointsTable.end());
     std::sort(elems.begin(), elems.end(), comp);
     std::stringstream ss;
     ss << "Tabla de Posiciones" <<std::endl;
-    for (std::vector<std::pair<std::string, int> >::const_iterator it = elems.begin(); it != elems.end(); ++it){
-        ss <<"Participante: " << it->first << " | Puntos: " << it->second << std::endl;
+    for (std::vector<std::pair<std::string, player_t> >::iterator it = elems.begin(); it != elems.end(); ++it){
+        ss <<"Participante: " << it->first << " | Puntos: " << it->second.points << " | Partidos: " << it->second.matchesPlayed << std::endl;
+    }
+    Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
+}
+
+void ResultsReporter::showChampion() {
+    std::vector<std::pair<std::string, player_t> > elems(_pointsTable.begin(), _pointsTable.end());
+    std::sort(elems.begin(), elems.end(), comp);
+    std::stringstream ss;
+    int maxPoints;
+    std::vector<std::pair<std::string, player_t> >::iterator it = elems.begin();
+    if (it != elems.end()) {
+        maxPoints = it->second.points;
+    }
+    ss << "Campeón(es) con "<< maxPoints << " puntos" << std::endl;
+    for (; it != elems.end(); ++it){
+        if (it->second.points == maxPoints) {
+            ss <<"Participante: " << it->first << std::endl;
+        } else {
+            break;
+        }
     }
     Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
 }
