@@ -25,6 +25,7 @@ public:
     int v(short n) const; // incrementa n
     int w() const;  // espera a que sea 0
     void remove() const;
+    int getValue() const;
 };
 
 #endif /* TP1_SEMAPHORE_H_ */

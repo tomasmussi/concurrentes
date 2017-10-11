@@ -34,12 +34,17 @@ CourtManager::~CourtManager() {
 }
 
 int CourtManager::do_work() {
-
+    std::stringstream ss;
+    ss << "Hay " << _available_courts.getValue() << " canchas libres";
+    Logger::log(prettyName(), Logger::DEBUG, ss.str(), Logger::get_date());
     Logger::log(prettyName(), Logger::DEBUG, "Esperando que se desocupe cancha", Logger::get_date());
     int status = _available_courts.p(); // Resto una cancha libre
+    Logger::log(prettyName(), Logger::DEBUG, "Tal vez se desocupo una cancha", Logger::get_date());
     while (graceQuit() == 0 && status == -1 &&  errno == EINTR) {
         // Fallo la system call por interrupcion, pero debo seguir trabajando
+        Logger::log(prettyName(), Logger::DEBUG, "Al final se había interrumpido por una syscall", Logger::get_date());
         status = _available_courts.p();
+        Logger::log(prettyName(), Logger::DEBUG, "Tal vez se desocupo una cancha 2", Logger::get_date());
     }
     Logger::log(prettyName(), Logger::DEBUG, "Cancha desocupada", Logger::get_date());
     if (_flooded_matches.size() > 0) {
@@ -51,13 +56,27 @@ int CourtManager::do_work() {
         // Leo nuevos partidos del FIFO
         Team team1;
         Team team2;
+        Logger::log(prettyName(), Logger::DEBUG, "Esperando para leer equipo", Logger::get_date());
         while (graceQuit() == 0 && !team1.valid()) {
+            std::stringstream s1;
+            s1 << "Esperando para leer un team, teniendo un equipo valido: " << std::boolalpha << team1.valid();
+            Logger::log(prettyName(), Logger::DEBUG, s1.str(), Logger::get_date());
             _fifo_read.leer(static_cast<void*>(&team1), sizeof(Team));
+            std::stringstream s2;
+            s2 << "Se leyo un equipo " << team1.to_string() << " y es valido: " << std::boolalpha << team1.valid();
+            Logger::log(prettyName(), Logger::DEBUG, s2.str(), Logger::get_date());
         }
+        Logger::log(prettyName(), Logger::DEBUG, "Finalmente lei un team: " + team1.to_string(), Logger::get_date());
         if (team1.valid()) {
             Logger::log(prettyName(), Logger::INFO, "Recibido equipo 1: " + team1.to_string(), Logger::get_date());
             while (graceQuit() == 0 && !team2.valid()) {
+                std::stringstream s1;
+                s1 << "Esperando para leer un team, teniendo un equipo valido: " << std::boolalpha << team2.valid();
+                Logger::log(prettyName(), Logger::DEBUG, s1.str(), Logger::get_date());
                 _fifo_read.leer(static_cast<void*>(&team2), sizeof(Team));
+                std::stringstream s2;
+                s2 << "Se leyo un equipo " << team2.to_string() << " y es valido: " << std::boolalpha << team2.valid();
+                Logger::log(prettyName(), Logger::DEBUG, s2.str(), Logger::get_date());
             }
             if (team2.valid()) {
                 Logger::log(prettyName(), Logger::INFO, "Recibido equipo 2: " + team2.to_string(), Logger::get_date());
@@ -92,11 +111,14 @@ bool CourtManager::occupy_court(pid_t pid) {
 }
 
 void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
+    Logger::log(prettyName(), Logger::DEBUG, "Empezando dispatch", Logger::get_date());
     Match match(team1, team2);
-    std::string timestamp = Logger::get_date();
+    Logger::log(prettyName(), Logger::DEBUG, "A", Logger::get_date());
     // Esto es para crear el MatchProcess solo en el hijo, donde tiene sentido
     pid_t father_pid = getpid();
+    Logger::log(prettyName(), Logger::DEBUG, "B", Logger::get_date());
     std::string match_between = "entre " + team1.to_string() + " y " + team2.to_string();
+    Logger::log(prettyName(), Logger::DEBUG, "\nA punto de hacer el fork del MatchProcess", Logger::get_date());
     pid_t pid = fork();
     if (pid > 0) {
         bool occupied = occupy_court(pid);
@@ -107,8 +129,9 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
         _matches[pid] = match;
         std::stringstream ss;
         ss << "Despachado MatchProcess[" << pid << "] " << match_between;
-        Logger::log(prettyName(), Logger::INFO, ss.str(), timestamp);
+        Logger::log(prettyName(), Logger::INFO, ss.str(),  Logger::get_date());
     } else {
+//        sleep(1);
         MatchProcess match_process(father_pid);
 
         // Proceso hijo, dispatch crea una SHM y sale con exit de la ejecucion de todo
@@ -118,7 +141,8 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
         int match_result = match_process.get_match_result();
         // Llamo al finalize porque al salir del proceso con un exit, no se ejecuta el destructor del MatchProcess
         match_process.finalize();
-        exit(match_result);
+        Logger::log(match_process.prettyName(), Logger::DEBUG, "Exiteando proceso", Logger::get_date());
+        _exit(match_result);
     }
 }
 
@@ -237,16 +261,19 @@ void CourtManager::handle_matches(int signum) {
     }
     int saved_errno = errno;
     int status;
-    pid_t pid = waitpid((pid_t)(-1), &status, 0);
+    Logger::log(prettyName(), Logger::DEBUG, "Esperando para handlear el fin de un match", Logger::get_date());
+    pid_t pid = wait(&status);
     while ( pid > 0) {
         std::stringstream ss;
         ss << "Waitpid process: " << pid;
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
         process_finished_match(pid,status);
-        pid = waitpid((pid_t)(-1), &status, 0);
+        pid = wait(&status);
     }
     if ( pid == -1) {
-        Logger::log(prettyName(), Logger::ERROR, std::strerror(errno), Logger::get_date());
+        std::stringstream ss;
+        ss << "PID = -1!!! " << std::strerror(errno);
+        Logger::log(prettyName(), Logger::ERROR, ss.str(), Logger::get_date());
     }
     errno = saved_errno;
 }

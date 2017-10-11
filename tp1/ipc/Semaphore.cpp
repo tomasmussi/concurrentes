@@ -80,3 +80,7 @@ int Semaphore::w() const {
 void Semaphore::remove() const {
 	semctl(this->id, 0, IPC_RMID);
 }
+
+int Semaphore::getValue() const {
+	return this->initial_value;
+}

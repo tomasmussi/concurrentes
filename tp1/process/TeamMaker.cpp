@@ -92,7 +92,7 @@ int TeamMaker::do_work() {
                 if (can_play(id_p1, it->id())) {
                     Team team(*it, p1);
                     _fifo_write.escribir(static_cast<void*>(&team), sizeof(Team));
-                    add_couple_to_map(id_p1, it->id());
+                    //add_couple_to_map(id_p1, it->id());
                     Logger::log(prettyName(), Logger::INFO, "Enviando equipo: " + team.to_string(), Logger::get_date());
                     _waiting_list.erase(it);
                     played = true;

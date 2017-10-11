@@ -38,13 +38,15 @@ std::string Logger::get_error_flag(int error_level) {
 
 void Logger::log(const std::string& caller, int error, const std::string& error_message,
                  const std::string& timestamp) {
-    lock.lock();
-    file_stream << "[" << timestamp << "] [" << get_error_flag(error) << "] " << caller << ": " << error_message
-            << std::endl;
-    if (error > Logger::DEBUG) {
-        std::cout << caller << ": " << error_message << std::endl;
+    if (caller != "Beach Manager Worker" && caller != "Team Maker" && caller != "Results Reporter") {
+        lock.lock();
+        file_stream << "[" << timestamp << "] [" << get_error_flag(error) << "] " << caller << ": " << error_message
+                << std::endl;
+        if (error > Logger::DEBUG) {
+            std::cout << caller << ": " << error_message << std::endl;
+        }
+        lock.release();
     }
-    lock.release();
 }
 
 void Logger::open_logger(const std::string& log_file) {
