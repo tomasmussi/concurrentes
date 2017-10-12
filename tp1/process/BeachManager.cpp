@@ -1,25 +1,25 @@
-#include "BeachManagerWorker.h"
+#include "BeachManager.h"
 #include "../model/Person.h"
 #include "../utils/Logger.h"
 #include "../constants.h"
 #include <sstream>
 
-BeachManagerWorker::BeachManagerWorker(const std::string& fifo_read, const std::string& fifo_write,
+BeachManager::BeachManager(const std::string& fifo_read, const std::string& fifo_write,
                                        Semaphore& players_playing, Semaphore& tournament_started):
        _pipe_writer(fifo_write), _pipe_reader(fifo_read), _i(0),
        _players_playing(players_playing), _tournament_started(tournament_started)  {
 }
 
-BeachManagerWorker::~BeachManagerWorker() {
+BeachManager::~BeachManager() {
 }
 
-void BeachManagerWorker::sendPerson(int i) {
+void BeachManager::sendPerson(int i) {
     Person p(i);
     _pipe_writer.escribir(static_cast<void*>(&p), sizeof(Person));
     Logger::log(prettyName(), Logger::INFO, "Enviada persona " + p.id() + " para jugar", Logger::get_date());
 }
 
-int BeachManagerWorker::do_work() {
+int BeachManager::do_work() {
     int j;
     Logger::log(prettyName(), Logger::DEBUG, "Esperando para leer nuevos jugadores", Logger::get_date());
     _pipe_reader.leer(&j, sizeof(int));
@@ -49,7 +49,7 @@ int BeachManagerWorker::do_work() {
     return 0;
 }
 
-void BeachManagerWorker::initialize() {
+void BeachManager::initialize() {
     Logger::log(prettyName(), Logger::DEBUG, "Inicializando", Logger::get_date());
     _pipe_reader.abrir();
     _pipe_writer.abrir();
@@ -57,7 +57,7 @@ void BeachManagerWorker::initialize() {
     Logger::log(prettyName(), Logger::INFO, "Inicializado", Logger::get_date());
 }
 
-void BeachManagerWorker::finalize() {
+void BeachManager::finalize() {
     Logger::log(prettyName(), Logger::DEBUG, "Finalizando", Logger::get_date());
     _pipe_reader.cerrar();
     _pipe_writer.cerrar();
@@ -69,6 +69,6 @@ void BeachManagerWorker::finalize() {
     Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());
 }
 
-std::string BeachManagerWorker::prettyName() {
+std::string BeachManager::prettyName() {
     return "Beach Manager Worker";
 }

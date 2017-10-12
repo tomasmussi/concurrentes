@@ -21,7 +21,6 @@ private:
     int _score_team2;
 
     void set_scores(int& score_winner, int& score_loser);
-    void signal_court_manager();
 public:
     MatchProcess(pid_t parent_process_id);
     ~MatchProcess();

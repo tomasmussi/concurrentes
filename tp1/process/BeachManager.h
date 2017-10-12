@@ -1,5 +1,5 @@
-#ifndef TP1_BEACHMANAGERWORKER_H
-#define TP1_BEACHMANAGERWORKER_H
+#ifndef TP1_BEACHMANAGER_H
+#define TP1_BEACHMANAGER_H
 
 #include "WorkerProcess.h"
 #include "../ipc/FifoEscritura.h"
@@ -12,7 +12,7 @@
  * retirarse en caso de que ya hayan jugado K partidos o ya no puedan
  * armar equipo con nadie
  * */
-class BeachManagerWorker : public WorkerProcess {
+class BeachManager : public WorkerProcess {
 private:
     FifoEscritura _pipe_writer;
     FifoLectura _pipe_reader;
@@ -23,13 +23,13 @@ private:
 
     void sendPerson(int i);
 public:
-    BeachManagerWorker(const std::string& fifo_read, const std::string& fifo_write,
+    BeachManager(const std::string& fifo_read, const std::string& fifo_write,
                        Semaphore& players_playing, Semaphore& tournament_started);
-    virtual ~BeachManagerWorker();
+    virtual ~BeachManager();
     virtual void initialize();
     virtual void finalize();
     virtual int do_work();
     virtual std::string prettyName();
 };
 
-#endif //TP1_BEACHMANAGERWORKER_H
+#endif //TP1_BEACHMANAGER_H

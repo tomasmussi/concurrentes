@@ -6,7 +6,7 @@
 #define K 9
 #define ROWS 2
 #define COLUMNS 3
-#define LOG_LEVEL 0
+#define LOG_LEVEL 1
 
 // Logger
 #define LOG_NAME "log.txt"

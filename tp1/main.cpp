@@ -12,7 +12,7 @@
 #include "ipc/Semaphore.h"
 #include "handlers/NewPlayerHandler.h"
 
-#include "process/BeachManagerWorker.h"
+#include "process/BeachManager.h"
 #include "process/TeamMaker.h"
 #include "process/CourtManager.h"
 #include "process/ResultsReporter.h"
@@ -78,8 +78,8 @@ int main(int argc, char* argv[]) {
     SignalHandler :: getInstance()->registrarHandler ( SIGINT,&sigint_handler );
     Logger::log("main", Logger::INFO, "MainSIGIntHandler registrado", Logger::get_date());
 
-    std::string fifo1 = FIFO1; // people (NewPlayerHandler -> BeachManagerWorker)
-    std::string fifo2 = FIFO2; // people (BeachManagerWorker/CourtManager -> TeamMaker)
+    std::string fifo1 = FIFO1; // people (NewPlayerHandler -> BeachManager)
+    std::string fifo2 = FIFO2; // people (BeachManager/CourtManager -> TeamMaker)
     std::string fifo3 = FIFO3; // teams (TeamMaker -> CourtManager)
     std::string fifo4 = FIFO4; // matches (CourtManager -> ResultsReporter)
 
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     Semaphore tournament_started(SEM_TOURNAMENT_STARTED, 0);
 
     WorkerProcess* arr[N_WORKERS] = {new Timer(tournament_started),
-                                     new BeachManagerWorker(fifo1, fifo2, players_playing, tournament_started),
+                                     new BeachManager(fifo1, fifo2, players_playing, tournament_started),
                                      new TeamMaker(k, fifo2, fifo3, players_playing),
                                      new CourtManager(m, k, rows, columns, fifo3, fifo2, fifo4),
                                      new ResultsReporter(fifo4)};
