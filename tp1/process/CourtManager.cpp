@@ -17,7 +17,7 @@ CourtManager::CourtManager(int m, int k, int rows, int columns, const std::strin
     _m(m), _k(k), _rows(rows), _columns(columns),
     _fifo_read_couples(fifo_couples), _fifo_write_couples(fifo_couples),
     _fifo_write_people(fifo_write_people), _fifo_write_matches(fifo_write_matches),
-    _available_courts(SEM_AVAILABLE_COURTS, rows * columns), _court_state(),_tide_column(_columns) {
+    _available_courts(rows * columns), _court_state(),_tide_column(_columns) {
     for (int i = 0; i < _rows; i++) {
         for (int j = 0; j < _columns; j++) {
             _court_state[i][j] = EMPTY;
@@ -31,11 +31,10 @@ CourtManager::~CourtManager() {
 
 int CourtManager::do_work() {
     Logger::log(prettyName(), Logger::DEBUG, "Esperando que se desocupe cancha", Logger::get_date());
-    int status = _available_courts.p(); // Resto una cancha libre
-    while (graceQuit() == 0 && status == -1 &&  errno == EINTR) {
-        // Fallo la system call por interrupcion, pero debo seguir trabajando
-        status = _available_courts.p();
+    while (_available_courts < 1) {
+
     }
+    _available_courts -= 1;
     Logger::log(prettyName(), Logger::DEBUG, "Cancha desocupada", Logger::get_date());
     // Leo nuevos partidos del FIFO
     Team team1;
@@ -137,7 +136,6 @@ void CourtManager::finalize() {
     _fifo_write_matches.cerrar();
     _fifo_write_matches.eliminar();
     Logger::log(prettyName(), Logger::DEBUG, "Fifos cerrados", Logger::get_date());
-    _available_courts.remove();
     Logger::log(prettyName(), Logger::DEBUG, "Semaforo removido", Logger::get_date());
     SignalHandler::destroy();
     Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());
@@ -193,7 +191,7 @@ void CourtManager::tide_rise(int ) {
             matches_to_kill.push_back(match_pid);
         } else if (_court_state[row][_tide_column] == EMPTY) {
             // Si esta libre, hay que decrementar el semaforo para indicar que hay una cancha menos disponible
-            _available_courts.p();
+            _available_courts -= 1;
         }
         std::stringstream ss;
         ss << "Inundando cancha [" << row << "][" << _tide_column << "] = " << match_pid;
@@ -234,7 +232,7 @@ void CourtManager::tide_decrease(int ) {
         }
     }
     // Ahora tengo "_columnas" de canchas mas disponibles para usar
-    _available_courts.v(_columns);
+    _available_courts += _columns;
     _tide_column++;
     std::stringstream ss;
     ss << "Ahora la columna de agua esta en: " << _tide_column;
@@ -330,12 +328,8 @@ void CourtManager::process_finished_match(pid_t match_pid, int status) {
         Logger::log(prettyName(), Logger::WARNING, "No se pudo liberar cancha", Logger::get_date());
     }
 
-    int sem_status = _available_courts.v(); // Sumo a la cantidad de canchas disponible
+    _available_courts += 1; // Sumo a la cantidad de canchas disponible
     Logger::log(prettyName(), Logger::DEBUG, "Hay una cancha mas disponible", Logger::get_date());
-    while (graceQuit() == 0 && sem_status == -1 && errno == EINTR) {
-        // Fallo la system call por interrupt
-        sem_status = _available_courts.v();
-    }
 }
 
 bool CourtManager::free_court(pid_t pid) {

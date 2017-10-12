@@ -10,7 +10,7 @@
 #include "../ipc/FifoEscritura.h"
 #include "../ipc/LockFile.h"
 #include "../model/Match.h"
-#include "../ipc/Semaphore.h"
+
 
 class CourtManager : public WorkerProcess, public EventHandler {
 private:
@@ -26,7 +26,7 @@ private:
     FifoEscritura _fifo_write_matches;
 
     std::map<pid_t, Match> _matches;
-    Semaphore _available_courts;
+    sig_atomic_t _available_courts;
     std::map<int, std::map<int, int> > _court_state; // Estado de cancha
     std::map<int, std::map<int, pid_t > > _court_pid; // Que proceso esta en que cancha
     int _tide_column;
