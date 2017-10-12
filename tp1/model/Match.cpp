@@ -40,15 +40,23 @@ void Match::set_match_status(int exit_code) {
             _score_team1 = 0;
             _score_team2 = 3;
             break;
-        case 6:
+        case 6: // Recibio SIGINT o no termino por algo
             _score_team1 = 0;
             _score_team2 = 0;
+            break;
+        case 7: // Recibio SIGUSR1 (inundado)
+            _score_team1 = -1;
+            _score_team2 = -1;
             break;
     };
 }
 
 bool Match::finished() {
-    return _score_team1 != 0 || _score_team2 != 0;
+    return _score_team1 > 0 || _score_team2 > 0;
+}
+
+bool Match::flooded() {
+    return _score_team1 == -1 && _score_team2 == -1;
 }
 
 Team Match::team1() const {

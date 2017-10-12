@@ -163,6 +163,7 @@ int CourtManager::handleSignal(int signum) {
     return 0;
 }
 
+// Se llama en caso de recibir un SIGINT
 void CourtManager::kill_matches() {
     Logger::log(prettyName(), Logger::INFO, "Recibido SIGINT, enviando señal a los MatchProcess en curso", Logger::get_date());
     for (std::map<pid_t,Match>::iterator it = _matches.begin(); it != _matches.end(); it++ ){
@@ -170,7 +171,6 @@ void CourtManager::kill_matches() {
         ss << "Notificando SIGINT a MatchProcess[" << it->first << "] ";
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
         kill(it->first, SIGINT);
-        // TODO: No tendria que hacer un wait despues?
     }
 }
 
@@ -199,14 +199,15 @@ void CourtManager::tide_rise(int ) {
         ss << "Inundando cancha [" << row << "][" << _tide_column << "] = " << match_pid;
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
         _court_state[row][_tide_column] = FLOODED;
+        _court_pid[row][_tide_column] = 0;
     }
 
+    Logger::log(prettyName(), Logger::DEBUG, "Matando MatchesProcess que estaban en canchas inundadas", Logger::get_date());
     for (std::list<pid_t>::iterator it = matches_to_kill.begin(); it != matches_to_kill.end(); ++it) {
-        kill((*it), SIGINT);
-        int status;
-        pid_t pid = waitpid(*it, &status, 0);
+        kill((*it), SIGUSR1);
+        // No llamo al wait ya que, como mande un SIGUSR1, va a terminar mandando un SIGCHLD que va a handlearse más tarde haciendo el wait
         std::stringstream ss;
-        ss << "MatchProcess " << pid << " finalizado por inundacion";
+        ss << "MatchProcess " << *it << " finalizado por inundacion";
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
     }
 }
@@ -241,20 +242,25 @@ void CourtManager::tide_decrease(int ) {
 }
 
 void CourtManager::handle_matches(int signum) {
+    Logger::log(prettyName(), Logger::INFO, "Handleando partido", Logger::get_date());
     int saved_errno = errno;
     int status;
     // Al recibir SIGCHLD, ejecuto waitpid tantas veces como sea necesario para recolectar todos los MatchProcess que hayan finalizado
     // TODO: Esto puede ser que se quede esperando un proceso que va a terminar mas tarde, mientras podría estar despachando otros procesos?
     pid_t pid = waitpid((pid_t)(-1), &status, 0);
-    while ( pid > 0) {
+    while (pid > 0) {
         std::stringstream ss;
         ss << "Procesando MatchProcess: " << pid;
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
         process_finished_match(pid,status);
         pid = waitpid((pid_t)(-1), &status, 0);
     }
-    if ( pid == -1) {
-        Logger::log(prettyName(), Logger::INFO, "No hay más partidos para procesar", Logger::get_date());
+    if (pid == -1 ) {
+        if (errno == ECHILD) {
+            Logger::log(prettyName(), Logger::INFO, "No hay más partidos para procesar", Logger::get_date());
+        } else if (errno = EINTR) {
+            Logger::log(prettyName(), Logger::WARNING, "El wait fue interrumpido: " + std::string(std::strerror(errno)), Logger::get_date());
+        }
     }
     errno = saved_errno;
 }
@@ -262,12 +268,12 @@ void CourtManager::handle_matches(int signum) {
 void CourtManager::process_finished_match(pid_t match_pid, int status) {
     Match match = _matches[match_pid];
     match.set_match_status(WEXITSTATUS(status));
+    Logger::log(prettyName(), Logger::DEBUG, match.to_string(), Logger::get_date());
     //_matches[match_pid] = match;
     //Finalizado el partido, lo borro para mantener los MatchProcess activos
     _matches.erase(match_pid);
-    if (!match.finished()) {
+    if (match.flooded()) {
         // La cancha se inundo
-
         std::stringstream ss;
         ss << "MatchProcess [" << match_pid << "] inundado";
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
@@ -275,11 +281,17 @@ void CourtManager::process_finished_match(pid_t match_pid, int status) {
         _flooded_matches.push_back(match);
         return;
     }
-    // De aca en adelante, el partido termino exitosamente
+    // De aca en adelante, el partido termino
     std::stringstream ss;
     ss << "MatchProcess [" << match_pid << "] finalizado";
     Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
-    // El partido termino, por lo que hay que escribir el resultado
+    if (!match.finished()) {
+        // El partido fue interrumpido por SIGINT, por lo que no me interesa volver a mandar las cosas
+        Logger::log(prettyName(), Logger::INFO, "El partido fue interrumpido por SIGINT", Logger::get_date());
+        return;
+    }
+    // El partido termino exitosamente, por lo que hay que escribir el resultado
+    Logger::log(prettyName(), Logger::DEBUG, "Enviando resultado del partido", Logger::get_date());
     _fifo_write_matches.escribir(static_cast<void*>(&match), sizeof(Match));
 
     // Envio a Team Maker T1-P1; T2-P2; T1-P2; T2-P1

@@ -6,10 +6,6 @@
 #define LOGGER_LOCK "/tmp/logger_lock"
 
 // SHMs
-#define SHM_MATCHES_LOCK "/tmp/shm_matches"
-#define SHM_MATCHES "/bin/grep"
-#define SHM_MATCHES_CHAR 'a'
-
 #define SHM_GONE_PLAYERS_LOCK "/tmp/shm_gone_users"
 #define SHM_GONE_PLAYERS "/bin/echo"
 
