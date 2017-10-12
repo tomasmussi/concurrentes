@@ -82,7 +82,6 @@ void NewPlayerHandler::initialize_shm_gone_players() {
     _lock_shm_gone_players.lock();
     _shm_gone_players = new MemoriaCompartida<int>[MAX_GONE_PLAYERS];
     for (int i = 0; i < MAX_GONE_PLAYERS; i++) {
-        // TODO WARNING!!!! NO SE PUEDEN CREAR MAS DE 256 CON ESTO!!!!!!
         _shm_gone_players[i].crear(SHM_GONE_PLAYERS, i);
     }
     _lock_shm_gone_players.release();

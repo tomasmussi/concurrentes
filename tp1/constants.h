@@ -28,6 +28,6 @@
 #define MIN_PEOPLE 10 // Cantidad minima de personas para arrancar el torneo
 #define MAX_MATCH_DURATION 5 // Duracion maxima de un partido (Es decir, sera entre 1 y 5)
 #define RESULTS_TABLE_FREQUENCY 5 // Cada cuantos partidos imprime la tabla de resultados
-#define MAX_GONE_PLAYERS 128 // Cantidad maxima de jugadores que se fueron (sin procesar) que se pueden guardar
+#define MAX_GONE_PLAYERS 128 // Cantidad maxima de jugadores que se fueron (sin procesar) que se pueden guardar. Este numero no debe ser mayor a 256
 
 #endif //TP1_CONSTANTS_H

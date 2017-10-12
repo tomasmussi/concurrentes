@@ -74,7 +74,7 @@ bool CourtManager::occupy_court(pid_t pid) {
                 _court_pid[i][j] = pid;
                 occupied = true;
                 std::stringstream ss;
-                ss << "OCUPO CANCHA en [" << i << "][" << j << "] = " << pid;
+                ss << "Ocupo cancha en [" << i << "][" << j << "] = " << pid;
                 Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
             }
             j++;
@@ -101,9 +101,8 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
         ss << "Despachado MatchProcess[" << pid << "] " << match_between;
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
     } else {
+        // Proceso hijo: run match simula el partido. Luego obtiene el resultado y sale con exit de la ejecucion
         MatchProcess match_process(father_pid);
-
-        // Proceso hijo, dispatch crea una SHM y sale con exit de la ejecucion de todo
         Logger::log(match_process.prettyName(), Logger::INFO, "Arrancando partido " + match_between, Logger::get_date());
 
         match_process.run_match();
@@ -245,21 +244,26 @@ void CourtManager::handle_matches(int signum) {
     Logger::log(prettyName(), Logger::INFO, "Handleando partido", Logger::get_date());
     int saved_errno = errno;
     int status;
-    // Al recibir SIGCHLD, ejecuto waitpid tantas veces como sea necesario para recolectar todos los MatchProcess que hayan finalizado
-    // TODO: Esto puede ser que se quede esperando un proceso que va a terminar mas tarde, mientras podría estar despachando otros procesos?
-    pid_t pid = waitpid((pid_t)(-1), &status, 0);
-    while (pid > 0) {
+    // Al recibir SIGCHLD, ejecuto wait 1 vez, siempre y cuando no sea interrumpido
+    pid_t pid = wait(&status);
+    if (pid > 0) {
         std::stringstream ss;
         ss << "Procesando MatchProcess: " << pid;
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
-        process_finished_match(pid,status);
-        pid = waitpid((pid_t)(-1), &status, 0);
-    }
-    if (pid == -1 ) {
+        process_finished_match(pid, status);
+    } else {
         if (errno == ECHILD) {
-            Logger::log(prettyName(), Logger::INFO, "No hay más partidos para procesar", Logger::get_date());
-        } else if (errno = EINTR) {
-            Logger::log(prettyName(), Logger::WARNING, "El wait fue interrumpido: " + std::string(std::strerror(errno)), Logger::get_date());
+            Logger::log(prettyName(), Logger::WARNING, "No habia más partidos para procesar", Logger::get_date());
+        } else {
+            // Hay un hijo para procesar, pero me interrumpieron. El while es por si siguen interrumpiendome
+            while (pid == -1 && errno == EINTR) {
+                Logger::log(prettyName(), Logger::WARNING, "El wait fue interrumpido: " + std::string(std::strerror(errno)), Logger::get_date());
+                pid = wait(&status);
+            }
+            std::stringstream ss;
+            ss << "Procesando MatchProcess: " << pid;
+            Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
+            process_finished_match(pid, status);
         }
     }
     errno = saved_errno;
@@ -318,6 +322,7 @@ void CourtManager::process_finished_match(pid_t match_pid, int status) {
     }
 
     int sem_status = _available_courts.v(); // Sumo a la cantidad de canchas disponible
+    Logger::log(prettyName(), Logger::DEBUG, "Hay una cancha mas disponible", Logger::get_date());
     while (graceQuit() == 0 && sem_status == -1 && errno == EINTR) {
         // Fallo la system call por interrupt
         sem_status = _available_courts.v();
