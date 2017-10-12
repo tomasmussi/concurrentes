@@ -12,11 +12,12 @@
 #define OCCUPIED 1
 #define FLOODED 2
 
-CourtManager::CourtManager(int m, int k, int rows, int columns, const std::string& fifo_read,
+CourtManager::CourtManager(int m, int k, int rows, int columns, const std::string& fifo_couples,
         const std::string& fifo_write_people, const std::string& fifo_write_matches ) :
     _m(m), _k(k), _rows(rows), _columns(columns),
-    _fifo_read(fifo_read), _fifo_write_people(fifo_write_people), _fifo_write_matches(fifo_write_matches),
-    _available_courts(SEM_AVAILABLE_COURTS, rows * columns), _court_state(),_tide_column(_columns), _flooded_matches() {
+    _fifo_read_couples(fifo_couples), _fifo_write_couples(fifo_couples),
+    _fifo_write_people(fifo_write_people), _fifo_write_matches(fifo_write_matches),
+    _available_courts(SEM_AVAILABLE_COURTS, rows * columns), _court_state(),_tide_column(_columns) {
     for (int i = 0; i < _rows; i++) {
         for (int j = 0; j < _columns; j++) {
             _court_state[i][j] = EMPTY;
@@ -36,28 +37,20 @@ int CourtManager::do_work() {
         status = _available_courts.p();
     }
     Logger::log(prettyName(), Logger::DEBUG, "Cancha desocupada", Logger::get_date());
-    // TODO: Cambiar para que se encolen teams en el fifo como si recien ingresaran
-    if (_flooded_matches.size() > 0) {
-        // Despacho los que se suspendieron por inundacion
-        Match flooded_match = _flooded_matches.front();
-        _flooded_matches.pop_front();
-        dispatch_match(flooded_match.team1(), flooded_match.team2());
-    } else {
-        // Leo nuevos partidos del FIFO
-        Team team1;
-        Team team2;
-        while (graceQuit() == 0 && !team1.valid()) {
-            _fifo_read.leer(static_cast<void*>(&team1), sizeof(Team));
+    // Leo nuevos partidos del FIFO
+    Team team1;
+    Team team2;
+    while (graceQuit() == 0 && !team1.valid()) {
+        _fifo_read_couples.leer(static_cast<void*>(&team1), sizeof(Team));
+    }
+    if (team1.valid()) {
+        Logger::log(prettyName(), Logger::INFO, "Recibido equipo 1: " + team1.to_string(), Logger::get_date());
+        while (graceQuit() == 0 && !team2.valid()) {
+            _fifo_read_couples.leer(static_cast<void*>(&team2), sizeof(Team));
         }
-        if (team1.valid()) {
-            Logger::log(prettyName(), Logger::INFO, "Recibido equipo 1: " + team1.to_string(), Logger::get_date());
-            while (graceQuit() == 0 && !team2.valid()) {
-                _fifo_read.leer(static_cast<void*>(&team2), sizeof(Team));
-            }
-            if (team2.valid()) {
-                Logger::log(prettyName(), Logger::INFO, "Recibido equipo 2: " + team2.to_string(), Logger::get_date());
-                dispatch_match(team1, team2);
-            }
+        if (team2.valid()) {
+            Logger::log(prettyName(), Logger::INFO, "Recibido equipo 2: " + team2.to_string(), Logger::get_date());
+            dispatch_match(team1, team2);
         }
     }
     return 0;
@@ -115,8 +108,12 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
 
 void CourtManager::initialize() {
     Logger::log(prettyName(), Logger::DEBUG, "Inicializando", Logger::get_date());
-    _fifo_read.abrir();
+    _fifo_read_couples.abrir();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de lectura de equipos de TeamMaker abierto", Logger::get_date());
+    // Es IMPORTANTE que se abra primero para leer y luego para escribir, ya que el TeamMaker lo va a abrir para escribir.
+    // Si se abriera para escribir primero, se quedaria esperando a que alguien lo abra para leer.
+    _fifo_write_couples.abrir();
+    Logger::log(prettyName(), Logger::DEBUG, "Fifo de escritura de equipos inundados abierto", Logger::get_date());
     _fifo_write_people.abrir();
     Logger::log(prettyName(), Logger::DEBUG, "Fifo de envio de personas a TeamMaker abierto", Logger::get_date());
     _fifo_write_matches.abrir();
@@ -132,9 +129,13 @@ void CourtManager::finalize() {
     Logger::log(prettyName(), Logger::DEBUG, "Finalizando", Logger::get_date());
     kill_matches();
     Logger::log(prettyName(), Logger::DEBUG, "Partidos cancelados", Logger::get_date());
-    _fifo_read.cerrar();
+    _fifo_read_couples.cerrar();
+    _fifo_write_couples.cerrar();
+    _fifo_write_couples.eliminar();
     _fifo_write_people.cerrar();
+    _fifo_write_people.eliminar();
     _fifo_write_matches.cerrar();
+    _fifo_write_matches.eliminar();
     Logger::log(prettyName(), Logger::DEBUG, "Fifos cerrados", Logger::get_date());
     _available_courts.remove();
     Logger::log(prettyName(), Logger::DEBUG, "Semaforo removido", Logger::get_date());
@@ -281,8 +282,16 @@ void CourtManager::process_finished_match(pid_t match_pid, int status) {
         std::stringstream ss;
         ss << "MatchProcess [" << match_pid << "] inundado";
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
-        // TODO ACA DEBERIA REESCRIBIR LOS EQUIPOS EN EL FIFO DE LECTURA DEL COURTMANAGER!!!!
-        _flooded_matches.push_back(match);
+
+        // Envio los equipos que estaban jugando como parejas a mi mismo
+        Team t;
+        t = match.team1();
+        _fifo_write_couples.escribir(static_cast<void*>(&t), sizeof(Team));
+        Logger::log(prettyName(), Logger::INFO, "Enviado equipo " + t.to_string() + " a CourtManager", Logger::get_date());
+
+        t = match.team2();
+        _fifo_write_couples.escribir(static_cast<void*>(&t), sizeof(Team));
+        Logger::log(prettyName(), Logger::INFO, "Enviado equipo " + t.to_string() + " a CourtManager", Logger::get_date());
         return;
     }
     // De aca en adelante, el partido termino
