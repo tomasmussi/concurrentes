@@ -7,6 +7,7 @@
 // Static
 std::ofstream Logger::file_stream;
 LockFile Logger::lock = LockFile("/dev/null");
+int Logger::log_level = 0;
 
 std::string Logger::get_date() {
     char buffer[84];
@@ -39,10 +40,12 @@ std::string Logger::get_error_flag(int error_level) {
 void Logger::log(const std::string& caller, int error, const std::string& error_message,
                  const std::string& timestamp) {
     lock.lock();
-    file_stream << "[" << timestamp << "] [" << get_error_flag(error) << "] " << caller << ": " << error_message
-            << std::endl;
-    if (error > Logger::DEBUG) {
-        std::cout << caller << ": " << error_message << std::endl;
+    if (error >= log_level) {
+        file_stream << "[" << timestamp << "] [" << get_error_flag(error) << "] " << caller << ": " << error_message
+                << std::endl;
+        if (error > Logger::DEBUG) {
+            std::cout << caller << ": " << error_message << std::endl;
+        }
     }
     lock.release();
 }
@@ -62,4 +65,8 @@ void Logger::close_logger(bool is_last) {
     }
     file_stream.close();
     lock.release();
+}
+
+void Logger::set_log_level(int level) {
+    log_level = level;
 }

@@ -1,6 +1,13 @@
 #ifndef TP1_CONSTANTS_H
 #define TP1_CONSTANTS_H
 
+// Valores default
+#define M 12
+#define K 9
+#define ROWS 2
+#define COLUMNS 3
+#define LOG_LEVEL 0
+
 // Logger
 #define LOG_NAME "log.txt"
 #define LOGGER_LOCK "/tmp/logger_lock"
