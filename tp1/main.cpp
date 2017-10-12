@@ -36,7 +36,7 @@ int parse_int(char* arg, int default_value, std::string field) {
         x = default_value;
     } else if (x == 0 && field != "Nivel de log (log_level)") {
         s << "Tomando valor por defecto de " << default_value << " para '" << field << "'";
-        Logger::log("main", Logger::WARNING, s.str(), Logger::get_date());
+        Logger::log("main", Logger::INFO, s.str(), Logger::get_date());
         x = default_value;
     }
     return x;
