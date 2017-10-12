@@ -30,6 +30,7 @@ private:
     std::map<int, std::map<int, int> > _court_state; // Estado de cancha
     std::map<int, std::map<int, pid_t > > _court_pid; // Que proceso esta en que cancha
     int _tide_column;
+    pid_t timer_pid;
 
     bool occupy_court(pid_t pid);
     bool free_court(pid_t pid);
@@ -50,6 +51,7 @@ public:
     virtual void finalize();
     virtual std::string prettyName();
     virtual int handleSignal(int signum);
+    virtual void setTimerPid(pid_t pid);
 };
 
 #endif //TP1_COURTMANAGER_H

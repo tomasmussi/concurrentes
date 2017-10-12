@@ -12,7 +12,7 @@ Timer::~Timer() {
 
 int Timer::handleSignal(int signum) {
     if (signum == SIGUSR2) {
-        Logger::log(prettyName(), Logger::DEBUG, "Me interrumpieron mientras dormia!", Logger::get_date());
+        Logger::log(prettyName(), Logger::DEBUG, "Se despacho un partido, por lo que hubo actividad", Logger::get_date());
     }
 }
 

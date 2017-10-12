@@ -85,29 +85,32 @@ int main(int argc, char* argv[]) {
 
     Semaphore players_playing(SEM_PLAYERS_PLAYING, m);
 
-    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(fifo1, fifo2, players_playing),
+    WorkerProcess* arr[N_WORKERS] = {new Timer(),
+                                     new BeachManagerWorker(fifo1, fifo2, players_playing),
                                      new TeamMaker(k, fifo2, fifo3, players_playing),
                                      new CourtManager(m, k, rows, columns, fifo3, fifo2, fifo4),
-                                     new ResultsReporter(fifo4),
-                                     new Timer()};
+                                     new ResultsReporter(fifo4)};
 
     // Seteo la semilla del random para el programa
     std::srand((unsigned) std::time(NULL));
 
     bool is_father = true;
     int son_process = 0;
+    int timer_pid = 0;
     for (int i = 0; i < N_WORKERS; i++) {
         pid_t pid = fork();
         if (pid == 0) {
             is_father = false;
+            if (i == 3) ((CourtManager*) arr[i])->setTimerPid(timer_pid);
             son_process = arr[i]->loop();
             break;
         } else {
             std::stringstream ss;
             ss << "Nuevo worker " << arr[i]->prettyName() << " con pid " << pid;
-            std::string s = ss.str();
-            Logger::log("main", Logger::INFO, s, Logger::get_date());
+            Logger::log("main", Logger::INFO, ss.str(), Logger::get_date());
             sigint_handler.add_pid_notification(pid);
+            // TODO: Cuidado si se cambia el orden de los workers!
+            if (i == 0) timer_pid = pid;
         }
     }
 
