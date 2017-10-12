@@ -2,12 +2,14 @@
 #define TP1_TIMER_H
 
 #include "WorkerProcess.h"
+#include "../ipc/Semaphore.h"
 
 class Timer : public WorkerProcess, EventHandler {
 private:
-    bool already_finished;
+    Semaphore _tournament_started;
+    bool _already_finished;
 public:
-    Timer();
+    Timer(Semaphore& tournament_started);
     virtual ~Timer();
     virtual void initialize();
     virtual void finalize();

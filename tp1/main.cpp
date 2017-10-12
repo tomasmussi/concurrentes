@@ -84,9 +84,10 @@ int main(int argc, char* argv[]) {
     std::string fifo4 = FIFO4; // matches (CourtManager -> ResultsReporter)
 
     Semaphore players_playing(SEM_PLAYERS_PLAYING, m);
+    Semaphore tournament_started(SEM_TOURNAMENT_STARTED, 0);
 
-    WorkerProcess* arr[N_WORKERS] = {new Timer(),
-                                     new BeachManagerWorker(fifo1, fifo2, players_playing),
+    WorkerProcess* arr[N_WORKERS] = {new Timer(tournament_started),
+                                     new BeachManagerWorker(fifo1, fifo2, players_playing, tournament_started),
                                      new TeamMaker(k, fifo2, fifo3, players_playing),
                                      new CourtManager(m, k, rows, columns, fifo3, fifo2, fifo4),
                                      new ResultsReporter(fifo4)};

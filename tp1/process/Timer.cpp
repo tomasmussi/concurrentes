@@ -4,7 +4,7 @@
 #include "../utils/Logger.h"
 #include <sstream>
 
-Timer::Timer() : already_finished(false) {
+Timer::Timer(Semaphore& tournament_started) : _already_finished(false), _tournament_started(tournament_started) {
 }
 
 Timer::~Timer() {
@@ -17,18 +17,20 @@ int Timer::handleSignal(int signum) {
 }
 
 int Timer::do_work() {
-    int remaining = 10;
-    while (remaining != 0 && graceQuit() == 0 && !already_finished) {
-        remaining = sleep(10);
+    // El timer empieza a correr desde que empieza el torneo
+    _tournament_started.p();
+    int remaining = MAX_WAIT_TIME;
+    while (remaining != 0 && graceQuit() == 0 && !_already_finished) {
+        remaining = sleep(MAX_WAIT_TIME);
         std::stringstream ss;
         ss << "Faltaban " << remaining << " segundos para que termine el torneo";
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
     }
-    // Hubo 10 segundos sin partidos empezados
-    if (graceQuit() == 0 && !already_finished) { // No recibio SIGINT
+    // Hubo MAX_WAIT_TIME segundos sin partidos empezados
+    if (graceQuit() == 0 && !_already_finished) { // No recibio SIGINT
         Logger::log(prettyName(), Logger::INFO, "Terminando el torneo debido a falta de actividad", Logger::get_date());
         kill(getppid(), SIGINT);
-        already_finished = true;
+        _already_finished = true;
     }
 }
 
@@ -39,6 +41,8 @@ void Timer::initialize() {
 }
 
 void Timer::finalize() {
+    _tournament_started.remove();
+    Logger::log(prettyName(), Logger::DEBUG, "Semaforo removido", Logger::get_date());
     SignalHandler::destroy();
     Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());
 }
