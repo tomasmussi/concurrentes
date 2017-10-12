@@ -21,7 +21,7 @@
 
 // Probabilidades
 #define MATCH_PROBABILITY 50 // Probabilidad de que gane uno u otro equipo
-#define LEAVE_PROBABILITY 20 // Probabilidad de que un jugador decida irse voluntariamente
+#define LEAVE_PROBABILITY 10 // Probabilidad de que un jugador decida irse voluntariamente
 #define GONE_PLAYER_PROBABILITY 50 // Probabilidad de tomar un jugador que se fue para que vuelva a ingresar
 
 // Otros
