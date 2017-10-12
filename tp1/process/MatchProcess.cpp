@@ -9,6 +9,7 @@
 MatchProcess::MatchProcess(pid_t parent_process_id) : _father_id(parent_process_id),
     _probability(0.5), _score_team1(0), _score_team2(0) {
         SignalHandler::getInstance()->registrarHandler(SIGINT, this);
+        SignalHandler::getInstance()->registrarHandler(SIGUSR1, this);
 }
 
 MatchProcess::~MatchProcess() {
@@ -16,13 +17,18 @@ MatchProcess::~MatchProcess() {
 }
 
 int MatchProcess::handleSignal(int signum) {
-    if (signum != SIGINT) {
-        Logger::log(prettyName(), Logger::ERROR, "Recibi senial distinta a SIGINT", Logger::get_date());
-        return -1;
+    int exit_status = -1;
+    if (signum == SIGINT) {
+        Logger::log(prettyName(), Logger::DEBUG, "Finalizando debido a SIGINT", Logger::get_date());
+        exit_status = 6;
+    } else if (signum == SIGUSR1) {
+        Logger::log(prettyName(), Logger::DEBUG, "Finalizando debido a inundacion", Logger::get_date());
+        exit_status = 7;
+    } else {
+        Logger::log(prettyName(), Logger::ERROR, "Recibi senial distinta a SIGINT y SIGUSR1", Logger::get_date());
     }
-    Logger::log(prettyName(), Logger::DEBUG, "Finalizando debido a SIGINT", Logger::get_date());
     finalize();
-    exit(7); //Un número distinto a todos los resultados posibles del partido
+    exit(exit_status);
 }
 
 void MatchProcess::finalize() {
@@ -31,7 +37,7 @@ void MatchProcess::finalize() {
 
 // Simular el partido y dar a un equipo como ganador
 void MatchProcess::run_match() {
-    srand(static_cast<unsigned int>(time(0)+getpid())); //getpid evita que dos partidos que arrancan al mismo tiempo, tengan el mismo resultado
+    srand(static_cast<unsigned int>(time(0) + getpid())); // getpid evita que dos partidos que arrancan al mismo tiempo tengan el mismo resultado
     int play_time = (rand() % MAX_MATCH_DURATION) + 1;
     // Simulo que el partido dura un tiempo aleatorio entre 1 y MAX_MATCH_DURATION segundos
     sleep(play_time);

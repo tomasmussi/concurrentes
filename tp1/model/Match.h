@@ -16,6 +16,7 @@ public:
     std::string to_string();
     void set_match_status(int exit_code);
     bool finished();
+    bool flooded();
     Team team1() const;
     Team team2() const;
     int scoreTeam1() const;

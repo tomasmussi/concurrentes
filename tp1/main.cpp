@@ -26,8 +26,8 @@ int main(int argc, char* argv[]) {
     Logger::log("main", Logger::INFO, "Comienzo", Logger::get_date());
     int m, k, rows, columns;
     // TODO: m debería ser siempre mayor o igual a MIN_PEOPLE (10), ya que sino no puede empezar el torneo
-    m = 10;
-    k = 2;
+    m = 12;
+    k = 9;
     rows = 2;
     columns = 3;
     if (argc == 5) {
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     if (is_father) {
         // Esto es para que se abra el fifo1 para escribir
         std::stringstream ss;
-        ss << "Agregando handler para nuevos players en " << getpid();
+        ss << "Agregando handler para nuevos jugadores en " << getpid();
         std::string s = ss.str();
         Logger::log("main", Logger::INFO, s, Logger::get_date());
         NewPlayerHandler new_player_handler(fifo1);

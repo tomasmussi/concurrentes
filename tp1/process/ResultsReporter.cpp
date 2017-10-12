@@ -118,7 +118,7 @@ void ResultsReporter::showChampion() {
     ss << "Campeón(es) con "<< maxPoints << " puntos" << std::endl;
     for (; it != elems.end(); ++it){
         if (it->second.points == maxPoints) {
-            ss <<"Participante: " << it->first << std::endl;
+            ss << "\tParticipante: " << it->first << std::endl;
         } else {
             break;
         }

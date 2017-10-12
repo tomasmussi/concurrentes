@@ -6,10 +6,6 @@
 #define LOGGER_LOCK "/tmp/logger_lock"
 
 // SHMs
-#define SHM_MATCHES_LOCK "/tmp/shm_matches"
-#define SHM_MATCHES "/bin/grep"
-#define SHM_MATCHES_CHAR 'a'
-
 #define SHM_GONE_PLAYERS_LOCK "/tmp/shm_gone_users"
 #define SHM_GONE_PLAYERS "/bin/echo"
 
@@ -32,6 +28,6 @@
 #define MIN_PEOPLE 10 // Cantidad minima de personas para arrancar el torneo
 #define MAX_MATCH_DURATION 5 // Duracion maxima de un partido (Es decir, sera entre 1 y 5)
 #define RESULTS_TABLE_FREQUENCY 5 // Cada cuantos partidos imprime la tabla de resultados
-#define MAX_GONE_PLAYERS 128 // Cantidad maxima de jugadores que se fueron (sin procesar) que se pueden guardar
+#define MAX_GONE_PLAYERS 128 // Cantidad maxima de jugadores que se fueron (sin procesar) que se pueden guardar. Este numero no debe ser mayor a 256
 
 #endif //TP1_CONSTANTS_H

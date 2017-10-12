@@ -18,8 +18,10 @@ private:
     int _k;
     int _rows;
     int _columns;
-    FifoLectura _fifo_read;
+    FifoLectura _fifo_read_couples;
 
+    // Este fifo se usa para escribir las parejas inundadas de nuevo para que puedan jugar
+    FifoEscritura _fifo_write_couples;
     FifoEscritura _fifo_write_people;
     FifoEscritura _fifo_write_matches;
 
@@ -28,8 +30,6 @@ private:
     std::map<int, std::map<int, int> > _court_state; // Estado de cancha
     std::map<int, std::map<int, pid_t > > _court_pid; // Que proceso esta en que cancha
     int _tide_column;
-
-    std::list<Match> _flooded_matches;
 
     bool occupy_court(pid_t pid);
     bool free_court(pid_t pid);
@@ -42,14 +42,14 @@ private:
     void process_finished_match(pid_t match_pid, int status);
     void dispatch_match(const Team& team1, const Team& team2);
 public:
-    CourtManager(int m, int k,int rows, int columns, const std::string& fifo_read,
-                 const std::string& fifo_write_people, const std::string& fifo_write_matches );
+    CourtManager(int m, int k,int rows, int columns, const std::string& fifo_couples,
+                 const std::string& fifo_write_people, const std::string& fifo_write_matches);
     ~CourtManager();
     virtual void initialize();
     virtual int do_work();
     virtual void finalize();
     virtual std::string prettyName();
-    virtual int handleSignal ( int signum );
+    virtual int handleSignal(int signum);
 };
 
 #endif //TP1_COURTMANAGER_H
