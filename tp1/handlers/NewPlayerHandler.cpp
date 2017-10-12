@@ -24,9 +24,9 @@ int NewPlayerHandler::handleSignal(int signum) {
     bool old_player = false;
     int id = -1;
     int prob = rand() % 100;
-    // Me fijo si quiere entrar uno de los players que se fue
+    // Me fijo si quiere entrar uno de los jugadores que se fue
     if (prob < GONE_PLAYER_PROBABILITY) {
-        Logger::log(prettyName(), Logger::DEBUG, "Leyendo new player de la SHM de jugadores que se fueron", Logger::get_date());
+        Logger::log(prettyName(), Logger::DEBUG, "Leyendo nuevo jugador de la SHM de jugadores que se fueron", Logger::get_date());
         id = read_shm_gone_players();
         if (id != -1) {
             old_player = true;
