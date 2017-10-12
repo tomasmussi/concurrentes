@@ -16,11 +16,12 @@
 #include "process/TeamMaker.h"
 #include "process/CourtManager.h"
 #include "process/ResultsReporter.h"
+#include "process/Timer.h"
 
 #include "constants.h"
 
 // TODO: CUIDADO CON ESTO, CUANDO SE AGREGUE UN PROCESO HAY QUE TOCAR ESTE DEFINE
-#define N_WORKERS 4
+#define N_WORKERS 5
 
 int parse_int(char* arg, int default_value, std::string field) {
     std::istringstream ss(arg);
@@ -87,7 +88,8 @@ int main(int argc, char* argv[]) {
     WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(fifo1, fifo2, players_playing),
                                      new TeamMaker(k, fifo2, fifo3, players_playing),
                                      new CourtManager(m, k, rows, columns, fifo3, fifo2, fifo4),
-                                     new ResultsReporter(fifo4)};
+                                     new ResultsReporter(fifo4),
+                                     new Timer()};
 
     // Seteo la semilla del random para el programa
     std::srand((unsigned) std::time(NULL));
