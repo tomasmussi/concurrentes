@@ -17,12 +17,14 @@ private:
     FifoEscritura _pipe_writer;
     FifoLectura _pipe_reader;
     Semaphore _players_playing;
+    Semaphore _tournament_started;
     // _i representa la cantidad de usuarios que quisieron ingresar al torneo, no la cantidad actual de usuarios
     int _i;
 
     void sendPerson(int i);
 public:
-    BeachManagerWorker(const std::string& fifo_read, const std::string& fifo_write, Semaphore& players_playing);
+    BeachManagerWorker(const std::string& fifo_read, const std::string& fifo_write,
+                       Semaphore& players_playing, Semaphore& tournament_started);
     virtual ~BeachManagerWorker();
     virtual void initialize();
     virtual void finalize();

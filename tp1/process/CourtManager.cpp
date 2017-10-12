@@ -97,6 +97,8 @@ void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
         std::stringstream ss;
         ss << "Despachado MatchProcess[" << pid << "] " << match_between;
         Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
+        // Le aviso al timer que hubo un partido
+        kill(timer_pid, SIGUSR2);
     } else {
         // Proceso hijo: run match simula el partido. Luego obtiene el resultado y sale con exit de la ejecucion
         MatchProcess match_process(father_pid);
@@ -361,4 +363,8 @@ bool CourtManager::free_court(pid_t pid) {
         i++;
     }
     return freed;
+}
+
+void CourtManager::setTimerPid(pid_t pid) {
+    timer_pid = pid;
 }

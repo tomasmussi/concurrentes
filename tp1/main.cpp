@@ -16,11 +16,12 @@
 #include "process/TeamMaker.h"
 #include "process/CourtManager.h"
 #include "process/ResultsReporter.h"
+#include "process/Timer.h"
 
 #include "constants.h"
 
 // TODO: CUIDADO CON ESTO, CUANDO SE AGREGUE UN PROCESO HAY QUE TOCAR ESTE DEFINE
-#define N_WORKERS 4
+#define N_WORKERS 5
 
 int parse_int(char* arg, int default_value, std::string field) {
     std::istringstream ss(arg);
@@ -83,8 +84,10 @@ int main(int argc, char* argv[]) {
     std::string fifo4 = FIFO4; // matches (CourtManager -> ResultsReporter)
 
     Semaphore players_playing(SEM_PLAYERS_PLAYING, m);
+    Semaphore tournament_started(SEM_TOURNAMENT_STARTED, 0);
 
-    WorkerProcess* arr[N_WORKERS] = {new BeachManagerWorker(fifo1, fifo2, players_playing),
+    WorkerProcess* arr[N_WORKERS] = {new Timer(tournament_started),
+                                     new BeachManagerWorker(fifo1, fifo2, players_playing, tournament_started),
                                      new TeamMaker(k, fifo2, fifo3, players_playing),
                                      new CourtManager(m, k, rows, columns, fifo3, fifo2, fifo4),
                                      new ResultsReporter(fifo4)};
@@ -94,18 +97,21 @@ int main(int argc, char* argv[]) {
 
     bool is_father = true;
     int son_process = 0;
+    int timer_pid = 0;
     for (int i = 0; i < N_WORKERS; i++) {
         pid_t pid = fork();
         if (pid == 0) {
             is_father = false;
+            if (i == 3) ((CourtManager*) arr[i])->setTimerPid(timer_pid);
             son_process = arr[i]->loop();
             break;
         } else {
             std::stringstream ss;
             ss << "Nuevo worker " << arr[i]->prettyName() << " con pid " << pid;
-            std::string s = ss.str();
-            Logger::log("main", Logger::INFO, s, Logger::get_date());
+            Logger::log("main", Logger::INFO, ss.str(), Logger::get_date());
             sigint_handler.add_pid_notification(pid);
+            // TODO: Cuidado si se cambia el orden de los workers!
+            if (i == 0) timer_pid = pid;
         }
     }
 

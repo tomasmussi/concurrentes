@@ -4,8 +4,10 @@
 #include "../constants.h"
 #include <sstream>
 
-BeachManagerWorker::BeachManagerWorker(const std::string& fifo_read, const std::string& fifo_write, Semaphore& players_playing)
-   : _pipe_writer(fifo_write), _pipe_reader(fifo_read), _i(0), _players_playing(players_playing)  {
+BeachManagerWorker::BeachManagerWorker(const std::string& fifo_read, const std::string& fifo_write,
+                                       Semaphore& players_playing, Semaphore& tournament_started):
+       _pipe_writer(fifo_write), _pipe_reader(fifo_read), _i(0),
+       _players_playing(players_playing), _tournament_started(tournament_started)  {
 }
 
 BeachManagerWorker::~BeachManagerWorker() {
@@ -33,6 +35,8 @@ int BeachManagerWorker::do_work() {
     // Si se cumplio que ya quisieron ingresar MIN_PEOPLE personas, mando a todas haciendo que arranque el torneo
     if (_i == MIN_PEOPLE) {
         // Se puede hacer esto porque al no haber arrancado el torneo todavía, los que ingresan sabemos que son del 0 al 9
+        _tournament_started.v();
+        Logger::log(prettyName(), Logger::INFO, "Comenzando torneo", Logger::get_date());
         for(int i = 0; i < MIN_PEOPLE; i++) {
             sendPerson(i);
         }
@@ -60,7 +64,8 @@ void BeachManagerWorker::finalize() {
     _pipe_writer.eliminar();
     Logger::log(prettyName(), Logger::DEBUG, "Fin clausura de pipes", Logger::get_date());
     _players_playing.remove();
-    Logger::log(prettyName(), Logger::DEBUG, "Semaforo removido", Logger::get_date());
+    _tournament_started.remove();
+    Logger::log(prettyName(), Logger::DEBUG, "Semaforos removidos", Logger::get_date());
     Logger::log(prettyName(), Logger::INFO, "Finalizado", Logger::get_date());
 }
 
