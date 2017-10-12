@@ -86,7 +86,7 @@ int TeamMaker::do_work() {
         }
 
         bool played = false;
-        if (_waiting_list.size() > 0) {
+        if (!_waiting_list.empty()) {
             for (std::list<Person>::iterator it = _waiting_list.begin(); it != _waiting_list.end(); ++it) {
                 if (can_play(id_p1, it->id())) {
                     Team team(*it, p1);

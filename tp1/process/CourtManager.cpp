@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cerrno>
 #include <cstring>
+#include <vector>
 
 #include "CourtManager.h"
 #include "../ipc/SignalHandler.h"
@@ -57,24 +58,27 @@ int CourtManager::do_work() {
 }
 
 bool CourtManager::occupy_court(pid_t pid) {
-    bool occupied = false;
-    int i = 0;
-    while (!occupied && i < _rows) {
-        int j = 0;
-        while (!occupied && j < _columns) {
+    std::vector< std::pair<int, int> > free_courts;
+    for (int i = 0; i < _rows; i++) {
+        for (int j = 0; j < _columns; j++) {
             if (_court_state[i][j] == EMPTY) {
-                _court_state[i][j] = OCCUPIED;
-                _court_pid[i][j] = pid;
-                occupied = true;
-                std::stringstream ss;
-                ss << "Ocupo cancha en [" << i << "][" << j << "] = " << pid;
-                Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
+                free_courts.push_back(std::make_pair(i, j));
             }
-            j++;
         }
-        i++;
     }
-    return occupied;
+    if (!free_courts.empty()) {
+        int random = rand() % free_courts.size();
+        std::pair<int, int> court_to_occupy = free_courts[random];
+        int row = court_to_occupy.first;
+        int column = court_to_occupy.second;
+        _court_state[row][column] = OCCUPIED;
+        _court_pid[row][column] = pid;
+        std::stringstream ss;
+        ss << "Ocupo cancha en [" << row << "][" << column << "] = " << pid;
+        Logger::log(prettyName(), Logger::INFO, ss.str(), Logger::get_date());
+        return true;
+    }
+    return false;
 }
 
 void CourtManager::dispatch_match(const Team& team1, const Team& team2) {
