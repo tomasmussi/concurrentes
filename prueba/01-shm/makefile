@@ -7,7 +7,7 @@
 ################
 
 # Nombre del ejecutable.
-target = prueba1
+target = 01
 
 # Extensión de los archivos a compilar (c para C, cpp o cc o cxx para C++).
 extension = cpp
