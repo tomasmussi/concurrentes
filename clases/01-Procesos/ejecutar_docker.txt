@@ -1,0 +1,9 @@
+Para generar el contenedor Docker (en el directorio donde se encuentra el archivo Dockerfile):
+docker build -t testconcu .
+
+Para ejecutar los ejemplos con valgrind:
+Para el ejemplo 5:
+docker run --rm testconcu ./ejemplo5
+
+Para el ejemplo 6:
+docker run --rm testconcu ./ejemplo6
