@@ -10,8 +10,8 @@
 #define MSG_ARCHIVO "/bin/bash"
 #define CHAR_CLIENTE_SERVIDOR 'a'
 
-#define	PETICION	1
-#define	RESPUESTA	2
+#define	TIEMPO 1
+#define	MONEDA 2
 #define TEXTO_SIZE	255
 
 

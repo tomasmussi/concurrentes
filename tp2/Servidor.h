@@ -13,6 +13,7 @@
 class Servidor {
 private:
     SIGINT_Handler sigint_handler;
+    int clientesProcesados;
     void dispatchWorkerConsulta(const Cola<mensaje>& cola, mensaje request);
 
 public:

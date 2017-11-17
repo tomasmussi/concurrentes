@@ -19,7 +19,7 @@ int main(int argc, char* argv[]) {
         // Cliente
         Cola<mensaje> cola(MSG_ARCHIVO, CHAR_CLIENTE_SERVIDOR);
         mensaje m;
-        m.mtype = 1;
+        m.mtype = TIEMPO;
         m.id = 3;
         strcpy(m.texto, "Consultando por BSAS");
         cola.escribir(m);
@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
         cola.leer(m.id, &rta);
         std::cout << rta.texto << std::endl;
 
-        m.mtype = 2;
+        m.mtype = MONEDA;
         m.id = 4;
         strcpy(m.texto, "Consultando por USD");
         cola.escribir(m);
