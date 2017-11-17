@@ -9,6 +9,7 @@
 
 #define MSG_ARCHIVO "/bin/bash"
 #define CHAR_CLIENTE_SERVIDOR 'a'
+#define CHAR_SERVIDOR_SERVICIOS 'b'
 
 #define	TIEMPO 1
 #define	MONEDA 2
