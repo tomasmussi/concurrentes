@@ -110,7 +110,7 @@ void Servidor::ejecutar() {
         }
     }
 
-    SignalHandler :: destruir ();
+    SignalHandler::destruir();
     cola.destruir();
     servicio.destruir();
 }

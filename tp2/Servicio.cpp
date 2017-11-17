@@ -13,6 +13,7 @@ void Servicio::ejecutar(const Cola<mensaje>& cola) {
     SignalHandler::getInstance()->registrarHandler( SIGINT, &sigint_handler);
 
     while ( sigint_handler.getGracefulQuit() == 0 ) {
+        // En ningun lado dice que el servicio tiene que ser concurrente, solo pide que el "portal" lo sea
 
     }
     // Escribir datos a disco
