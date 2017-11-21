@@ -3,6 +3,6 @@ project(tp2)
 
 set(CMAKE_CXX_STANDARD 98)
 
-set(SOURCE_FILES main.cpp ipc/Cola.h Mensajes.h Servidor.cpp Servidor.h Cliente.cpp Cliente.h
-        ipc/EventHandler.h ipc/SIGINT_Handler.h ipc/SignalHandler.h ipc/SignalHandler.cpp Servicio.cpp Servicio.h)
+set(SOURCE_FILES main.cpp Mensajes.h Servidor.cpp Servidor.h Cliente.cpp Cliente.h Servicio.cpp Servicio.h
+        ipc/EventHandler.h ipc/SIGINT_Handler.h ipc/SignalHandler.h ipc/SignalHandler.cpp ipc/Cola.h)
 add_executable(tp2 ${SOURCE_FILES})
