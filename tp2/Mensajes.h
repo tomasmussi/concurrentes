@@ -1,8 +1,6 @@
 #ifndef TP2_MENSAJES_H
 #define TP2_MENSAJES_H
 
-#define DEBUG 1
-
 #define MSG_ARCHIVO "/bin/bash"
 #define CHAR_CLIENTE_SERVIDOR 'a'
 #define CHAR_SERVIDOR_SERVICIOS 'b'

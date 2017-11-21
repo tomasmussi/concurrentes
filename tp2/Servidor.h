@@ -12,9 +12,13 @@ private:
     int clientesProcesados;
     std::list<pid_t> procesosDespachados;
 
-    void dispatchServicios(const Cola<mensaje>& cola);
-    void dispatchWorkerConsulta(const Cola<mensaje>& cola, mensaje request);
+    Cola<mensaje> colaServicios;
+    Cola<mensaje> colaClientes;
+
+    void dispatchServicios();
+    void dispatchWorkerConsulta(mensaje request);
 public:
+    Servidor();
     void ejecutar();
 };
 

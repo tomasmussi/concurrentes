@@ -3,13 +3,33 @@
 #include "ipc/SignalHandler.h"
 #include "Mensajes.h"
 #include "Servicio.h"
+#include <iostream>
 
-void Servicio::ejecutar(const Cola<mensaje>& cola) {
+Servicio::Servicio(const Cola<mensaje>& cola, int tipo) : _cola(cola), _tipoServicio(tipo) {}
+
+void Servicio::ejecutar() {
     SignalHandler::getInstance()->registrarHandler(SIGINT, &sigint_handler);
 
-    while ( sigint_handler.getGracefulQuit() == 0 ) {
+    while (sigint_handler.getGracefulQuit() == 0) {
         // En ningun lado dice que el servicio tiene que ser concurrente, solo pide que el "portal" lo sea
+        mensaje msg;
+        if (DEBUG) {
+            std::cout << "Servicio " << _tipoServicio << " esperando para leer" << std::endl;
+        }
+        int resultado = _cola.leer(_tipoServicio, &msg);
+        // Esto es para los casos en que se interrumpio la lectura, por lo que no se tiene que escribir
+        if (resultado != -1) {
+            if (DEBUG) {
+                std::cout << "Servicio " << _tipoServicio << " leyo" << std::endl;
+            }
+            strcpy(msg.texto, getDato(std::string(msg.texto)).c_str());
+            msg.mtype += 2;
+            _cola.escribir(msg);
+            if (DEBUG) {
+                std::cout << "Servicio " << _tipoServicio << " escribio" << std::endl;
+            }
+        }
     }
-    // TODO: Escribir datos a disco
+    dumpData();
 }
 

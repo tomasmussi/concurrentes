@@ -6,45 +6,49 @@
 
 #include "Servidor.h"
 #include "ipc/SignalHandler.h"
+#include "Constantes.h"
+#include "Servicio.h"
+#include "ServicioMonedas.h"
+#include "ServicioTiempo.h"
 
 #define N_SERVICIOS 2
 
-void Servidor::dispatchWorkerConsulta(const Cola<mensaje>& cola, mensaje request) {
+Servidor::Servidor() : colaClientes(MSG_ARCHIVO, CHAR_CLIENTE_SERVIDOR),
+                       colaServicios(MSG_ARCHIVO, CHAR_SERVIDOR_SERVICIOS) {}
+
+void Servidor::dispatchWorkerConsulta(mensaje request) {
     pid_t pid = fork();
     if (pid == 0) {
         // Worker
+        mensaje response;
         if (request.mtype == TIEMPO) {
             // Consulta tipo TIEMPO
-            mensaje response;
-            response.mtype = request.id;
-            response.id = -1;
-            strcpy(response.texto, "El tiempo en BSAS es de 24°C, 1014 HectoPascales y humedad del 75%");
-            cola.escribir(response);
+            colaServicios.escribir(request);
+            colaServicios.leer(TIEMPO + 2, &response);
+            colaClientes.escribir(response);
         } else if (request.mtype == MONEDA) {
-            mensaje response;
-            response.mtype = request.id;
-            response.id = -1;
-            strcpy(response.texto, "La moneda USD esta a 1/18 respecto a ARS");
-            cola.escribir(response);
+            colaServicios.escribir(request);
+            colaServicios.leer(MONEDA + 2, &response);
+            colaClientes.escribir(response);
         } else {
             if (DEBUG) {
                 std::cerr << "Consulta tipo: " << request.mtype << " no reconocida" << std::endl;
             }
         }
+        if (DEBUG) {
+            std::cout << "Se escribio '" << response.texto << "'" << std::endl;
+        }
         _exit(0);
     }
 }
 
-void Servidor::dispatchServicios(const Cola<mensaje>& servicio) {
+void Servidor::dispatchServicios() {
+    Servicio* arr[N_SERVICIOS] = {new ServicioTiempo(colaServicios), new ServicioMonedas(colaServicios)};
+
     for (int i = 0; i < N_SERVICIOS; i++) {
         pid_t pid = fork();
-        // TODO: Despachar servicios posta
         if (pid == 0) {
-            if (i == 0) {
-                std::cout << "Servicio de tiempo" << std::endl;
-            } else if (i == 1) {
-                std::cout << "Servicio de moneda" << std::endl;
-            }
+            arr[i]->ejecutar();
             _exit(0);
         }
         procesosDespachados.push_back(pid);
@@ -54,12 +58,9 @@ void Servidor::dispatchServicios(const Cola<mensaje>& servicio) {
     }
 }
 
-
 void Servidor::ejecutar() {
     clientesProcesados = 0;
-    Cola<mensaje> colaClientes(MSG_ARCHIVO, CHAR_CLIENTE_SERVIDOR);
-    Cola<mensaje> colaServicios(MSG_ARCHIVO, CHAR_SERVIDOR_SERVICIOS);
-    dispatchServicios(colaServicios);
+    dispatchServicios();
 
     // El dispatch de servicios debe ocurrir antes de registrar handler
     SignalHandler::getInstance()->registrarHandler(SIGINT, &sigint_handler);
@@ -82,7 +83,7 @@ void Servidor::ejecutar() {
                 std::cout << "Recibida consulta cliente: " << m.id << " tipo: " << m.mtype << " por " << m.texto << std::endl;
             }
             // Despacho en un worker el procesamiento y respuesta para seguir procesando requests
-            dispatchWorkerConsulta(colaClientes, m);
+            dispatchWorkerConsulta(m);
         }
     }
 

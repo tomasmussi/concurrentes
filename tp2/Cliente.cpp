@@ -9,7 +9,7 @@ void Cliente::ejecutar() {
     mensaje m;
     m.mtype = TIEMPO;
     m.id = 3;
-    strcpy(m.texto, "Consultando por BSAS");
+    strcpy(m.texto, "BSAS");
     cola.escribir(m);
     mensaje rta;
     cola.leer(m.id, &rta);
@@ -17,7 +17,7 @@ void Cliente::ejecutar() {
 
     m.mtype = MONEDA;
     m.id = 4;
-    strcpy(m.texto, "Consultando por USD");
+    strcpy(m.texto, "USD");
     cola.escribir(m);
     cola.leer(m.id, &rta);
     std::cout << rta.texto << std::endl;
