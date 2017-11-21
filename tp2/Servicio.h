@@ -1,7 +1,3 @@
-//
-// Created by tomas on 17/11/17.
-//
-
 #ifndef TP2_SERVICIO_H
 #define TP2_SERVICIO_H
 

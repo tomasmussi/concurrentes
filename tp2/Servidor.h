@@ -1,10 +1,5 @@
-//
-// Created by tomas on 17/11/17.
-//
-
 #ifndef TP2_SERVIDOR_H
 #define TP2_SERVIDOR_H
-
 
 #include <list>
 #include "ipc/Cola.h"
@@ -19,11 +14,8 @@ private:
 
     void dispatchServicios(const Cola<mensaje>& cola);
     void dispatchWorkerConsulta(const Cola<mensaje>& cola, mensaje request);
-
 public:
     void ejecutar();
-
-
 };
 
 
