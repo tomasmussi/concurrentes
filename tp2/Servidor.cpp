@@ -11,10 +11,11 @@
 #include "ServicioMonedas.h"
 #include "ServicioTiempo.h"
 
-#define N_SERVICIOS 2
-
 Servidor::Servidor() : colaClientes(MSG_ARCHIVO, CHAR_CLIENTE_SERVIDOR),
-                       colaServicios(MSG_ARCHIVO, CHAR_SERVIDOR_SERVICIOS) {}
+                       colaServicios(MSG_ARCHIVO, CHAR_SERVIDOR_SERVICIOS) {
+    servicios.push_back(new ServicioTiempo(colaServicios));
+    servicios.push_back(new ServicioMonedas(colaServicios));
+}
 
 void Servidor::dispatchWorkerConsulta(mensaje request) {
     pid_t pid = fork();
@@ -38,17 +39,24 @@ void Servidor::dispatchWorkerConsulta(mensaje request) {
         if (DEBUG) {
             std::cout << "Se escribio '" << response.texto << "'" << std::endl;
         }
+        deleteServicios();
         _exit(0);
     }
 }
 
-void Servidor::dispatchServicios() {
-    Servicio* arr[N_SERVICIOS] = {new ServicioTiempo(colaServicios), new ServicioMonedas(colaServicios)};
+void Servidor::deleteServicios() {
+    for (int i = 0; i < servicios.size(); i++) {
+        delete(servicios[i]);
+    }
+}
 
-    for (int i = 0; i < N_SERVICIOS; i++) {
+void Servidor::dispatchServicios() {
+    for (int i = 0; i < servicios.size(); i++) {
+        Servicio* servicio = servicios[i];
         pid_t pid = fork();
         if (pid == 0) {
-            arr[i]->ejecutar();
+            servicio->ejecutar();
+            deleteServicios();
             _exit(0);
         }
         procesosDespachados.push_back(pid);
@@ -102,13 +110,14 @@ void Servidor::ejecutar() {
         }
     }
 
-    for (int i = 0; i < N_SERVICIOS; i++) {
+    for (int i = 0; i < servicios.size(); i++) {
         pid_t pid = wait(NULL);
         if (DEBUG) {
             std::cout << "Colectando worker despachado [" << pid << "]" << std::endl;
         }
     }
 
+    deleteServicios();
     SignalHandler::destruir();
     colaClientes.destruir();
     colaServicios.destruir();

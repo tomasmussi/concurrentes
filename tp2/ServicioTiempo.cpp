@@ -31,7 +31,7 @@ ServicioTiempo::ServicioTiempo(const Cola<mensaje> &cola) : Servicio(cola, TIEMP
             }
             struct tiempo t;
             t.temperatura = parseDouble(vector[1]);
-            t.presion = parseDouble(vector[2]);
+            t.presion = static_cast<int>(parseDouble(vector[2]));
             t.humedad = parseDouble(vector[3]);
             _data[vector[0]] = t;
         }

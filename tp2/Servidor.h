@@ -2,9 +2,11 @@
 #define TP2_SERVIDOR_H
 
 #include <list>
+#include <vector>
 #include "ipc/Cola.h"
 #include "Mensajes.h"
 #include "ipc/SIGINT_Handler.h"
+#include "Servicio.h"
 
 class Servidor {
 private:
@@ -14,8 +16,10 @@ private:
 
     Cola<mensaje> colaServicios;
     Cola<mensaje> colaClientes;
+    std::vector<Servicio*> servicios;
 
     void dispatchServicios();
+    void deleteServicios();
     void dispatchWorkerConsulta(mensaje request);
 public:
     Servidor();
