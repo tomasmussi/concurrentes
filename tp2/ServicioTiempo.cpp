@@ -22,6 +22,9 @@ ServicioTiempo::ServicioTiempo(const Cola<mensaje> &cola) : Servicio(cola, TIEMP
 }
 
 std::string ServicioTiempo::getDato(const std::string &key) {
+    if (_data.find(key) == _data.end()) {
+        return "No se encontró tiempo para la ciudad " + key;
+    }
     tiempo t = _data[key];
     std::stringstream ss;
     ss << "El tiempo de " << key << " es: " << std::endl <<

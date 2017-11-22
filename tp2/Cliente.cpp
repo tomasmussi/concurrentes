@@ -1,24 +1,17 @@
 #include <cstring>
 #include <iostream>
 #include "Cliente.h"
-#include "Mensajes.h"
-#include "ipc/Cola.h"
+
+Cliente::Cliente(int tipoCliente, char* request) : cola(MSG_ARCHIVO, CHAR_CLIENTE_SERVIDOR),
+                                                   _tipoCliente(tipoCliente), _request(request) {}
 
 void Cliente::ejecutar() {
-    Cola<mensaje> cola(MSG_ARCHIVO, CHAR_CLIENTE_SERVIDOR);
     mensaje m;
-    m.mtype = TIEMPO;
-    m.id = 3;
-    strcpy(m.texto, "BSAS");
+    m.mtype = _tipoCliente;
+    m.id = _tipoCliente + 2;
+    strcpy(m.texto, _request);
     cola.escribir(m);
     mensaje rta;
-    cola.leer(m.id, &rta);
-    std::cout << rta.texto << std::endl;
-
-    m.mtype = MONEDA;
-    m.id = 4;
-    strcpy(m.texto, "USD");
-    cola.escribir(m);
     cola.leer(m.id, &rta);
     std::cout << rta.texto << std::endl;
 }
