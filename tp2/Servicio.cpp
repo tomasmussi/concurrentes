@@ -4,8 +4,19 @@
 #include "Mensajes.h"
 #include "Servicio.h"
 #include <iostream>
+#include <sstream>
 
 Servicio::Servicio(const Cola<mensaje>& cola, int tipo) : _cola(cola), _tipoServicio(tipo) {}
+
+double Servicio::parseDouble(std::string& string) {
+    std::istringstream ss(string);
+    double x;
+    std::stringstream s;
+    if (!(ss >> x)) {
+        return -1;
+    }
+    return x;
+}
 
 void Servicio::ejecutar() {
     SignalHandler::getInstance()->registrarHandler(SIGINT, &sigint_handler);

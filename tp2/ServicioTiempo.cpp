@@ -1,24 +1,41 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
 #include "ServicioTiempo.h"
 
 void ServicioTiempo::dumpData() {
-    std::cout << "Guardando a disco la informacion del servicio de tiempo" << std::endl;
+    if (DEBUG) {
+        std::cout << "Guardando a disco la informacion del servicio de tiempo" << std::endl;
+    }
+    std::ofstream outfile;
+    outfile.open(ARCHIVO_TIEMPO);
+    std::map<std::string, tiempo>::iterator it = _data.begin();
+    for ( ; it != _data.end(); ++it) {
+        outfile << it->first << "," << it->second.temperatura << "," << it->second.presion << "," << it->second.humedad << "\n";
+    }
+    outfile.close();
 }
 
 ServicioTiempo::ServicioTiempo(const Cola<mensaje> &cola) : Servicio(cola, TIEMPO) {
-//    std::ifstream infile(ARCHIVO_TIEMPO);
+    std::ifstream infile(ARCHIVO_TIEMPO);
     // Si existe el archivo, lo levanto
-//    if (infile.good()) {
-//        // TODO: Leer archivo
-//    } else {
-    struct tiempo t;
-    t.temperatura = 18.5;
-    t.humedad = 85.2;
-    t.presion = 1020;
-    _data["BSAS"] = t;
-//    }
+    if (infile.good()) {
+        std::string line;
+        while (getline(infile, line).good()) {
+            std::istringstream s(line);
+            std::string record;
+            std::vector<std::string> vector;
+            while (getline(s, record, ',')) {
+                vector.push_back(record);
+            }
+            struct tiempo t;
+            t.temperatura = parseDouble(vector[1]);
+            t.presion = parseDouble(vector[2]);
+            t.humedad = parseDouble(vector[3]);
+            _data[vector[0]] = t;
+        }
+    }
 }
 
 std::string ServicioTiempo::getDato(const std::string &key) {

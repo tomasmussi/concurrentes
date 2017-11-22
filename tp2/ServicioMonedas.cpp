@@ -1,20 +1,37 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
 #include "ServicioMonedas.h"
 
 void ServicioMonedas::dumpData() {
-    std::cout << "Guardando a disco la informacion del servicio de monedas" << std::endl;
+    if (DEBUG) {
+        std::cout << "Guardando a disco la informacion del servicio de monedas" << std::endl;
+    }
+    std::ofstream outfile;
+    outfile.open(ARCHIVO_MONEDAS);
+    std::map<std::string, double>::iterator it = _data.begin();
+    for ( ; it != _data.end(); ++it) {
+        outfile << it->first << "," << it->second << "\n";
+    }
+    outfile.close();
 }
 
 ServicioMonedas::ServicioMonedas(const Cola<mensaje> &cola) : Servicio(cola, MONEDA) {
-//    std::ifstream infile(ARCHIVO_MONEDAS);
+    std::ifstream infile(ARCHIVO_MONEDAS);
     // Si existe el archivo, lo levanto
-//    if (infile.good()) {
-//        // TODO: Leer archivo
-//    } else {
-    _data["USD"] = 1/18.5;
-//    }
+    if (infile.good()) {
+        std::string line;
+        while (getline(infile, line).good()) {
+            std::istringstream s(line);
+            std::string record;
+            std::vector<std::string> vector;
+            while (getline(s, record, ',')) {
+                vector.push_back(record);
+            }
+            _data[vector[0]] = parseDouble(vector[1]);
+        }
+    }
 }
 
 std::string ServicioMonedas::getDato(const std::string &key) {

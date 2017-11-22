@@ -12,6 +12,7 @@ private:
     Cola<mensaje> _cola;
 protected:
     int _tipoServicio;
+    double parseDouble(std::string& string);
 public:
     void ejecutar();
     virtual void dumpData() = 0;
