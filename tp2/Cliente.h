@@ -11,6 +11,11 @@ private:
     char* _request;
     char** _argv;
     mensaje _m;
+    bool mensajeTipo;
+    double temperatura;
+    int presion;
+    double humedad;
+    double cambio;
 public:
     void ejecutar();
 

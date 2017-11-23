@@ -8,19 +8,19 @@
 Cliente::Cliente(int tipoCliente, char* request) : cola(MSG_ARCHIVO, CHAR_CLIENTE_SERVIDOR),
                                                    _tipoCliente(tipoCliente), _request(request) {
     // Cliente comun
-    _m.write = false;
+    mensajeTipo = false;
 }
 
 Cliente::Cliente(int tipoCliente, char** argv) : cola(MSG_ARCHIVO, CHAR_CLIENTE_SERVIDOR),
                                                    _tipoCliente(tipoCliente), _request(argv[3]) {
     // Administrador
-    _m.write = true;
+    mensajeTipo = true;
     if (_tipoCliente == TIEMPO) {
-        _m.tiemp.temperatura = atof(argv[4]);
-        _m.tiemp.presion = atoi(argv[5]);
-        _m.tiemp.humedad = atof(argv[6]);
+        temperatura = atof(argv[4]);
+        presion = atoi(argv[5]);
+        humedad = atof(argv[6]);
     } else if (_tipoCliente == MONEDA) {
-        _m.cambio = atof(argv[4]);
+        cambio = atof(argv[4]);
     }
 }
 
@@ -34,7 +34,15 @@ void Cliente::ejecutar() {
         int idCliente = _m.id;
         _m.mtype = idCliente;
         _m.id = _tipoCliente;
+        _m.write = mensajeTipo;
         strcpy(_m.texto, _request);
+        if (_tipoCliente == TIEMPO) {
+            _m.tiemp.temperatura = temperatura;
+            _m.tiemp.presion = presion;
+            _m.tiemp.humedad = humedad;
+        } else if (_tipoCliente == MONEDA) {
+            _m.cambio = cambio;
+        }
         cola.escribir(_m);
 
         // Espero la respuesta en idCliente + 1
