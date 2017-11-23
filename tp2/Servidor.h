@@ -20,7 +20,9 @@ private:
 
     void dispatchServicios();
     void deleteServicios();
-    void dispatchWorkerConsulta(mensaje request);
+    void dispatchWorkerConsulta();
+
+    mensaje enviarYRecibir(mensaje request, int idCliente, int tipo);
 public:
     Servidor();
     void ejecutar();

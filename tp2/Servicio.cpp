@@ -34,10 +34,11 @@ void Servicio::ejecutar() {
                 std::cout << "Servicio " << _tipoServicio << " leyo" << std::endl;
             }
             strcpy(msg.texto, getDato(std::string(msg.texto)).c_str());
-            msg.mtype += 2;
+            // En id me indicaron en donde tenia que responder
+            msg.mtype = msg.id;
             _cola.escribir(msg);
             if (DEBUG) {
-                std::cout << "Servicio " << _tipoServicio << " escribio" << std::endl;
+                std::cout << "Servicio " << _tipoServicio << " escribio para el cliente " << msg.id << std::endl;
             }
         }
     }
