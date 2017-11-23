@@ -33,6 +33,11 @@ void Servicio::ejecutar() {
             if (DEBUG) {
                 std::cout << "Servicio " << _tipoServicio << " leyo" << std::endl;
             }
+            if (msg.write) {
+                // Escritura nuevo valor
+                actualizarDato(msg);
+            }
+            // Lectura de valor
             strcpy(msg.texto, getDato(std::string(msg.texto)).c_str());
             // En id me indicaron en donde tenia que responder
             msg.mtype = msg.id;

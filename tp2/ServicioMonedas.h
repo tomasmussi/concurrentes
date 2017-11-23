@@ -9,6 +9,7 @@ private:
     std::map<std::string, double> _data;
 protected:
     int _tipoServicio;
+    virtual void actualizarDato(mensaje msg);
 public:
     ServicioMonedas(const Cola<mensaje> &cola);
 
