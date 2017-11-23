@@ -42,3 +42,10 @@ std::string ServicioMonedas::getDato(const std::string &key) {
     ss << "El cambio de " << key << " es: 1 ARS = " << _data[key] << " " << key;
     return ss.str();
 }
+
+void ServicioMonedas::actualizarDato(mensaje msg) {
+    if (DEBUG) {
+        std::cout << "Actualizando [" << msg.texto << "] = " << msg.cambio << std::endl;
+    }
+    _data[msg.texto] = msg.cambio;
+}

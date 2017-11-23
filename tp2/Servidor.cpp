@@ -114,6 +114,7 @@ void Servidor::dispatchServicios() {
 void Servidor::ejecutar() {
     while (sigint_handler.getGracefulQuit() == 0) {
         mensaje m;
+
         // De acuerdo al protocolo establecido, el servidor lee requests de tipo 1 y despacha un worker para que atienda
         // dicho request
         int lectura = colaClientes.leer(NUEVA_CONEXION, &m);
@@ -135,12 +136,12 @@ void Servidor::ejecutar() {
     }
 
     // TODO: Esto creo que no es necesario
-//    for (int i = 0; i < clientesProcesados; i++) {
-//        pid_t pid = wait(NULL);
-//        if (DEBUG) {
-//            std::cout << "Colectando cliente despachado [" << pid << "]" << std::endl;
-//        }
-//    }
+    for (int i = 0; i < clientesProcesados; i++) {
+        pid_t pid = wait(NULL);
+        if (DEBUG) {
+            std::cout << "Colectando cliente despachado [" << pid << "]" << std::endl;
+        }
+    }
 
     for (int i = 0; i < servicios.size(); i++) {
         pid_t pid = wait(NULL);

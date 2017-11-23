@@ -13,6 +13,7 @@ private:
 protected:
     int _tipoServicio;
     double parseDouble(std::string& string);
+    virtual void actualizarDato(mensaje msg) = 0;
 public:
     void ejecutar();
     virtual void dumpData() = 0;

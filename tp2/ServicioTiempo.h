@@ -4,17 +4,14 @@
 #include <map>
 #include "Servicio.h"
 
-typedef struct tiempo {
-    double temperatura;
-    int presion;
-    double humedad;
-} tiempo;
+
 
 class ServicioTiempo : public Servicio {
 private:
     std::map<std::string, tiempo> _data;
 protected:
     int _tipoServicio;
+    virtual void actualizarDato(mensaje msg);
 public:
     ServicioTiempo(const Cola<mensaje> &cola);
 

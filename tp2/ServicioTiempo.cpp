@@ -50,3 +50,11 @@ std::string ServicioTiempo::getDato(const std::string &key) {
         "Humedad: " << t.humedad << "%";
     return ss.str();
 }
+
+void ServicioTiempo::actualizarDato(mensaje msg) {
+    if (DEBUG) {
+        std::cout << "Actualizando [" << msg.texto << "], temp: " << msg.tiemp.temperatura
+           << ", presion: " << msg.tiemp.presion << ", humedad: " << msg.tiemp.humedad << std::endl;
+    }
+    _data[msg.texto] = msg.tiemp;
+}
