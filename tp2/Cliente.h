@@ -6,7 +6,7 @@
 
 class Cliente {
 private:
-    Cola<mensaje> cola;
+    Cola<mensajeCS> cola;
     int _tipoCliente;
     char* _request;
 public:

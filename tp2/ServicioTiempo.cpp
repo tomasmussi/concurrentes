@@ -17,7 +17,7 @@ void ServicioTiempo::dumpData() {
     outfile.close();
 }
 
-ServicioTiempo::ServicioTiempo(const Cola<mensaje> &cola) : Servicio(cola, TIEMPO) {
+ServicioTiempo::ServicioTiempo(const Cola<mensajeSS> &cola) : Servicio(cola, TIEMPO) {
     std::ifstream infile(ARCHIVO_TIEMPO);
     // Si existe el archivo, lo levanto
     if (infile.good()) {
@@ -36,6 +36,14 @@ ServicioTiempo::ServicioTiempo(const Cola<mensaje> &cola) : Servicio(cola, TIEMP
             _data[vector[0]] = t;
         }
     }
+}
+
+void ServicioTiempo::actualizarDato(char* dato){
+    /*std::string str(dato);
+    size_t pos = str.find(" ");
+    std::string key = str.substr(0,pos);
+    double value = atof(str.substr(pos+1).c_str());
+    _data[key]=value;*/
 }
 
 std::string ServicioTiempo::getDato(const std::string &key) {

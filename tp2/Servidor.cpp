@@ -27,19 +27,24 @@ Servidor::Servidor() : colaClientes(MSG_ARCHIVO, CHAR_CLIENTE_SERVIDOR),
     }
 }
 
-mensaje Servidor::enviarYRecibir(mensaje request, int idCliente, int tipo) {
-    // Le envío al servicio correspondiente (Indicado mediante el mtype) en id dónde se espera la respuesta
-    request.mtype = tipo;
-    request.id = idCliente;
-    colaServicios.escribir(request);
+mensajeSS Servidor::enviarYRecibir(mensajeCS request, int idCliente, int tipo) {
+    // Le envío al servicio correspondiente (Indicado mediante el mtype) el id dónde se espera la respuesta
+    mensajeSS req;
+    req.mtype = tipo;
+    req.id = idCliente;
+    req.admin = request.admin;
+    strcpy(req.texto, request.texto);
+    colaServicios.escribir(req);
 
     // Espero la respuesta en donde le indiqué al servicio
-    mensaje response;
+    mensajeSS response;
     int lectura = colaServicios.leer(idCliente, &response);
     if (lectura != -1) {
         // Escribo exactamente la respuesta recibida del servicio, en la cola de clientes, al cliente correspondiente
-        response.mtype = idCliente + 1;
-        colaClientes.escribir(response);
+        mensajeCS resp;
+        resp.mtype = idCliente + 1;
+        strcpy(resp.texto, response.texto);
+        colaClientes.escribir(resp);
     }
     return response;
 }
@@ -51,12 +56,12 @@ void Servidor::dispatchWorkerConsulta() {
     pid_t pid = fork();
     if (pid == 0) {
         // Worker
-        mensaje handShakeRequest;
+        mensajeCS handShakeRequest;
         handShakeRequest.mtype = RESPUESTA_NUEVA_CONEXION;
         handShakeRequest.id = idCliente;
         colaClientes.escribir(handShakeRequest);
 
-        mensaje request;
+        mensajeCS request;
         int lectura = colaClientes.leer(idCliente, &request);
         if (lectura != -1) {
             if (DEBUG) {
@@ -65,14 +70,14 @@ void Servidor::dispatchWorkerConsulta() {
                 tipoServicio[MONEDA] = "MONEDA";
 
                 std::cout << "Worker [" << getpid() << "] - Recibida consulta cliente " << idCliente << ": " <<
-                    tipoServicio[request.id] << " por " << request.texto << std::endl;
+                    tipoServicio[request.tipo] << " por " << request.texto << std::endl;
             }
 
             // Hago un request al servicio correspondiente
-            mensaje response;
-            if (request.id == TIEMPO) {
+            mensajeSS response;
+            if (request.tipo == TIEMPO) {
                 response = enviarYRecibir(request, idCliente, TIEMPO);
-            } else if (request.id == MONEDA) {
+            } else if (request.tipo == MONEDA) {
                 response = enviarYRecibir(request, idCliente, MONEDA);
             } else {
                 if (DEBUG) {
@@ -113,7 +118,7 @@ void Servidor::dispatchServicios() {
 
 void Servidor::ejecutar() {
     while (sigint_handler.getGracefulQuit() == 0) {
-        mensaje m;
+        mensajeCS m;
         // De acuerdo al protocolo establecido, el servidor lee requests de tipo 1 y despacha un worker para que atienda
         // dicho request
         int lectura = colaClientes.leer(NUEVA_CONEXION, &m);

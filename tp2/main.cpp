@@ -4,6 +4,7 @@
 
 #include "Servidor.h"
 #include "Cliente.h"
+#include "Administrador.h"
 
 int parse_int(char* arg) {
     std::istringstream ss(arg);
@@ -18,9 +19,10 @@ int parse_int(char* arg) {
 
 int main(int argc, char* argv[]) {
     if (argc < 2) {
-        std::cout << "Debe especificar cliente o servidor de la siguiente manera:" << std::endl;
+        std::cout << "Debe especificar cliente, administrador o servidor de la siguiente manera:" << std::endl;
         std::cout << "Cliente de clima: 'c 1 BSAS'" << std::endl;
         std::cout << "Cliente de monedas: 'c 2 USD'" << std::endl;
+        std::cout << "Administrador: 'a'" << std::endl;
         std::cout << "Servidor: 's'" << std::endl;
         return -1;
     }
@@ -37,6 +39,10 @@ int main(int argc, char* argv[]) {
         if (tipoCliente == -1) return -4;
         Cliente c(tipoCliente, argv[3]);
         c.ejecutar();
+    } else if (opt == 'a') {
+        // Administrador
+        Administrador a;
+        a.ejecutar();
     } else if (opt == 's') {
         // Servidor
         Servidor s;
