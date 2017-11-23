@@ -37,11 +37,9 @@ ServicioMonedas::ServicioMonedas(const Cola<mensajeSS> &cola) : Servicio(cola, M
 
 void ServicioMonedas::actualizarDato(char* dato){
     std::string str(dato);
-    std::cout << dato << std::endl;
     size_t pos = str.find(" ");
     std::string key = str.substr(0,pos);
     double value = atof(str.substr(pos+1).c_str());
-    std::cout << key << " : " << value << std::endl;
     _data[key]=value;
 }
 

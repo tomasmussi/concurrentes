@@ -40,6 +40,7 @@ void Administrador::ejecutar() {
         int tipo = parse_int(vector[0]);
         if (vector[0] == "1"){
             //ESTADO DEL TIEMPO
+            //TODO: Validar los valores ofrecidos
             if (vector.size() != 4 && vector.size() != 6 && vector.size() != 8 ){
                 std::cout << "Cantidad de parámetros ingresada errónea. Deben ser 4,6 u 8 para la actualización del estado del tiempo " << std::endl;
                 continue;
@@ -47,12 +48,14 @@ void Administrador::ejecutar() {
         }
         else{
             //MONEDA
+            //TODO: Validar los valores ofrecidos
             if (vector.size() != 3){
                 std::cout << "Cantidad de parámetros ingresada errónea. Deben ser exactamente 3 para la cotización de una moneda " << std::endl;
                 continue;
             }
         }
-        const char *request = line.substr(2).c_str();
+        std::string str = line.substr(2,std::string::npos);
+        const char *request = str.c_str();
 
         mensajeCS m;
         m.mtype = NUEVA_CONEXION;
@@ -62,9 +65,9 @@ void Administrador::ejecutar() {
             // El request va a ser a donde me indica el handShake
             int idCliente = m.id;
             m.mtype = idCliente;
-            m.tipo = tipo; //tipo
+            m.tipo = tipo;
             m.admin = true;
-            strcpy(m.texto, request); //request
+            strcpy(m.texto, request);
             cola.escribir(m);
 
             // Espero la respuesta en idCliente + 1

@@ -38,12 +38,41 @@ ServicioTiempo::ServicioTiempo(const Cola<mensajeSS> &cola) : Servicio(cola, TIE
     }
 }
 
-void ServicioTiempo::actualizarDato(char* dato){
-    /*std::string str(dato);
-    size_t pos = str.find(" ");
-    std::string key = str.substr(0,pos);
-    double value = atof(str.substr(pos+1).c_str());
-    _data[key]=value;*/
+void ServicioTiempo::actualizarDato(char* data){
+    std::string str(data);
+    std::istringstream s(str);
+    std::string record;
+    std::vector<std::string> vector;
+    while (getline(s, record, ' ')) {
+        vector.push_back(record);
+    }
+    std::string key = vector[0];
+    struct tiempo t;
+    if (_data.count(key) == 0){
+        //Inicializar todos los valores de alguna forma inválida ya que podrían no agregarse todos sus parametros
+        t.temperatura = -274.0;
+        t.presion = -1;
+        t.humedad = -1.0;
+    }
+    else {
+        t = _data[key];
+    }
+    size_t pos = 1;
+    while (pos < vector.size()-1){
+        std::string param = vector[pos];
+        double value = parseDouble(vector[pos+1]);
+        if (param == "t"){
+            t.temperatura = value;
+        }
+        else if (param == "p"){
+            t.presion = static_cast<int>(value);
+        }
+        else if (param == "h"){
+            t.humedad = value;
+        }
+        pos += 2;
+    }
+    _data[key] = t;
 }
 
 std::string ServicioTiempo::getDato(const std::string &key) {
