@@ -8,6 +8,8 @@ class Administrador {
 private:
     Cola<mensajeCS> cola;
     int parse_int(std::string s);
+    double parse_double(std::string& s);
+    bool validar_parametros_tiempo(std::vector<std::string>* vector);
 public:
     void ejecutar();
 
