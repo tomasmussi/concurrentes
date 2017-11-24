@@ -14,15 +14,15 @@ private:
     int clientesProcesados;
     std::list<pid_t> procesosDespachados;
 
-    Cola<mensaje> colaServicios;
-    Cola<mensaje> colaClientes;
+    Cola<mensajeSS> colaServicios;
+    Cola<mensajeCS> colaClientes;
     std::vector<Servicio*> servicios;
 
     void dispatchServicios();
     void deleteServicios();
     void dispatchWorkerConsulta();
 
-    mensaje enviarYRecibir(mensaje request, int idCliente, int tipo);
+    mensajeSS enviarYRecibir(mensajeCS request, int idCliente, int tipo);
 public:
     Servidor();
     void ejecutar();

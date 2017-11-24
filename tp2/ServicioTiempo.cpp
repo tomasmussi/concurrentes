@@ -17,7 +17,7 @@ void ServicioTiempo::dumpData() {
     outfile.close();
 }
 
-ServicioTiempo::ServicioTiempo(const Cola<mensaje> &cola) : Servicio(cola, TIEMPO) {
+ServicioTiempo::ServicioTiempo(const Cola<mensajeSS> &cola) : Servicio(cola, TIEMPO) {
     std::ifstream infile(ARCHIVO_TIEMPO);
     // Si existe el archivo, lo levanto
     if (infile.good()) {
@@ -36,6 +36,43 @@ ServicioTiempo::ServicioTiempo(const Cola<mensaje> &cola) : Servicio(cola, TIEMP
             _data[vector[0]] = t;
         }
     }
+}
+
+void ServicioTiempo::actualizarDato(char* data){
+    std::string str(data);
+    std::istringstream s(str);
+    std::string record;
+    std::vector<std::string> vector;
+    while (getline(s, record, ' ')) {
+        vector.push_back(record);
+    }
+    std::string key = vector[0];
+    struct tiempo t;
+    if (_data.count(key) == 0){
+        //Inicializar todos los valores de alguna forma inválida ya que podrían no agregarse todos sus parametros
+        t.temperatura = -274.0;
+        t.presion = -1;
+        t.humedad = -1.0;
+    }
+    else {
+        t = _data[key];
+    }
+    size_t pos = 1;
+    while (pos < vector.size()-1){
+        std::string param = vector[pos];
+        double value = parseDouble(vector[pos+1]);
+        if (param == "t"){
+            t.temperatura = value;
+        }
+        else if (param == "p"){
+            t.presion = static_cast<int>(value);
+        }
+        else if (param == "h"){
+            t.humedad = value;
+        }
+        pos += 2;
+    }
+    _data[key] = t;
 }
 
 std::string ServicioTiempo::getDato(const std::string &key) {

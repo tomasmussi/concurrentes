@@ -16,10 +16,11 @@ private:
 protected:
     int _tipoServicio;
 public:
-    ServicioTiempo(const Cola<mensaje> &cola);
+    ServicioTiempo(const Cola<mensajeSS> &cola);
 
     virtual void dumpData();
     virtual std::string getDato(const std::string& key);
+    virtual void actualizarDato(char* data);
 };
 
 #endif //TP2_SERVICIOTIEMPO_H

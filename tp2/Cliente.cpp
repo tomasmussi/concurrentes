@@ -7,7 +7,7 @@ Cliente::Cliente(int tipoCliente, char* request) : cola(MSG_ARCHIVO, CHAR_CLIENT
                                                    _tipoCliente(tipoCliente), _request(request) {}
 
 void Cliente::ejecutar() {
-    mensaje m;
+    mensajeCS m;
     m.mtype = NUEVA_CONEXION;
     cola.escribir(m);
     int resultado = cola.leer(RESPUESTA_NUEVA_CONEXION, &m);
@@ -15,12 +15,13 @@ void Cliente::ejecutar() {
         // El request va a ser a donde me indica el handShake
         int idCliente = m.id;
         m.mtype = idCliente;
-        m.id = _tipoCliente;
+        m.tipo = _tipoCliente;
+        m.admin = false;
         strcpy(m.texto, _request);
         cola.escribir(m);
 
         // Espero la respuesta en idCliente + 1
-        mensaje rta;
+        mensajeCS rta;
         resultado = cola.leer(idCliente + 1, &rta);
         if (resultado != -1) {
             std::cout << "Cliente " << idCliente << " pidio por " << _tipoCliente << " " << _request <<

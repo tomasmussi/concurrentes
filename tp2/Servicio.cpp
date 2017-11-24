@@ -6,7 +6,7 @@
 #include <iostream>
 #include <sstream>
 
-Servicio::Servicio(const Cola<mensaje>& cola, int tipo) : _cola(cola), _tipoServicio(tipo) {}
+Servicio::Servicio(const Cola<mensajeSS>& cola, int tipo) : _cola(cola), _tipoServicio(tipo) {}
 
 double Servicio::parseDouble(std::string& string) {
     std::istringstream ss(string);
@@ -23,7 +23,7 @@ void Servicio::ejecutar() {
 
     while (sigint_handler.getGracefulQuit() == 0) {
         // En ningun lado dice que el servicio tiene que ser concurrente, solo pide que el "portal" lo sea
-        mensaje msg;
+        mensajeSS msg;
         if (DEBUG) {
             std::cout << "Servicio " << _tipoServicio << " esperando para leer" << std::endl;
         }
@@ -33,7 +33,12 @@ void Servicio::ejecutar() {
             if (DEBUG) {
                 std::cout << "Servicio " << _tipoServicio << " leyo" << std::endl;
             }
-            strcpy(msg.texto, getDato(std::string(msg.texto)).c_str());
+            if (msg.admin){
+                actualizarDato(msg.texto);
+            }
+            else {
+                strcpy(msg.texto, getDato(std::string(msg.texto)).c_str());
+            }
             // En id me indicaron en donde tenia que responder
             msg.mtype = msg.id;
             _cola.escribir(msg);
@@ -44,4 +49,3 @@ void Servicio::ejecutar() {
     }
     dumpData();
 }
-

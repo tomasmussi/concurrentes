@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <cstdlib>
 #include "ServicioMonedas.h"
 
 void ServicioMonedas::dumpData() {
@@ -17,7 +18,7 @@ void ServicioMonedas::dumpData() {
     outfile.close();
 }
 
-ServicioMonedas::ServicioMonedas(const Cola<mensaje> &cola) : Servicio(cola, MONEDA) {
+ServicioMonedas::ServicioMonedas(const Cola<mensajeSS> &cola) : Servicio(cola, MONEDA) {
     std::ifstream infile(ARCHIVO_MONEDAS);
     // Si existe el archivo, lo levanto
     if (infile.good()) {
@@ -34,11 +35,19 @@ ServicioMonedas::ServicioMonedas(const Cola<mensaje> &cola) : Servicio(cola, MON
     }
 }
 
+void ServicioMonedas::actualizarDato(char* dato){
+    std::string str(dato);
+    size_t pos = str.find(" ");
+    std::string key = str.substr(0,pos);
+    double value = atof(str.substr(pos+1).c_str());
+    _data[key]=value;
+}
+
 std::string ServicioMonedas::getDato(const std::string &key) {
     if (_data.find(key) == _data.end()) {
         return "No se encontró cambio para la moneda " + key;
     }
     std::stringstream ss;
-    ss << "El cambio de " << key << " es: 1 ARS = " << _data[key] << " " << key;
+    ss << "El cambio de " << key << " es: 1 " << key << " = " << _data[key] << " ARS";
     return ss.str();
 }

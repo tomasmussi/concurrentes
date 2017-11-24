@@ -10,10 +10,11 @@ private:
 protected:
     int _tipoServicio;
 public:
-    ServicioMonedas(const Cola<mensaje> &cola);
+    ServicioMonedas(const Cola<mensajeSS> &cola);
 
     virtual void dumpData();
     virtual std::string getDato(const std::string& key);
+    virtual void actualizarDato(char* data);
 };
 
 #endif //TP2_SERVICIOMONEDAS_H
