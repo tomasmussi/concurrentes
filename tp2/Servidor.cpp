@@ -139,13 +139,12 @@ void Servidor::ejecutar() {
         kill((*it), SIGINT);
     }
 
-    // TODO: Esto creo que no es necesario
-//    for (int i = 0; i < clientesProcesados; i++) {
-//        pid_t pid = wait(NULL);
-//        if (DEBUG) {
-//            std::cout << "Colectando cliente despachado [" << pid << "]" << std::endl;
-//        }
-//    }
+    for (int i = 0; i < clientesProcesados; i++) {
+        pid_t pid = wait(NULL);
+        if (DEBUG) {
+            std::cout << "Colectando cliente despachado [" << pid << "]" << std::endl;
+        }
+    }
 
     for (int i = 0; i < servicios.size(); i++) {
         pid_t pid = wait(NULL);
