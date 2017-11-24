@@ -81,9 +81,24 @@ std::string ServicioTiempo::getDato(const std::string &key) {
     }
     tiempo t = _data[key];
     std::stringstream ss;
-    ss << "El tiempo de " << key << " es: " << std::endl <<
-        "Temperatura: " << t.temperatura << "°C" << std::endl <<
-        "Presion: " << t.presion << "hPa" << std::endl <<
-        "Humedad: " << t.humedad << "%";
+    ss << "El tiempo de " << key << " es: " << std::endl;
+    if (t.temperatura < -273){
+        ss << "Temperatura: Desconocida"<< std::endl;
+    }
+    else{
+        ss << "Temperatura: " << t.temperatura << "°C" << std::endl;
+    }
+    if (t.presion < 0){
+        ss << "Presión: Desconocida"<< std::endl;
+    }
+    else{
+        ss << "Presión: " << t.presion << "hPa" << std::endl;
+    }
+    if (t.humedad < 0){
+        ss << "Humedad: Desconocida";
+    }
+    else{
+        ss << "Humedad: " << t.humedad << "%";
+    }
     return ss.str();
 }
