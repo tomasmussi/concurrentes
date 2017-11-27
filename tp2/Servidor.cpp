@@ -131,25 +131,26 @@ void Servidor::ejecutar() {
         }
     }
 
-    for (std::list<pid_t>::iterator it = procesosDespachados.begin(); it != procesosDespachados.end(); it++) {
-        // Enviar senial de finalizacion a servicios
-        if (DEBUG) {
-            std::cout << "Senializando [" << (*it) << "] de finalizacion de servidor" << std::endl;
-        }
-        kill((*it), SIGINT);
-    }
-
+    // Primero se espera a que terminen los workers con los servicios aún funcionando
     for (int i = 0; i < clientesProcesados; i++) {
         pid_t pid = wait(NULL);
         if (DEBUG) {
-            std::cout << "Colectando cliente despachado [" << pid << "]" << std::endl;
+            std::cout << "Colectando worker de cliente despachado [" << pid << "]" << std::endl;
         }
+    }
+
+    // Y luego se avisa a los servicios que deben terminar
+    for (std::list<pid_t>::iterator it = procesosDespachados.begin(); it != procesosDespachados.end(); it++) {
+        if (DEBUG) {
+            std::cout << "Senializando al servicio [" << (*it) << "] de finalizacion de servidor" << std::endl;
+        }
+        kill((*it), SIGINT);
     }
 
     for (int i = 0; i < servicios.size(); i++) {
         pid_t pid = wait(NULL);
         if (DEBUG) {
-            std::cout << "Colectando worker despachado [" << pid << "]" << std::endl;
+            std::cout << "Colectando servicio despachado [" << pid << "]" << std::endl;
         }
     }
 
