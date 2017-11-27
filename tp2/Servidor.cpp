@@ -2,12 +2,9 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <errno.h>
 
 #include "Servidor.h"
 #include "ipc/SignalHandler.h"
-#include "Constantes.h"
-#include "Servicio.h"
 #include "ServicioMonedas.h"
 #include "ServicioTiempo.h"
 
@@ -28,7 +25,7 @@ Servidor::Servidor() : colaClientes(MSG_ARCHIVO, CHAR_CLIENTE_SERVIDOR),
 }
 
 mensajeSS Servidor::enviarYRecibir(mensajeCS request, int idCliente, int tipo) {
-    // Le envío al servicio correspondiente (Indicado mediante el mtype) el id dónde se espera la respuesta
+    // Le envío al servicio correspondiente (Indicado mediante el mtype) el id donde se espera la respuesta
     mensajeSS req;
     req.mtype = tipo;
     req.id = idCliente;
@@ -69,8 +66,8 @@ void Servidor::dispatchWorkerConsulta() {
                 tipoServicio[TIEMPO] = "TIEMPO";
                 tipoServicio[MONEDA] = "MONEDA";
 
-                std::cout << "Worker [" << getpid() << "] - Recibida consulta cliente " << idCliente << ": " <<
-                    tipoServicio[request.tipo] << " por " << request.texto << std::endl;
+                std::cout << "Worker [" << getpid() << "] - Recibida consulta " << (request.admin ? "administrador " : "cliente ") <<
+                    idCliente << ": " << tipoServicio[request.tipo] << " por " << request.texto << std::endl;
             }
 
             // Hago un request al servicio correspondiente

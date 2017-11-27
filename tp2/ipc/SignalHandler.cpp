@@ -3,8 +3,7 @@
 SignalHandler* SignalHandler :: instance = NULL;
 EventHandler* SignalHandler :: signal_handlers [ NSIG ];
 
-SignalHandler :: SignalHandler() {
-}
+SignalHandler :: SignalHandler() {}
 
 SignalHandler* SignalHandler::getInstance() {
 	if (instance == NULL) {

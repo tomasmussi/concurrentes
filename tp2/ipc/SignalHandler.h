@@ -1,7 +1,7 @@
 #ifndef SIGNALHANDLER_H_
 #define SIGNALHANDLER_H_
 
-#include <signal.h>
+#include <csignal>
 #include <memory.h>
 
 #include "EventHandler.h"
@@ -11,7 +11,7 @@ private:
 	static SignalHandler* instance;
 	static EventHandler* signal_handlers[NSIG];
 
-	SignalHandler(void);
+	SignalHandler();
 	static void dispatcher(int signum);
 
 public:

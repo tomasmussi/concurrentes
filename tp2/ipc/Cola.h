@@ -4,7 +4,7 @@
 #include <sys/types.h>
 #include <sys/msg.h>
 #include <sys/ipc.h>
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 #include <cerrno>
 

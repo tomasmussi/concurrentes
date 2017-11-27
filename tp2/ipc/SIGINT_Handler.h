@@ -1,8 +1,8 @@
 #ifndef SIGINT_HANDLER_H_
 #define SIGINT_HANDLER_H_
 
-#include <signal.h>
-#include <assert.h>
+#include <csignal>
+#include <cassert>
 
 #include "EventHandler.h"
 
@@ -12,11 +12,9 @@ class SIGINT_Handler : public EventHandler {
 		sig_atomic_t gracefulQuit;
 
 	public:
-		SIGINT_Handler() : gracefulQuit(0) {
-		}
+		SIGINT_Handler() : gracefulQuit(0) {}
 
-		~SIGINT_Handler() {
-		}
+		~SIGINT_Handler() {}
 
 		virtual int handleSignal(int signum) {
 			assert(signum == SIGINT);
