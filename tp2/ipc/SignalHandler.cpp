@@ -29,14 +29,14 @@ EventHandler* SignalHandler::registrarHandler(int signum, EventHandler* eh) {
 	sa.sa_handler = SignalHandler :: dispatcher;
 	// inicializa la mascara de seniales a bloquear durante la ejecucion del handler como vacio
 	sigemptyset(&sa.sa_mask);
-	sigaddset(&sa.sa_mask,signum);
+	sigaddset(&sa.sa_mask, signum);
 	// cambiar accion de la senial
-	sigaction(signum,&sa,0);
+	sigaction(signum, &sa, 0);
 	return old_eh;
 }
 
 void SignalHandler :: dispatcher(int signum) {
-	if ( SignalHandler :: signal_handlers[signum] != 0 ) {
+	if (SignalHandler :: signal_handlers[signum] != 0) {
 		SignalHandler :: signal_handlers[signum]->handleSignal(signum);
 	}
 }

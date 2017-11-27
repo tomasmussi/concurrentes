@@ -19,7 +19,7 @@ public:
     ServicioTiempo(const Cola<mensajeSS> &cola);
 
     virtual void dumpData();
-    virtual std::string getDato(const std::string& key);
+    virtual std::string getDato(std::string& key);
     virtual void actualizarDato(char* data);
 };
 

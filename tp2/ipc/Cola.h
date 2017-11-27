@@ -14,10 +14,10 @@ private:
     int     id;
 
 public:
-    Cola(const std::string& archivo, const char letra);
+    Cola(const std::string& archivo, char letra);
     ~Cola();
     int escribir(const T& dato) const;
-    int leer(const int tipo, T* buffer) const;
+    int leer(int tipo, T* buffer) const;
     int destruir() const;
 };
 
@@ -49,7 +49,7 @@ template <class T> int Cola<T>::escribir(const T& dato) const {
 }
 
 template <class T> int Cola<T>::leer(const int tipo, T* buffer) const {
-    int resultado = msgrcv(this->id, static_cast<void *>(buffer), sizeof(T) - sizeof(long), tipo, 0);
+    int resultado = static_cast<int>(msgrcv(this->id, static_cast<void *>(buffer), sizeof(T) - sizeof(long), tipo, 0));
     if (resultado == -1 and errno != EINTR)
         perror("Error al leer de la cola");
     return resultado;

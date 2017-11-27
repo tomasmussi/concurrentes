@@ -7,24 +7,21 @@
 
 #define	TIEMPO 1
 #define	MONEDA 2
-#define TEXTO_SIZE	255
+#define TEXTO_SIZE 255
 
 typedef struct mensajeCS { // Cliente <-> Servidor
     long mtype; // 1, 2, idCliente o idCliente + 1
     int id; // Identificador del Cliente
     int tipo; // MONEDA o TIEMPO
     bool admin; // Flag administrador (read or write)
-    char texto[TEXTO_SIZE]; //Request o Respuesta
+    char texto[TEXTO_SIZE]; // Request o respuesta
 } mensajeCS;
 
 typedef struct mensajeSS { // Servidor <-> Servicio
-    long mtype; //MONEDA, TIEMPO o Identificador Cliente
+    long mtype; // MONEDA, TIEMPO o idCliente
     int id; // Identificador del cliente (donde se espera la respuesta)
-    bool admin; //Flag administrador
-    char texto[TEXTO_SIZE]; //Request o Respuesta
+    bool admin; // Flag administrador (read or write)
+    char texto[TEXTO_SIZE]; // Request o respuesta
 } mensajeSS;
-
-
-
 
 #endif //TP2_MENSAJES_H

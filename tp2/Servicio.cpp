@@ -33,11 +33,11 @@ void Servicio::ejecutar() {
             if (DEBUG) {
                 std::cout << "Servicio " << _tipoServicio << " leyo" << std::endl;
             }
-            if (msg.admin){
+            if (msg.admin) {
                 actualizarDato(msg.texto);
-            }
-            else {
-                strcpy(msg.texto, getDato(std::string(msg.texto)).c_str());
+            } else {
+                std::string texto = std::string(msg.texto);
+                strcpy(msg.texto, getDato(texto).c_str());
             }
             // En id me indicaron en donde tenia que responder
             msg.mtype = msg.id;

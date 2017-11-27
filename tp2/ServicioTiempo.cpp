@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -38,7 +39,7 @@ ServicioTiempo::ServicioTiempo(const Cola<mensajeSS> &cola) : Servicio(cola, TIE
     }
 }
 
-void ServicioTiempo::actualizarDato(char* data){
+void ServicioTiempo::actualizarDato(char* data) {
     std::string str(data);
     std::istringstream s(str);
     std::string record;
@@ -47,27 +48,25 @@ void ServicioTiempo::actualizarDato(char* data){
         vector.push_back(record);
     }
     std::string key = vector[0];
+    std::transform(key.begin(), key.end(), key.begin(), ::toupper);
     struct tiempo t;
-    if (_data.count(key) == 0){
-        //Inicializar todos los valores de alguna forma inválida ya que podrían no agregarse todos sus parametros
+    if (_data.count(key) == 0) {
+        // Inicializar todos los valores de alguna forma inválida ya que podrían no agregarse todos sus parametros
         t.temperatura = -274.0;
         t.presion = -1;
         t.humedad = -1.0;
-    }
-    else {
+    } else {
         t = _data[key];
     }
     size_t pos = 1;
-    while (pos < vector.size()-1){
+    while (pos < vector.size() - 1) {
         std::string param = vector[pos];
         double value = parseDouble(vector[pos+1]);
-        if (param == "t"){
+        if (param == "t") {
             t.temperatura = value;
-        }
-        else if (param == "p"){
+        } else if (param == "p") {
             t.presion = static_cast<int>(value);
-        }
-        else if (param == "h"){
+        } else if (param == "h") {
             t.humedad = value;
         }
         pos += 2;
@@ -75,29 +74,27 @@ void ServicioTiempo::actualizarDato(char* data){
     _data[key] = t;
 }
 
-std::string ServicioTiempo::getDato(const std::string &key) {
+std::string ServicioTiempo::getDato(std::string &key) {
+    std::transform(key.begin(), key.end(), key.begin(), ::toupper);
     if (_data.find(key) == _data.end()) {
         return "No se encontró tiempo para la ciudad " + key;
     }
     tiempo t = _data[key];
     std::stringstream ss;
     ss << "El tiempo de " << key << " es: " << std::endl;
-    if (t.temperatura < -273){
+    if (t.temperatura < -273) {
         ss << "Temperatura: Desconocida"<< std::endl;
-    }
-    else{
+    } else {
         ss << "Temperatura: " << t.temperatura << "°C" << std::endl;
     }
-    if (t.presion < 0){
+    if (t.presion < 0) {
         ss << "Presión: Desconocida"<< std::endl;
-    }
-    else{
+    } else {
         ss << "Presión: " << t.presion << "hPa" << std::endl;
     }
-    if (t.humedad < 0){
+    if (t.humedad < 0) {
         ss << "Humedad: Desconocida";
-    }
-    else{
+    } else {
         ss << "Humedad: " << t.humedad << "%";
     }
     return ss.str();

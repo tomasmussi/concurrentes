@@ -3,6 +3,7 @@
 #include <sstream>
 #include <vector>
 #include <cstdlib>
+#include <algorithm>
 #include "ServicioMonedas.h"
 
 void ServicioMonedas::dumpData() {
@@ -35,15 +36,20 @@ ServicioMonedas::ServicioMonedas(const Cola<mensajeSS> &cola) : Servicio(cola, M
     }
 }
 
-void ServicioMonedas::actualizarDato(char* dato){
+void ServicioMonedas::actualizarDato(char* dato) {
     std::string str(dato);
-    size_t pos = str.find(" ");
-    std::string key = str.substr(0,pos);
-    double value = atof(str.substr(pos+1).c_str());
-    _data[key]=value;
+    size_t pos = str.find(' ');
+    std::string key = str.substr(0, pos);
+    std::transform(key.begin(), key.end(), key.begin(), ::toupper);
+    std::string value_str = str.substr(pos + 1);
+    double value = parseDouble(value_str);
+    if (value > 0) {
+        _data[key] = value;
+    }
 }
 
-std::string ServicioMonedas::getDato(const std::string &key) {
+std::string ServicioMonedas::getDato(std::string &key) {
+    std::transform(key.begin(), key.end(), key.begin(), ::toupper);
     if (_data.find(key) == _data.end()) {
         return "No se encontró cambio para la moneda " + key;
     }

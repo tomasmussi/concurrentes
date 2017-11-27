@@ -16,7 +16,7 @@ protected:
 public:
     void ejecutar();
     virtual void dumpData() = 0;
-    virtual std::string getDato(const std::string& key) = 0;
+    virtual std::string getDato(std::string& key) = 0;
     virtual void actualizarDato(char *data) = 0;
     Servicio(const Cola<mensajeSS>& cola, int tipo);
 };
