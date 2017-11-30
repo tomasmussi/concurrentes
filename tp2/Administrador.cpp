@@ -19,66 +19,70 @@ void Administrador::ejecutar() {
     std::cout << "Para finalizar ingrese únicamente la letra 'q'" << std::endl;
 
     bool quit = false;
-    while (!quit) {
-        std::cout << "Ingrese la información a actualizar: ";
-        std::string line;
-        std::getline(std::cin, line);
-        if (line == "q") {
-            quit = true;
-            continue;
-        }
-        std::istringstream s(line);
-        std::string record;
-        std::vector<std::string> vector;
-        while (getline(s, record, ' ')) {
-            vector.push_back(record);
-        }
-        int tipo = parse_int(vector[0]);
-        if ((tipo == INVALIDO) or ((tipo != MONEDA) and (tipo != TIEMPO))) {
-            std::cout << "El primer parámetro debe ser un número entero y debe tomar el valor " << TIEMPO << " (Tiempo) o el valor " << MONEDA << " (Moneda)" << std::endl;
-            continue;
-        }
-        if (tipo == 1) {
-            // ESTADO DEL TIEMPO
-            if (vector.size() != 4 && vector.size() != 6 && vector.size() != 8) {
-                std::cout << "Cantidad de parámetros ingresada errónea. Deben ser 4, 6 u 8 para la actualización del estado del tiempo " << std::endl;
+    try {
+        while (!quit) {
+            std::cout << "Ingrese la información a actualizar: ";
+            std::string line;
+            std::getline(std::cin, line);
+            if (line == "q") {
+                quit = true;
                 continue;
             }
-            if (!validar_parametros_tiempo(&vector)) {
+            std::istringstream s(line);
+            std::string record;
+            std::vector<std::string> vector;
+            while (getline(s, record, ' ')) {
+                vector.push_back(record);
+            }
+            int tipo = parse_int(vector[0]);
+            if ((tipo == INVALIDO) or ((tipo != MONEDA) and (tipo != TIEMPO))) {
+                std::cout << "El primer parámetro debe ser un número entero y debe tomar el valor " << TIEMPO << " (Tiempo) o el valor " << MONEDA << " (Moneda)" << std::endl;
                 continue;
             }
-        } else {
-            // MONEDA
-            if (vector.size() != 3) {
-                std::cout << "Cantidad de parámetros ingresada errónea. Deben ser exactamente 3 para la cotización de una moneda " << std::endl;
-                continue;
+            if (tipo == 1) {
+                // ESTADO DEL TIEMPO
+                if (vector.size() != 4 && vector.size() != 6 && vector.size() != 8) {
+                    std::cout << "Cantidad de parámetros ingresada errónea. Deben ser 4, 6 u 8 para la actualización del estado del tiempo " << std::endl;
+                    continue;
+                }
+                if (!validar_parametros_tiempo(&vector)) {
+                    continue;
+                }
+            } else {
+                // MONEDA
+                if (vector.size() != 3) {
+                    std::cout << "Cantidad de parámetros ingresada errónea. Deben ser exactamente 3 para la cotización de una moneda " << std::endl;
+                    continue;
+                }
+                if (parse_double(vector[2]) < 0) {
+                    std::cout << "El valor de la cotización debe ser numérico positivo. Ejemplo de formato de número flotante: 17.23" << std::endl;
+                    continue;
+                }
             }
-            if (parse_double(vector[2]) < 0) {
-                std::cout << "El valor de la cotización debe ser numérico positivo. Ejemplo de formato de número flotante: 17.23" << std::endl;
-                continue;
-            }
-        }
-        std::string str = line.substr(2, std::string::npos);
-        const char *request = str.c_str();
+            std::string str = line.substr(2, std::string::npos);
+            const char *request = str.c_str();
 
-        mensajeCS m;
-        m.mtype = NUEVA_CONEXION;
-        cola.escribir(m);
-        int resultado = cola.leer(RESPUESTA_NUEVA_CONEXION, &m);
-        if (resultado != -1) {
-            // El request va a ser a donde me indica el handShake
-            int idCliente = m.id;
-            m.mtype = idCliente;
-            m.tipo = tipo;
-            m.admin = true;
-            strcpy(m.texto, request);
+            mensajeCS m;
+            m.mtype = NUEVA_CONEXION;
             cola.escribir(m);
+            int resultado = cola.leer(RESPUESTA_NUEVA_CONEXION, &m);
+            if (resultado != -1) {
+                // El request va a ser a donde me indica el handShake
+                int idCliente = m.id;
+                m.mtype = idCliente;
+                m.tipo = tipo;
+                m.admin = true;
+                strcpy(m.texto, request);
+                cola.escribir(m);
 
-            // Espero la respuesta en idCliente + 1
-            mensajeCS rta;
-            // La respuesta no interesa para el administrador, pero hay que leerla para que no quede en la cola
-            cola.leer(idCliente + 1, &rta);
+                // Espero la respuesta en idCliente + 1
+                mensajeCS rta;
+                // La respuesta no interesa para el administrador, pero hay que leerla para que no quede en la cola
+                cola.leer(idCliente + 1, &rta);
+            }
         }
+    } catch (std::string e) {
+        std::cout << "No se ha podido comunicar con el servidor. Cerrando conexión..." << std::endl;
     }
 }
 

@@ -36,22 +36,31 @@ template <class T> Cola<T>::~Cola() {
 
 template <class T> int Cola<T>::destruir() const {
     int resultado = msgctl(this->id, IPC_RMID, NULL);
-    if (resultado == -1)
-        perror("Error al destruir cola");
+    if (resultado == -1) {
+        std::string error = "Error al destruir cola";
+        perror(error.c_str());
+        throw error;
+    }
     return resultado;
 }
 
 template <class T> int Cola<T>::escribir(const T& dato) const {
     int resultado = msgsnd(this->id, static_cast<const void*>(&dato), sizeof(T) - sizeof(long), 0);
-    if (resultado == -1 and errno != EINTR)
-        perror("Error al escribir en cola");
+    if (resultado == -1 and errno != EINTR) {
+        std::string error = "Error al escribir en cola";
+        perror(error.c_str());
+        throw error;
+    }
     return resultado;
 }
 
 template <class T> int Cola<T>::leer(const int tipo, T* buffer) const {
     int resultado = static_cast<int>(msgrcv(this->id, static_cast<void *>(buffer), sizeof(T) - sizeof(long), tipo, 0));
-    if (resultado == -1 and errno != EINTR)
-        perror("Error al leer de la cola");
+    if (resultado == -1 and errno != EINTR) {
+        std::string error = "Error al leer de la cola";
+        perror(error.c_str());
+        throw error;
+    }
     return resultado;
 }
 
